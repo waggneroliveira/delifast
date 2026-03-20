@@ -14,7 +14,7 @@
         price: '109,90',
         oldPrice: '119,90',
         cashback: 5,
-        image: '/img/burger.jpg'
+        image: '../src/assets/images/prod.png'
       }
     ]
 
