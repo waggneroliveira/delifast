@@ -1,0 +1,19 @@
+<template>
+  <div>
+    <ProductSection
+      v-for="category in categories"
+      :key="category.id"
+      :title="category.name"
+      :products="category.products"
+      @add="$emit('add', $event)"
+    />
+  </div>
+</template>
+
+<script setup>
+import ProductSection from './ProductSection.vue'
+
+defineProps({
+  categories: Array
+})
+</script>

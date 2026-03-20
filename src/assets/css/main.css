@@ -1,0 +1,12 @@
+:root {
+  --font-primary: 'Inter', sans-serif;
+  --color-grey: #333633;
+}
+
+body {
+    font-family: var(--font-primary);
+    background: #F5F5F5;
+}
+p, .horous-day{
+    color: var(--color-grey);
+}
