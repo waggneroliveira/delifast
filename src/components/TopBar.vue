@@ -1,6 +1,25 @@
 <template>
   <div class="top-bar d-flex justify-content-between align-items-start gap-2 gap-md-3 mt-5 flex-wrap">
-    
+        <!-- Logo -->
+    <div class="image text-center mb-3 position-relative rounded-circle">
+        <img 
+            src="@/assets/images/logo.png" 
+            alt="Oxente Açaiteria"
+            class="logo"
+        />
+    </div>
+
+    <!-- Nome + status -->
+    <div class="text-start mb-4 w-100">
+      <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
+      <small class="d-block">Praticidade que alimenta.</small>
+      
+      <div class="d-flex justify-content-start align-items-center mt-2">
+        <span class="status-dot me-1"></span>
+        <small>Aberto</small>
+      </div>
+    </div>
+
     <!-- Horários e contato -->
     <div class="d-flex flex-row flex-wrap align-items-start gap-2 text-secondary small">
       
@@ -72,9 +91,9 @@
           </svg>
 
           <div class="d-flex flex-column gap-1">
-            <span class="points"></span>
-            <span class="points"></span>
-            <span class="points"></span>
+            <span class="points rounded-pill"></span>
+            <span class="points rounded-pill"></span>
+            <span class="points rounded-pill"></span>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="card product-card h-100">
     <div class="position-relative">
-      <span class="badge bg-success position-absolute top-0 start-0 m-2 small">
+      <span class="badge cashback position-absolute top-0 start-0 m-2 small">
         {{ product.cashback }}% cashback
       </span>
 
@@ -32,14 +32,19 @@
 </template>
 
 <script setup>
-defineProps({
-  product: Object
-})
+  defineProps({
+    product: Object
+  })
 </script>
 
 <style scoped>
-.product-card img {
-  height: 140px;
-  object-fit: cover;
-}
+  .cashback{
+    background: #D9FFE6;
+    color: #2F2B2B;
+    font-size: clamp(0.75rem, 0.875vw, 0.875rem);
+  }
+  .product-card img {
+    height: 140px;
+    object-fit: cover;
+  }
 </style>

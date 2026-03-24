@@ -10,12 +10,48 @@
       {
         id: 1,
         name: 'Hambúrguer Clássico',
-        description: 'Pão brioche, carne 180g...',
+        description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
         price: '109,90',
         oldPrice: '119,90',
         cashback: 5,
         image: '../src/assets/images/prod.png'
-      }
+      },
+      {
+        id: 2,
+        name: 'Hambúrguer Clássico 2',
+        description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+        price: '109,90',
+        oldPrice: '119,90',
+        cashback: 5,
+        image: '../src/assets/images/prod.png'
+      },
+      {
+        id: 3,
+        name: 'Hambúrguer Clássico 3',
+        description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+        price: '109,90',
+        oldPrice: '119,90',
+        cashback: 5,
+        image: '../src/assets/images/prod.png'
+      },
+      {
+        id: 4,
+        name: 'Hambúrguer Clássico 4',
+        description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+        price: '109,90',
+        oldPrice: '119,90',
+        cashback: 5,
+        image: '../src/assets/images/prod.png'
+      },
+      {
+        id: 5,
+        name: 'Hambúrguer Clássico 5',
+        description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+        price: '109,90',
+        oldPrice: '119,90',
+        cashback: 5,
+        image: '../src/assets/images/prod.png'
+      },
     ]
 
     const categories = [
@@ -37,9 +73,9 @@
 </script>
 
 <template>
-  <div class="w-100">
+  <div class="container-fluid p-0">
     <Header class="header" />
-    <div class="container layout">
+    <div class="layout">
       <Aside class="aside" />
       <main class="main">
         <TopBar/>
