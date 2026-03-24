@@ -1,27 +1,29 @@
 <template>
-  <div class="top-bar d-flex justify-content-between align-items-start gap-2 gap-md-3 mt-5 flex-wrap">
-        <!-- Logo -->
-    <div class="image text-center mb-3 position-relative rounded-circle">
-        <img 
-            src="@/assets/images/logo.png" 
-            alt="Oxente Açaiteria"
-            class="logo"
-        />
-    </div>
+  <div class="top-bar d-flex justify-content-between align-items-start gap-2 gap-md-3 flex-wrap position-relative">
+    <div class="content-logo">
+      <!-- Logo -->
+      <div class="image text-center mb-3 position-relative rounded-circle">
+          <img 
+              src="@/assets/images/logo.png" 
+              alt="Oxente Açaiteria"
+              class="logo"
+          />
+      </div>
 
-    <!-- Nome + status -->
-    <div class="text-start mb-4 w-100">
-      <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
-      <small class="d-block">Praticidade que alimenta.</small>
-      
-      <div class="d-flex justify-content-start align-items-center mt-2">
-        <span class="status-dot me-1"></span>
-        <small>Aberto</small>
+      <!-- Nome + status -->
+      <div class="text-start mb-4 w-100">
+        <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
+        <small class="d-block">Praticidade que alimenta.</small>
+        
+        <div class="d-flex justify-content-start align-items-center mt-2">
+          <span class="status-dot me-1"></span>
+          <small>Aberto</small>
+        </div>
       </div>
     </div>
-
+    
     <!-- Horários e contato -->
-    <div class="d-flex flex-row flex-wrap align-items-start gap-2 text-secondary small">
+    <div class="d-flex flex-row flex-wrap align-items-start gap-2 text-secondary small mt-5">
       
       <div class="horous">
         <div class="d-flex align-items-start gap-2 mb-1 pe-2 border-end">
@@ -55,7 +57,7 @@
     </div>
 
     <!-- Busca e ações -->
-    <div class="border-start ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-end flex-wrap flex-grow-1 right-container">
+    <div class="border-start ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-end flex-wrap flex-grow-1 right-container mt-5">
 
       <!-- Botão -->
       <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0">
@@ -103,106 +105,132 @@
 </template>
 
 <style scoped>
-/* RESET */
-.btn-reset {
-  all: unset;
-  cursor: pointer;
-}
+  .image{
+      width: 210px;
+      height: 210px;
+      margin-top: -170px;
+      background: #FFF;
+      border: 7px solid rgba(0, 0, 0, 0.10);
+  }
+  .logo {
+      width: 195px;
+      height: 100%;
+      object-fit: contain;
+  }
 
-/* CORES */
-.location-delivery,
-.bi-search,
-.number-car {
-  background: #A4268E;
-}
+  .text-purple {
+      color: #A4268E;
+  }
 
-/* INPUT */
-.input-search {
-  border-color: #A4268E;
-  width: 100%;
-}
+  .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #28a745;
+      border-radius: 50%;
+  }
+  /* RESET */
+  .btn-reset {
+    all: unset;
+    cursor: pointer;
+  }
 
-/* TAMANHOS */
-.height-35 {
-  height: 35px;
-}
+  /* CORES */
+  .location-delivery,
+  .bi-search,
+  .number-car {
+    background: #A4268E;
+  }
 
-/* RESPONSIVIDADE DO INPUT */
-.search-wrapper {
-  min-width: 180px;
-  max-width: 360px;
-  width: 100%;
-}
+  /* INPUT */
+  .input-search {
+    border-color: #A4268E;
+    width: 100%;
+  }
 
-/* ÍCONE BUSCA */
-.search-icon {
-  border-radius: 0 5px 5px 0;
-  width: 45px;
-}
+  /* TAMANHOS */
+  .height-35 {
+    height: 35px;
+  }
 
-/* TEXTO */
-.horous-day {
-  font-size: clamp(0.75rem, 0.85vw, 0.9rem);
-}
-
-.horous-day i {
-  font-style: normal;
-  font-size: 0.75rem;
-}
-
-/* CARRINHO */
-.number-car {
-  height: 16px;
-  width: 16px;
-  font-size: clamp(0.5rem, 0.7vw, 0.7rem);
-  top: 6px;
-}
-
-/* ÍCONES */
-.svg-car {
-  width: 22px;
-}
-
-/* PONTOS */
-.points {
-  height: 6px;
-  width: 6px;
-  background: #A4268E;
-}
-
-/* AJUSTE FINO DESKTOP GRANDE */
-@media (min-width: 1400px) {
+  /* RESPONSIVIDADE DO INPUT */
   .search-wrapper {
-    max-width: 420px;
+    min-width: 180px;
+    max-width: 360px;
+    width: 100%;
   }
 
-  .top-bar {
-    gap: 20px;
-  }
-}
-
-/* TABLET */
-@media (max-width: 992px) {
-  .search-wrapper {
-    max-width: 100%;
-  }
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .top-bar {
-    gap: 10px;
+  /* ÍCONE BUSCA */
+  .search-icon {
+    border-radius: 0 5px 5px 0;
+    width: 45px;
   }
 
-  .right-container {
-    border-left: none !important;
-    padding-left: 0 !important;
-    justify-content: space-between;
+  /* TEXTO */
+  .horous-day {
+    font-size: clamp(0.75rem, 0.85vw, 0.9rem);
   }
 
-  .search-wrapper {
-    min-width: 100%;
-    order: 3;
+  .horous-day i {
+    font-style: normal;
+    font-size: 0.75rem;
   }
-}
+
+  /* CARRINHO */
+  .number-car {
+    height: 16px;
+    width: 16px;
+    font-size: clamp(0.5rem, 0.7vw, 0.7rem);
+    top: 6px;
+  }
+
+  /* ÍCONES */
+  .svg-car {
+    width: 22px;
+  }
+
+  /* PONTOS */
+  .points {
+    height: 6px;
+    width: 6px;
+    background: #A4268E;
+  }
+  .top-bar{
+    z-index: 12;
+  }
+
+  /* AJUSTE FINO DESKTOP GRANDE */
+  @media (min-width: 1400px) {
+    .search-wrapper {
+      max-width: 420px;
+    }
+
+    .top-bar {
+      gap: 20px;
+    }
+  }
+
+  /* TABLET */
+  @media (max-width: 992px) {
+    .search-wrapper {
+      max-width: 100%;
+    }
+  }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .top-bar {
+      gap: 10px;
+    }
+
+    .right-container {
+      border-left: none !important;
+      padding-left: 0 !important;
+      justify-content: space-between;
+    }
+
+    .search-wrapper {
+      min-width: 100%;
+      order: 3;
+    }
+  }
 </style>

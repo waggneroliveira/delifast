@@ -44,7 +44,10 @@
     font-size: clamp(0.75rem, 0.875vw, 0.875rem);
   }
   .product-card img {
-    height: 140px;
+    height: 250px;
     object-fit: cover;
+  }
+  h6{
+    font-size: clamp(0.75rem, 1.25vw, 1rem);
   }
 </style>

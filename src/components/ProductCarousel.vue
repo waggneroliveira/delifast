@@ -2,14 +2,16 @@
   <div class="mb-4">
     <h5 class="mb-3">Destaques</h5>
 
-    <Swiper
-      :modules="[]"
-      :space-between="12"
-      :slides-per-view="1.2"
-      :breakpoints="breakpoints"
-      navigation
-      class="pb-2 swiper-overflow-fix"
-    >
+      <Swiper
+        :modules="[]"
+        :space-between="12"
+        :slides-per-view="1.2"
+        :slides-per-group="1"
+        navigation
+        :loop="true"
+        class="pb-2"
+        :breakpoints="breakpoints"
+      >
       <SwiperSlide
         v-for="product in products"
         :key="product.id"
@@ -38,25 +40,16 @@ defineProps({
   products: Array
 })
 
-// Breakpoints (ajuste fino aqui 👇)
+// Breakpoints
 const breakpoints = {
-  576: {
-    slidesPerView: 2.2
-  },
-  768: {
-    slidesPerView: 3
-  },
-  992: {
-    slidesPerView: 4
-  },
-  1360: {
-    slidesPerView: 4.8
-  }
-}
+  640: { slidesPerView: 1.5, slidesPerGroup: 1 },
+  768: { slidesPerView: 2, slidesPerGroup: 1 },
+  1024: { slidesPerView: 3, slidesPerGroup: 1 },
+  1279: { slidesPerView: 3.90, slidesPerGroup: 1 },
+  1360: { slidesPerView: 3.98, slidesPerGroup: 1 },
+};
 </script>
 
 <style scoped>
-  .swiper-overflow-fix {
-    padding-right: 16px;
-  }
+
 </style>

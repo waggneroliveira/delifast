@@ -52,13 +52,59 @@
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
+      {
+        id: 6,
+        name: 'Hambúrguer Clássico 6',
+        description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+        price: '109,90',
+        oldPrice: '119,90',
+        cashback: 5,
+        image: '../src/assets/images/prod.png'
+      },
     ]
 
     const categories = [
       {
         id: 1,
         name: 'Entradas',
-        products: [/* array */]
+        products: [
+          {
+            id: 7,
+            name: 'Hambúrguer Clássico 7',
+            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 8,
+            name: 'Hambúrguer Clássico 8',
+            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 9,
+            name: 'Hambúrguer Clássico 9',
+            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 10,
+            name: 'Hambúrguer Clássico 10',
+            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+        ]
       },
       {
         id: 2,
@@ -75,59 +121,60 @@
 <template>
   <div class="container-fluid p-0">
     <Header class="header" />
+
     <div class="layout">
-      <Aside class="aside" />
       <main class="main">
-        <TopBar/>
-          <div class="container py-4">
 
-            <!-- Destaques -->
-            <ProductCarousel :products="highlights" @add="addToCart" />
+        <!-- Topo CONTIDO -->
+        <div class="container">
+          <TopBar />
+        </div>
 
-            <!-- Categorias -->
-            <ProductList :categories="categories" @add="addToCart" />
+        <div class="container py-4">
+  
+          <div class="d-flex flex-wrap">
+            <Aside class="aside" />
 
+            <div class="content">
+
+              <div class="carousel-breakout">
+                <ProductCarousel
+                  :products="highlights"
+                  @add="addToCart"
+                />
+              </div>
+
+              <div class="list-product">
+                <ProductList
+                  :categories="categories"
+                  @add="addToCart"
+                />
+              </div>
+
+            </div>
           </div>
+
+        </div>
+
         <RouterView />
+
       </main>
     </div>
   </div>
 </template>
 
 <style scoped>
-  .layout {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    grid-template-rows: auto 1fr;
-
-    grid-template-areas:
-      "header header"
-      "aside  main";
-
-    min-height: 100vh;
+  .list-product{
+      width: 69vw;
+      margin-left: calc(-30vw + 50%);
+  }
+  .carousel-breakout {
+    width: 90vw;
+    margin-left: calc(-30vw + 50%);
   }
 
-  .header {
-    grid-area: header;
-    z-index: 10;
-  }
-
-  .aside {
-    grid-area: aside;
-    z-index: 12;
-  }
-
-  .main {
-    grid-area: main;
-  }
-  @media (max-width: 768px) {
-    .layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto 1fr;
-        grid-template-areas:
-            "header"
-            "aside"
-            "main";
-    }
+  /* opcional: controlar o lado direito */
+  .carousel-breakout .swiper {
+    padding-right: 2rem;
   }
 </style>

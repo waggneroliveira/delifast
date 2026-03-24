@@ -2,11 +2,18 @@
   --font-primary: 'Inter', sans-serif;
   --color-grey: #333633;
 }
-
+.btn-primary{
+    background: #A4268E !important;
+    border-color: #A4268E !important;
+}
 body {
     font-family: var(--font-primary);
     background: #F5F5F5;
+    overflow-x: clip;
 }
 p, .horous-day{
     color: var(--color-grey);
+}
+.small{
+    font-size: 0.813rem !important;
 }
