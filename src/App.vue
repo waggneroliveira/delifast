@@ -6,6 +6,7 @@
     import ProductCarousel from '@/components/ProductCarousel.vue'
     import ProductList from '@/components/ProductList.vue'
     import Announcement from '@/components/Announcement.vue'
+    import Cart from '@/components/Cart.vue'
 
     const highlights = [
       {
@@ -158,6 +159,8 @@
 <template>
   <div class="container-fluid p-0">
     <Header class="header" />
+    
+    <Cart />
 
     <div class="layout">
       <main class="main">
