@@ -1,17 +1,17 @@
 <template>
   <div class="mb-4">
-    <h5 class="mb-3">Destaques</h5>
-
-      <Swiper
-        :modules="[]"
-        :space-between="12"
-        :slides-per-view="1.2"
-        :slides-per-group="1"
-        navigation
-        :loop="true"
-        class="pb-2"
-        :breakpoints="breakpoints"
-      >
+    <h5 class="mb-4 title-section-product">Destaques</h5>
+      
+    <Swiper
+      :modules="[]"
+      :space-between="12"
+      :slides-per-view="1.2"
+      :slides-per-group="1"
+      navigation
+      :loop="true"
+      class="pb-2"
+      :breakpoints="breakpoints"
+    >
       <SwiperSlide
         v-for="product in products"
         :key="product.id"

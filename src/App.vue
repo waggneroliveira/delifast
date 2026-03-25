@@ -5,6 +5,7 @@
     import TopBar from '@/components/TopBar.vue'
     import ProductCarousel from '@/components/ProductCarousel.vue'
     import ProductList from '@/components/ProductList.vue'
+    import Announcement from '@/components/Announcement.vue'
 
     const highlights = [
       {
@@ -71,7 +72,7 @@
           {
             id: 7,
             name: 'Hambúrguer Clássico 7',
-            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            description: '4 smash burguers com 400g de fritas, creme...',
             price: '109,90',
             oldPrice: '119,90',
             cashback: 5,
@@ -80,7 +81,7 @@
           {
             id: 8,
             name: 'Hambúrguer Clássico 8',
-            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            description: '4 smash burguers com 400g de fritas, creme...',
             price: '109,90',
             oldPrice: '119,90',
             cashback: 5,
@@ -89,7 +90,7 @@
           {
             id: 9,
             name: 'Hambúrguer Clássico 9',
-            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            description: '4 smash burguers com 400g de fritas, creme...',
             price: '109,90',
             oldPrice: '119,90',
             cashback: 5,
@@ -98,7 +99,43 @@
           {
             id: 10,
             name: 'Hambúrguer Clássico 10',
-            description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+            description: '4 smash burguers com 400g de fritas, creme...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 11,
+            name: 'Hambúrguer Clássico 11',
+            description: '4 smash burguers com 400g de fritas, creme...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 12,
+            name: 'Hambúrguer Clássico 12',
+            description: '4 smash burguers com 400g de fritas, creme...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 13,
+            name: 'Hambúrguer Clássico 13',
+            description: '4 smash burguers com 400g de fritas, creme...',
+            price: '109,90',
+            oldPrice: '119,90',
+            cashback: 5,
+            image: '../src/assets/images/prod.png'
+          },
+          {
+            id: 14,
+            name: 'Hambúrguer Clássico 14',
+            description: '4 smash burguers com 400g de fritas, creme...',
             price: '109,90',
             oldPrice: '119,90',
             cashback: 5,
@@ -127,17 +164,20 @@
 
         <!-- Topo CONTIDO -->
         <div class="container">
-          <TopBar />
+          <TopBar />          
         </div>
 
-        <div class="container py-4">
+        <div class="container py-0">
   
           <div class="d-flex flex-wrap">
             <Aside class="aside" />
 
             <div class="content">
 
+              <Announcement/>
+              
               <div class="carousel-breakout">
+
                 <ProductCarousel
                   :products="highlights"
                   @add="addToCart"
@@ -171,6 +211,7 @@
   .carousel-breakout {
     width: 90vw;
     margin-left: calc(-30vw + 50%);
+    margin-top: -40px;
   }
 
   /* opcional: controlar o lado direito */

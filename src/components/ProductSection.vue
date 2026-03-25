@@ -1,12 +1,12 @@
 <template>
   <div class="mb-5">
-    <h5 class="mb-3">{{ title }}</h5>
+    <h5 class="mb-4 title-section-product">{{ title }}</h5>
 
-    <div class="d-flex gap-1">
+    <div class="product-grid">
       <div
         v-for="product in products"
         :key="product.id"
-        class="col-6 col-md-4 col-lg-3 mb-3 p-0"
+        class="product-item"
       >
         <ProductCard :product="product" @add="$emit('add', $event)" />
       </div>
@@ -24,10 +24,31 @@
 </script>
 
 <style scoped>
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 12px;
+  }
+
+  .product-item {
+    width: 100%;
+  }
   ::v-deep(.product-card img) {
     height: 200px;
   }
   ::v-deep(h6) {
     font-size: clamp(0.875rem, 0.938rem, 0.938rem);
+  }
+
+  @media (min-width: 768px) {
+    .product-grid {
+      grid-template-columns: repeat(3, 1fr); /* tablet */
+    }
+  }
+
+  @media (min-width: 992px) {
+    .product-grid {
+      grid-template-columns: repeat(4, 1fr); /* desktop */
+    }
   }
 </style>

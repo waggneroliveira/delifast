@@ -16,15 +16,20 @@
       </p>
 
       <div class="mt-auto d-flex justify-content-between align-items-center">
-        <div>
-          <strong class="text-dark">R$ {{ product.price }}</strong>
-          <div class="text-muted small text-decoration-line-through" v-if="product.oldPrice">
-            R$ {{ product.oldPrice }}
+        <div class="info-price">
+          <strong class="text-dark price">R$ {{ product.price }}</strong>
+          <div class="d-flex gap-1">
+            <div class="text-muted small text-decoration-line-through" v-if="product.oldPrice">
+              R$ {{ product.oldPrice }}
+            </div>
+            <div class="percent rounded-1 text-white d-flex justify-content-center align-items-center px-1">
+              11%
+            </div>
           </div>
         </div>
 
         <button class="btn btn-sm btn-primary" @click="$emit('add', product)">
-          Adicionar
+          <span class="me-2">+</span> Adicionar
         </button>
       </div>
     </div>
@@ -38,6 +43,9 @@
 </script>
 
 <style scoped>
+  .price{
+    font-size: clamp(0.75rem, 1.25vw, 1rem);
+  }
   .cashback{
     background: #D9FFE6;
     color: #2F2B2B;
@@ -46,6 +54,11 @@
   .product-card img {
     height: 250px;
     object-fit: cover;
+  }
+  .percent{
+    background: #A4268E;
+    font-size: 0.75rem;
+    font-weight: 600;
   }
   h6{
     font-size: clamp(0.75rem, 1.25vw, 1rem);
