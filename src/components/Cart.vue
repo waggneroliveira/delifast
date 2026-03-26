@@ -34,50 +34,57 @@
             </div>
 
             <!-- Item -->
-            <div class="cart-item d-flex mb-3">
-            <img src="@/assets/images/prod.png" class="item-img">
+            <div 
+            v-for="item in cart.items" 
+            :key="item.id" 
+            class="cart-item d-flex mb-3"
+            >
+                <img :src="item.image" class="item-img">
 
-            <div class="flex-grow-1 ms-2">
-                <div class="fw-bold">Hambúrguer Clássico</div>
-                <div class="small text-muted">
-                Adicional: Molho Rosé... <span class="text-primary">Ver mais</span>
+                <div class="flex-grow-1 ms-2">
+                    <div class="fw-bold">{{ item.name }}</div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                    <strong> {{ formatPrice(item.price) }}</strong>
+
+                    <div class="qty-control d-flex justify-content-center align-items-center">
+                        <button class="btn-minus" @click="cart.decrease(item.id)">-</button>
+                        <span class="mx-2">{{ item.quantity }}</span>
+                        <button class="btn-plus" @click="cart.add(item)">+</button>
+                    </div>
+                    </div>
                 </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-1">
-                <strong>R$ 109,90</strong>
-
-                <div class="qty-control d-flex justify-content-center align-items-center">
-                    <button class="btn-minus">-</button>
-                    <span class="mx-2">1</span>
-                    <button class="btn-plus">+</button>
-                </div>
-                </div>
-            </div>
             </div>
 
-            <!-- Totais -->
-            <div class="cart-summary mt-3">
-            <div class="d-flex justify-content-between">
-                <span>Sub Total:</span>
-                <strong>R$ 109,90</strong>
-            </div>
+        <!-- Totais -->
+        <div class="cart-summary mt-3">
 
-            <div class="d-flex justify-content-between">
-                <span>Desconto:</span>
-                <strong>R$ 10,00</strong>
-            </div>
+        <!-- Subtotal -->
+        <div class="d-flex justify-content-between">
+            <span>Sub Total:</span>
+            <strong>{{ formatPrice(cart.subTotal) }}</strong>
+        </div>
 
-            <div class="mt-2">
-                <input type="text" class="form-control" placeholder="Digite o código aqui">
-            </div>
+        <!-- Desconto -->
+        <div class="d-flex justify-content-between" v-if="cart.discount > 0">
+            <span>Desconto:</span>
+            <strong>- {{ formatPrice(cart.discount) }}</strong>
+        </div>
 
-            <hr>
+        <!-- Cupom -->
+        <div class="mt-2">
+            <input type="text" class="form-control" placeholder="Digite o código aqui">
+        </div>
 
-            <div class="d-flex justify-content-between">
-                <span>Total:</span>
-                <strong>R$ 100,00</strong>
-            </div>
-            </div>
+        <hr>
+
+        <!-- Total -->
+        <div class="d-flex justify-content-between">
+            <span>Total:</span>
+            <strong>{{ formatPrice(cart.total) }}</strong>
+        </div>
+
+        </div>
 
         </div>
 
@@ -90,6 +97,19 @@
 
     </div>
 </template>
+
+<script setup>
+    import { useCartStore } from '@/stores/useCartStore'
+
+    const cart = useCartStore()
+
+    const formatPrice = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value)
+    }
+</script>
 
 <style scoped>
 .my-cart{

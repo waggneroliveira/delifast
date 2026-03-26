@@ -13,8 +13,8 @@
         id: 1,
         name: 'Hambúrguer Clássico',
         description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
-        price: '109,90',
-        oldPrice: '119,90',
+        price: 109.90,
+        oldPrice: 119.90,
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
@@ -22,8 +22,8 @@
         id: 2,
         name: 'Hambúrguer Clássico 2',
         description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
-        price: '109,90',
-        oldPrice: '119,90',
+        price: 109.90,
+        oldPrice: 119.90,
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
@@ -31,8 +31,8 @@
         id: 3,
         name: 'Hambúrguer Clássico 3',
         description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
-        price: '109,90',
-        oldPrice: '119,90',
+        price: 109.90,
+        oldPrice: 119.90,
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
@@ -40,8 +40,8 @@
         id: 4,
         name: 'Hambúrguer Clássico 4',
         description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
-        price: '109,90',
-        oldPrice: '119,90',
+        price: 109.90,
+        oldPrice: 119.90,
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
@@ -49,8 +49,8 @@
         id: 5,
         name: 'Hambúrguer Clássico 5',
         description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
-        price: '109,90',
-        oldPrice: '119,90',
+        price: 109.90,
+        oldPrice: 119.90,
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
@@ -58,8 +58,8 @@
         id: 6,
         name: 'Hambúrguer Clássico 6',
         description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
-        price: '109,90',
-        oldPrice: '119,90',
+        price: 109.90,
+        oldPrice: 119.90,
         cashback: 5,
         image: '../src/assets/images/prod.png'
       },
@@ -74,8 +74,8 @@
             id: 7,
             name: 'Hambúrguer Clássico 7',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -83,8 +83,8 @@
             id: 8,
             name: 'Hambúrguer Clássico 8',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -92,8 +92,8 @@
             id: 9,
             name: 'Hambúrguer Clássico 9',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -101,8 +101,8 @@
             id: 10,
             name: 'Hambúrguer Clássico 10',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -110,8 +110,8 @@
             id: 11,
             name: 'Hambúrguer Clássico 11',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -119,8 +119,8 @@
             id: 12,
             name: 'Hambúrguer Clássico 12',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -128,8 +128,8 @@
             id: 13,
             name: 'Hambúrguer Clássico 13',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -137,8 +137,8 @@
             id: 14,
             name: 'Hambúrguer Clássico 14',
             description: '4 smash burguers com 400g de fritas, creme...',
-            price: '109,90',
-            oldPrice: '119,90',
+            price: 109.90,
+            oldPrice: 119.90,
             cashback: 5,
             image: '../src/assets/images/prod.png'
           },
@@ -151,8 +151,12 @@
       }
     ]
 
+    import { useCartStore } from '@/stores/useCartStore'
+
+    const cart = useCartStore()
+
     function addToCart(product) {
-      console.log('Adicionar:', product)
+      cart.add(product)
     }
 </script>
 
