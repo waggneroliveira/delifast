@@ -84,7 +84,7 @@
             </svg>
 
             <span class="position-absolute number-car start-100 translate-middle badge rounded-pill d-flex justify-content-center align-items-center">
-              2
+              {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
             </span>
           </button>
         </div>
@@ -124,6 +124,12 @@
   </div>
 
 </template>
+
+<script setup>
+  import { useCartStore } from '@/stores/useCartStore'
+
+  const cartStore = useCartStore()
+</script>
 
 <style scoped>
   .reset-button {
