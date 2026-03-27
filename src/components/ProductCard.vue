@@ -23,7 +23,7 @@
               R$ {{ product.oldPrice }}
             </div>
             <div class="percent rounded-1 text-white d-flex justify-content-center align-items-center px-1">
-              11%
+              {{ Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) }}%
             </div>
           </div>
         </div>

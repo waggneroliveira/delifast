@@ -38,20 +38,44 @@
             v-for="item in cart.items" 
             :key="item.id" 
             class="cart-item d-flex mb-3"
-            >
-                <img :src="item.image" class="item-img">
-
+            >   
+                <div class="d-flex flex-column">
+                    <img :src="item.image" class="item-img">
+                    <span class="badge cashback my-2 small d-none">
+                        {{ item.cashback }}% cashback
+                    </span>
+                </div>
                 <div class="flex-grow-1 ms-2">
                     <div class="fw-bold">{{ item.name }}</div>
+                    <p class="text-muted small mb-2">
+                        {{ item.description }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-0">
 
-                    <div class="d-flex justify-content-between align-items-center mt-1">
-                    <strong> {{ formatPrice(item.price) }}</strong>
+                        <div class="d-flex flex-column gap-0">
+                            <strong> {{ formatPrice(item.price) }}</strong>
+                            <div class="d-flex gap-1" v-if="cart.oldPrice != ''">
+                                <div class="text-muted small text-decoration-line-through" v-if="item.oldPrice">
+                                    {{ formatPrice(item.oldPrice) }}
+                                </div>
+                                <div class="percent rounded-1 text-white d-flex justify-content-center align-items-center px-1">
+                                    {{ Math.round(((item.oldPrice - item.price) / item.oldPrice) * 100) }}%
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="qty-control d-flex justify-content-center align-items-center">
-                        <button class="btn-minus" @click="cart.decrease(item.id)">-</button>
-                        <span class="mx-2">{{ item.quantity }}</span>
-                        <button class="btn-plus" @click="cart.add(item)">+</button>
-                    </div>
+                        <div class="qty-control d-flex justify-content-center align-items-center">
+                            <button class="btn-minus" @click="cart.decrease(item.id)">-</button>
+                            <span class="mx-2">{{ item.quantity }}</span>
+                            <button class="btn-plus" @click="cart.add(item)">+</button>
+                        </div>
+                        <button 
+                        @click="cart.remove(item.id)" 
+                        type="button" 
+                        class="reset-button btn btn-red text-white rounded py-1 px-2"
+                        >
+                        Excluir
+                        </button>    
                     </div>
                 </div>
             </div>
@@ -60,27 +84,30 @@
         <div class="cart-summary mt-3">
 
         <!-- Subtotal -->
-        <div class="d-flex justify-content-between">
-            <span>Sub Total:</span>
+        <div class="d-flex justify-content-between mb-2">
+            <span class="info-value">Sub Total:</span>
             <strong>{{ formatPrice(cart.subTotal) }}</strong>
         </div>
 
         <!-- Desconto -->
-        <div class="d-flex justify-content-between" v-if="cart.discount > 0">
-            <span>Desconto:</span>
+        <div class="d-flex justify-content-between mb-2" v-if="cart.discount > 0">
+            <span class="info-value">Desconto:</span>
             <strong>- {{ formatPrice(cart.discount) }}</strong>
+        </div>
+        <!-- Cashback -->
+        <div class="d-flex justify-content-between d-none" v-if="cart.cashbackTotal > 0">
+            <span class="info-value">Cashsback:</span>
+            <strong>+{{ formatPrice(cart.cashbackTotal) }}</strong>
         </div>
 
         <!-- Cupom -->
-        <div class="mt-2">
-            <input type="text" class="form-control" placeholder="Digite o código aqui">
+        <div class="mt-2 d-flex gap-2 justify-content-between align-items-center mb-4">
+            <span class="info-value">Cupom:</span>
+            <input type="text" class="form-control w-75" placeholder="Digite o código aqui">
         </div>
-
-        <hr>
-
         <!-- Total -->
         <div class="d-flex justify-content-between">
-            <span>Total:</span>
+            <span class="info-value">Total:</span>
             <strong>{{ formatPrice(cart.total) }}</strong>
         </div>
 
@@ -112,6 +139,38 @@
 </script>
 
 <style scoped>
+.info-value{
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.btn-reset {
+    all: unset;
+    cursor: pointer;
+}
+.btn-red{
+    background: #D93030;
+    font-size: 0.625rem;
+    font-weight: 600;
+}
+.btn-red:hover, .btn:focus-visible, :not(.btn-check)+.btn:active:focus-visible{
+    background: #D93030;
+}
+.price{
+    font-size: clamp(0.75rem, 1.25vw, 1rem);
+}
+.cashback{
+    background: #FFC400;
+    color: #2F2B2B;
+    font-size: clamp(0.75rem, 0.75vw, 0.875rem) !important;
+}
+.small{
+    font-size: clamp(0.75rem, 0.75vw, 0.875rem) !important;
+}
+.percent{
+    background: #A4268E;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
 .my-cart{
     color: #595959;
 }
@@ -149,10 +208,9 @@
 }
 
 .item-img {
-  width: 70px;
-  height: 70px;
-  border-radius: 8px;
-  object-fit: cover;
+    width: 95px;
+    height: 95px;
+    object-fit: cover;
 }
 
 /* Quantidade */
