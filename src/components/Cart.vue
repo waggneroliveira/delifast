@@ -128,8 +128,20 @@
 
         <!-- Footer -->
         <div class="p-3">
-            <button class="btn btn-confirm w-100">
-            Confirmar Pedido →
+            <!-- Badge de Warning aparece só se não pode confirmar -->
+            <div v-if="!canConfirm" class="mb-2 text-center">
+                <span class="badge bg-warning p-2 text-dark d-flex align-items-center justify-content-center gap-1">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Você precisa se cadastrar antes de confirmar o pedido!
+                </span>
+            </div>
+
+            <button 
+                class="btn btn-confirm w-100"
+                :class="{ 'opacity-50': !canConfirm }"
+                @click="handleConfirm"
+            >
+                Confirmar Pedido →
             </button>
         </div>
 
@@ -137,19 +149,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import IdentifyModal from './IdentifyModal.vue'
 import { useCartStore } from '@/stores/useCartStore'
 
 const cart = useCartStore()
 const showModal = ref(false)
 
-// 👇 estado do usuário
+//  estado do usuário
 const fullName = ref('')
 const whatsapp = ref('')
 const userIdentified = ref(false)
 
-// 👇 quando recebe do modal
+
+// Computed para saber se pode confirmar
+const canConfirm = computed(() => {
+  return whatsapp.value && fullName.value
+})
+
+//  quando recebe do modal
 const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
   fullName.value = name
   whatsapp.value = wpp
@@ -182,6 +200,9 @@ const formatPrice = (value) => {
 </script>
 
 <style scoped>
+.cart-item .fw-bold{
+    font-size: 0.938rem;
+}
 .info-value{
     font-size: 0.875rem;
     font-weight: 600;
@@ -252,8 +273,8 @@ const formatPrice = (value) => {
 }
 
 .item-img {
-    width: 95px;
-    height: 95px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
 }
 
@@ -279,8 +300,8 @@ const formatPrice = (value) => {
 
 /* Botão final */
 .btn-confirm {
-  background: #a02c8f;
-  color: #fff;
+  background: #a02c8f !important;
+  color: #fff !important;
   padding: 12px;
   border-radius: 8px;
   border: none;

@@ -334,7 +334,7 @@
     .modal-title{
         font-size: clamp(1rem, 1.125vw, 1.125rem);
     }
-    h6, .form-label{
+    h6, .form-label, .form-check-label{
         font-size: clamp(0.938rem, 1vw, 1rem);
     }
     .modal-header{

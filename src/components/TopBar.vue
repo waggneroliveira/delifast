@@ -116,7 +116,11 @@
 
               <li><hr class="dropdown-divider"></li>
 
-              <li><a class="dropdown-item text-dark" href="#">Sair</a></li>
+              <li>
+                <a class="dropdown-item text-dark" href="#" @click.prevent="logout">
+                  Sair
+                </a>
+              </li>
             </ul>
             <AddressModal v-model="showAddressModal" />
           </div>
@@ -135,6 +139,16 @@
 
   const showAddressModal = ref(false)
   const cartStore = useCartStore()
+  const logout = () => {
+    // remove dados do usuário
+    localStorage.removeItem('userData')
+
+    // opcional (se tiver mais coisas no futuro)
+    // localStorage.clear()
+
+    // 🔄 força atualização da UI
+    window.location.reload()
+  }
 </script>
 
 <style scoped>

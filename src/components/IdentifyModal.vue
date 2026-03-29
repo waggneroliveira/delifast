@@ -23,7 +23,7 @@
 
           <div class="mb-3">
             <label class="form-label">Digite seu número de WhatsApp</label>
-            <div class="input-group">
+            <div class="input-group gap-2">
                 <span class="input-group-text">
                     <svg class="me-2" width="27" height="20" viewBox="0 0 27 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_16_469)">
@@ -42,14 +42,14 @@
                     </svg>
                     +55
                 </span>
-              <input
-                v-model="whatsapp"
-                type="text"
-                class="form-control"
-                placeholder="(99) 99999-9999"
-                @input="formatWhatsapp"
-                maxlength="15"
-              >
+                <input
+                    v-model="whatsapp"
+                    type="text"
+                    class="form-control"
+                    placeholder="(99) 99999-9999"
+                    @input="formatWhatsapp"
+                    maxlength="15"
+                >
             </div>
           </div>
 
