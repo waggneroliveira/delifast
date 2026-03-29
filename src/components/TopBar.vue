@@ -109,13 +109,16 @@
 
             <!-- Menu -->
             <ul class="dropdown-menu custom-dropdown">
-              <li><a class="dropdown-item" href="#">Meus Endereços</a></li>
+              <a class="dropdown-item" href="#" @click="showAddressModal = true">
+                Meus Endereços
+              </a>
               <li><a class="dropdown-item" href="#">Meus pedidos</a></li>
 
               <li><hr class="dropdown-divider"></li>
 
               <li><a class="dropdown-item text-dark" href="#">Sair</a></li>
             </ul>
+            <AddressModal v-model="showAddressModal" />
           </div>
         </div>
 
@@ -127,7 +130,10 @@
 
 <script setup>
   import { useCartStore } from '@/stores/useCartStore'
+  import { ref } from 'vue'
+  import AddressModal from '@/components/AddressModal.vue'
 
+  const showAddressModal = ref(false)
   const cartStore = useCartStore()
 </script>
 
