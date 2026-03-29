@@ -30,13 +30,20 @@
                         </svg>
                     </div>
                     <div class="text-start">
-                        <strong>{{ userIdentified ? `Olá, ${fullName}` : 'Identifique-se aqui' }}</strong>
+                        <strong>{{ userIdentified ? `Olá, ${fullName}!` : 'Identifique-se aqui' }}</strong>
                         <div class="small text-muted">
                             {{ userIdentified ? 'Você já está identificado' : 'Antes de finalizar o pedido, simples e rápido!' }}
                         </div>
                     </div>
                 </div>
                 <span class="border rounded-pill d-flex justify-content-center align-items-center arrow">›</span>
+            </div>
+            <!-- Badge de Warning aparece só se não pode confirmar -->
+            <div v-if="!canConfirm" class="mb-2 text-center">
+                <span class="badge bg-warning p-2 text-dark d-flex align-items-center justify-content-center gap-1">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Você precisa se cadastrar antes de confirmar o pedido!
+                </span>
             </div>
 
             <IdentifyModal
@@ -127,21 +134,13 @@
         </div>
 
         <!-- Footer -->
-        <div class="p-3">
-            <!-- Badge de Warning aparece só se não pode confirmar -->
-            <div v-if="!canConfirm" class="mb-2 text-center">
-                <span class="badge bg-warning p-2 text-dark d-flex align-items-center justify-content-center gap-1">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    Você precisa se cadastrar antes de confirmar o pedido!
-                </span>
-            </div>
-
+        <div class="p-3 d-flex justify-content-end">
             <button 
-                class="btn btn-confirm w-100"
+                class="btn btn-confirm px-3 d-flex justify-content-center align-items-center"
                 :class="{ 'opacity-50': !canConfirm }"
                 @click="handleConfirm"
             >
-                Confirmar Pedido →
+                Avançar ›
             </button>
         </div>
 
@@ -300,11 +299,13 @@ const formatPrice = (value) => {
 
 /* Botão final */
 .btn-confirm {
-  background: #a02c8f !important;
-  color: #fff !important;
-  padding: 12px;
-  border-radius: 8px;
+  background: #FFC400 !important;
+  color: #000000 !important;
   border: none;
+  border-radius: inherit;
   font-weight: 500;
+  max-width: 130px;
+  height: 30px;
+  font-size: 0.875rem;
 }
 </style>
