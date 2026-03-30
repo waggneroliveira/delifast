@@ -7,6 +7,16 @@
     import ProductList from '@/components/ProductList.vue'
     import Announcement from '@/components/Announcement.vue'
     import Cart from '@/components/Cart.vue'
+    import { ref } from 'vue'
+    import ProductModal from '@/components/ProductModal.vue'
+
+    const showModal = ref(false)
+    const selectedProduct = ref(null)
+
+    const openProductModal = (product) => {
+      selectedProduct.value = product
+      showModal.value = true
+    }
 
     const highlights = [
       {
@@ -16,7 +26,37 @@
         price: 109.90,
         oldPrice: 119.90,
         cashback: 5,
-        image: '../src/assets/images/prod.png'
+        image: '../src/assets/images/prod.png',
+        options: [
+        {
+          title: 'Pizza Grande',
+          items: [
+            {
+              id: 1,
+              name: 'Portuguesa',
+              description: '4 smash burguers...',
+              image: '/burger.jpg'
+            },
+            {
+              id: 2,
+              name: 'Calabresa',
+              description: 'Deliciosa...',
+              image: '/burger.jpg'
+            }
+          ]
+        },
+        {
+          title: 'Pizza Média',
+          items: [
+            {
+              id: 3,
+              name: 'Frango',
+              description: 'Muito sabor...',
+              image: '/burger.jpg'
+            }
+          ]
+        }
+      ]
       },
       {
         id: 2,
@@ -188,6 +228,7 @@
                 <ProductCarousel
                   :products="highlights"
                   @add="addToCart"
+                  @open="openProductModal"
                 />
               </div>
 
@@ -195,6 +236,7 @@
                 <ProductList
                   :categories="categories"
                   @add="addToCart"
+                  @open="openProductModal"
                 />
               </div>
 
@@ -206,6 +248,11 @@
         <RouterView />
 
       </main>
+
+      <ProductModal
+        v-model:show="showModal"
+        :product="selectedProduct"
+      />
     </div>
   </div>
 </template>

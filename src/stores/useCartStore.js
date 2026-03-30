@@ -79,7 +79,8 @@ getters: {
           oldPrice: product.oldPrice,
           image: product.image,
           cashback: product.cashback || 0,
-          quantity: 1
+          quantity: 1,
+          options: product.options || []
         })
   
         toast.success(`"${product.name}" adicionado ao carrinho!`, {

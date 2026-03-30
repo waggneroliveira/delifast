@@ -19,6 +19,7 @@
         <ProductCard
           :product="product"
           @add="$emit('add', $event)"
+          @open="$emit('open', $event)"
         />
       </SwiperSlide>
     </Swiper>
@@ -37,7 +38,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 
 defineProps({
-  products: Array
+  products: Array,
+  onOpen: Function
 })
 
 // Breakpoints

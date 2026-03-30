@@ -56,6 +56,7 @@
             v-for="item in cart.items" 
             :key="item.id" 
             class="cart-item d-flex mb-3"
+            @click="openProductModal(item)"
             >   
                 <div class="d-flex flex-column">
                     <img :src="item.image" class="item-img">
@@ -83,12 +84,12 @@
                         </div>
 
                         <div class="qty-control d-flex justify-content-center align-items-center">
-                            <button class="btn-minus" @click="cart.decrease(item.id)">-</button>
+                            <button class="btn-minus" @click.stop="cart.decrease(item.id)">-</button>
                             <span class="mx-2">{{ item.quantity }}</span>
-                            <button class="btn-plus" @click="cart.add(item)">+</button>
+                            <button class="btn-plus" @click.stop="cart.add(item)">+</button>
                         </div>
                         <button 
-                        @click="cart.remove(item.id)" 
+                        @click.stop="cart.remove(item.id)" 
                         type="button" 
                         class="reset-button btn btn-red text-white rounded py-1 px-2"
                         >
@@ -145,21 +146,36 @@
         </div>
 
     </div>
+
+    <!-- Product Modal -->
+    <ProductModal
+        v-model:show="showProductModal"
+        :product="selectedProduct"
+    />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import IdentifyModal from './IdentifyModal.vue'
+import ProductModal from './ProductModal.vue'
 import { useCartStore } from '@/stores/useCartStore'
 
 const cart = useCartStore()
 const showModal = ref(false)
 
+// Product modal
+const showProductModal = ref(false)
+const selectedProduct = ref(null)
+
+const openProductModal = (product) => {
+    selectedProduct.value = product
+    showProductModal.value = true
+}
+
 //  estado do usuário
 const fullName = ref('')
 const whatsapp = ref('')
 const userIdentified = ref(false)
-
 
 // Computed para saber se pode confirmar
 const canConfirm = computed(() => {
@@ -269,6 +285,7 @@ const formatPrice = (value) => {
   border: 1px solid #eee;
   border-radius: 10px;
   padding: 10px;
+  cursor: pointer; /* indicar que é clicável */
 }
 
 .item-img {

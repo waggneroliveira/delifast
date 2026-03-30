@@ -6,6 +6,7 @@
       :title="category.name"
       :products="category.products"
       @add="$emit('add', $event)"
+      @open="$emit('open', $event)"
     />
   </div>
 </template>

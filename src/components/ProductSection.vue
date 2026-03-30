@@ -8,7 +8,7 @@
         :key="product.id"
         class="product-item"
       >
-        <ProductCard :product="product" @add="$emit('add', $event)" />
+        <ProductCard :product="product" @add="$emit('add', $event)" @open="$emit('open', $event)" />
       </div>
     </div>
   </div>

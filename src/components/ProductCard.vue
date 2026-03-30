@@ -1,5 +1,5 @@
 <template>
-  <div class="card product-card h-100">
+  <div class="card product-card h-100 cursor-pointer" @click="$emit('open', product)">
     <div class="position-relative">
       <span class="badge cashback position-absolute top-0 start-0 m-2 small">
         {{ product.cashback }}% cashback
@@ -28,7 +28,7 @@
           </div>
         </div>
 
-        <button class="btn btn-sm btn-primary" @click="$emit('add', product)">
+        <button class="btn btn-sm btn-primary" @click.stop="$emit('add', product)">
           <span class="me-2">+</span> Adicionar
         </button>
       </div>
@@ -43,6 +43,9 @@
 </script>
 
 <style scoped>
+  .product-card {
+    cursor: pointer;
+  }
   .price{
     font-size: clamp(0.75rem, 1.25vw, 1rem);
   }
