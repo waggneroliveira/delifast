@@ -34,14 +34,14 @@
             {
               id: 1,
               name: 'Portuguesa',
-              description: '4 smash burguers...',
-              image: '/burger.jpg'
+              description: '4 smash burguers com 400g de fritas, creme de cheddar de qualidade com bacon + Refr...',
+              image: '../src/assets/images/prod.png'
             },
             {
               id: 2,
               name: 'Calabresa',
               description: 'Deliciosa...',
-              image: '/burger.jpg'
+              image: '../src/assets/images/prod.png'
             }
           ]
         },
@@ -52,7 +52,7 @@
               id: 3,
               name: 'Frango',
               description: 'Muito sabor...',
-              image: '/burger.jpg'
+              image: '../src/assets/images/prod.png'
             }
           ]
         }
