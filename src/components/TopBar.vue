@@ -116,9 +116,15 @@
 
               <li><hr class="dropdown-divider"></li>
 
-              <li>
+              <li v-if="isLogged">
                 <a class="dropdown-item text-dark" href="#" @click.prevent="logout">
                   Sair
+                </a>
+              </li>
+
+              <li v-else>
+                <a class="dropdown-item text-dark" href="#" @click="showModal = true">
+                  Entrar
                 </a>
               </li>
             </ul>
@@ -129,13 +135,55 @@
       </div>
     </div>
   </div>
-
+  <IdentifyModal
+      v-model="showModal"
+      @submit="handleIdentify"
+  />
 </template>
 
 <script setup>
+  import { ref, onMounted, computed } from 'vue'
   import { useCartStore } from '@/stores/useCartStore'
-  import { ref } from 'vue'
+  import IdentifyModal from './IdentifyModal.vue'
   import AddressModal from '@/components/AddressModal.vue'
+
+  // estado do modal
+  const showModal = ref(false)
+
+  // estado do usuário
+  const fullName = ref('')
+  const whatsapp = ref('')
+  const userIdentified = ref(false)
+
+  // saber se está "logado"
+  const isLogged = computed(() => {
+    return !!(fullName.value && whatsapp.value)
+  })
+
+  // quando recebe dados do modal
+  const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
+    fullName.value = name
+    whatsapp.value = wpp
+    userIdentified.value = true
+    showModal.value = false // fecha o modal
+
+    // salvar no localStorage
+    localStorage.setItem('userData', JSON.stringify({
+      fullName: name,
+      whatsapp: wpp
+    }))
+  }
+
+  // carregar ao abrir página
+  onMounted(() => {
+    const saved = localStorage.getItem('userData')
+    if (saved) {
+      const data = JSON.parse(saved)
+      fullName.value = data.fullName
+      whatsapp.value = data.whatsapp
+      userIdentified.value = true
+    }
+  })
 
   const showAddressModal = ref(false)
   const cartStore = useCartStore()

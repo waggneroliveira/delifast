@@ -195,7 +195,7 @@ const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
   }))
 }
 
-// 👇 carregar ao abrir página
+//  carregar ao abrir página
 onMounted(() => {
   const saved = localStorage.getItem('userData')
   if (saved) {
