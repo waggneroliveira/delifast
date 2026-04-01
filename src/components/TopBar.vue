@@ -60,7 +60,7 @@
     <div class="border-start ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-end flex-wrap flex-grow-1 right-container mt-5">
 
       <!-- Botão -->
-      <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0">
+      <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" @click="showModalLocation = true">
         Locais de entrega
       </button>
 
@@ -135,10 +135,13 @@
       </div>
     </div>
   </div>
+  <!-- Modal -->
   <IdentifyModal
       v-model="showModal"
       @submit="handleIdentify"
   />
+  <!-- Modal -->
+  <DeliveryLocations v-model:modelValue="showModalLocation"/>
 </template>
 
 <script setup>
@@ -148,10 +151,24 @@
   import { useToast } from 'vue-toastification'
   import IdentifyModal from './IdentifyModal.vue'
   import AddressModal from '@/components/AddressModal.vue'
+  import DeliveryLocations from '@/components/DeliveryLocations.vue'
 
   const toast = useToast()
   const cartStore = useCartStore()
   const userStore = useUserStore()
+
+  // estado do modal de locais de entrega
+  const showModalLocation = ref(false)
+
+  // função para abrir
+  function openLocationModal() {
+    showModalLocation.value = true
+  }
+
+  // função para fechar
+  function closeLocationModal() {
+    showModalLocation.value = false
+  }
 
   // estado do modal
   const showModal = ref(false)
