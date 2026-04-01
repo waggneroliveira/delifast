@@ -30,9 +30,9 @@
                         </svg>
                     </div>
                     <div class="text-start">
-                        <strong>{{ userIdentified ? `Olá, ${fullName}!` : 'Identifique-se aqui' }}</strong>
+                        <strong>{{ userStore.isLogged ? `Olá, ${userStore.fullName}!` : 'Identifique-se aqui' }}</strong>
                         <div class="small text-muted">
-                            {{ userIdentified ? 'Você já está identificado' : 'Antes de finalizar o pedido, simples e rápido!' }}
+                            {{ userStore.isLogged ? 'Você já está identificado' : 'Antes de finalizar o pedido, simples e rápido!' }}
                         </div>
                     </div>
                 </div>
@@ -156,11 +156,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useToast } from 'vue-toastification'
 import IdentifyModal from './IdentifyModal.vue'
 import ProductModal from './ProductModal.vue'
 import { useCartStore } from '@/stores/useCartStore'
+import { useUserStore } from '@/stores/useUserStore'
 
+const toast = useToast()
 const cart = useCartStore()
+const userStore = useUserStore()
 const showModal = ref(false)
 
 // Product modal
@@ -172,39 +176,40 @@ const openProductModal = (product) => {
     showProductModal.value = true
 }
 
-//  estado do usuário
-const fullName = ref('')
-const whatsapp = ref('')
-const userIdentified = ref(false)
-
 // Computed para saber se pode confirmar
 const canConfirm = computed(() => {
-  return whatsapp.value && fullName.value
+  return userStore.isLogged
 })
 
 //  quando recebe do modal
 const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
-  fullName.value = name
-  whatsapp.value = wpp
-  userIdentified.value = true
-
-  // salvar no localStorage
-  localStorage.setItem('userData', JSON.stringify({
-    fullName: name,
-    whatsapp: wpp
-  }))
+  userStore.login({ fullName: name, whatsapp: wpp })
+  showModal.value = false
+  
+  // Toast de sucesso
+  toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
+    timeout: 4000
+  })
 }
 
-//  carregar ao abrir página
+// carregar ao abrir página
 onMounted(() => {
-  const saved = localStorage.getItem('userData')
-  if (saved) {
-    const data = JSON.parse(saved)
-    fullName.value = data.fullName
-    whatsapp.value = data.whatsapp
-    userIdentified.value = true
-  }
+  userStore.loadUserFromStorage()
 })
+
+const handleConfirm = () => {
+  if (!canConfirm.value) {
+    toast.warning('Você precisa se identificar antes de continuar!', {
+      timeout: 3000
+    })
+    return
+  }
+  
+  // Aqui vai a lógica de confirmação do pedido
+  toast.success('Pedido confirmado com sucesso!', {
+    timeout: 4000
+  })
+}
 
 const formatPrice = (value) => {
   return new Intl.NumberFormat('pt-BR', {

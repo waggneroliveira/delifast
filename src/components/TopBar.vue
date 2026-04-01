@@ -116,7 +116,7 @@
 
               <li><hr class="dropdown-divider"></li>
 
-              <li v-if="isLogged">
+              <li v-if="userStore.isLogged">
                 <a class="dropdown-item text-dark" href="#" @click.prevent="logout">
                   Sair
                 </a>
@@ -142,60 +142,45 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed } from 'vue'
+  import { ref, onMounted } from 'vue'
   import { useCartStore } from '@/stores/useCartStore'
+  import { useUserStore } from '@/stores/useUserStore'
+  import { useToast } from 'vue-toastification'
   import IdentifyModal from './IdentifyModal.vue'
   import AddressModal from '@/components/AddressModal.vue'
 
+  const toast = useToast()
+  const cartStore = useCartStore()
+  const userStore = useUserStore()
+
   // estado do modal
   const showModal = ref(false)
-
-  // estado do usuário
-  const fullName = ref('')
-  const whatsapp = ref('')
-  const userIdentified = ref(false)
-
-  // saber se está "logado"
-  const isLogged = computed(() => {
-    return !!(fullName.value && whatsapp.value)
-  })
+  const showAddressModal = ref(false)
 
   // quando recebe dados do modal
   const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
-    fullName.value = name
-    whatsapp.value = wpp
-    userIdentified.value = true
-    showModal.value = false // fecha o modal
-
-    // salvar no localStorage
-    localStorage.setItem('userData', JSON.stringify({
-      fullName: name,
-      whatsapp: wpp
-    }))
+    userStore.login({ fullName: name, whatsapp: wpp })
+    showModal.value = false
+    
+    // Toast de sucesso
+    toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
+      timeout: 4000
+    })
   }
 
   // carregar ao abrir página
   onMounted(() => {
-    const saved = localStorage.getItem('userData')
-    if (saved) {
-      const data = JSON.parse(saved)
-      fullName.value = data.fullName
-      whatsapp.value = data.whatsapp
-      userIdentified.value = true
-    }
+    userStore.loadUserFromStorage()
   })
 
-  const showAddressModal = ref(false)
-  const cartStore = useCartStore()
   const logout = () => {
-    // remove dados do usuário
-    localStorage.removeItem('userData')
-
-    // opcional (se tiver mais coisas no futuro)
-    // localStorage.clear()
-
-    // 🔄 força atualização da UI
-    window.location.reload()
+    const userName = userStore.fullName
+    userStore.logout()
+    
+    // Toast de sucesso
+    toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, {
+      timeout: 4000
+    })
   }
 </script>
 
