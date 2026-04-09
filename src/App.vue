@@ -42,7 +42,19 @@
               name: 'Calabresa',
               description: 'Deliciosa...',
               image: '../src/assets/images/prod.png'
-            }
+            },
+            {
+              id: 2,
+              name: 'Sertaneja',
+              description: 'Deliciosa...',
+              image: '../src/assets/images/prod.png'
+            },
+            {
+              id: 2,
+              name: 'Atum',
+              description: 'Deliciosa...',
+              image: '../src/assets/images/prod.png'
+            },
           ]
         },
         {

@@ -11,19 +11,18 @@
 
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-3 position-relative">
-          <Header class="header" />
-          <div class="position-absolute top-0 mt-5 d-flex justify-content-between align-items-center w-100 px-4 z-in">
+          <div class="my-4 d-flex justify-content-between align-items-center w-100 px-4 z-in">
             <button class="btn btn-sm btn-back text-white py-1 px-3" @click="close">
               ‹  Voltar
             </button>
 
-            <button class="btn-close btn-close-white" @click="close"></button>
+            <button class="btn-close" @click="close"></button>
           </div>
         </div>
 
         <div class="row px-4">
           <!-- LEFT -->
-          <div class="col-md-5">
+          <div class="col-md-5 text-center">
             <div class="image">
               <img
                 :src="product?.image"
@@ -35,7 +34,7 @@
               {{ product.cashback }}% cashback
             </span>
 
-            <h5 class="fw-bold">{{ product?.name }}</h5>
+            <h5 class="fw-bold text-primary">{{ product?.name }}</h5>
             <p class="text-muted small">
               {{ product?.description }}
             </p>
@@ -47,7 +46,7 @@
 
               <div class="text-muted small" v-if="product?.oldPrice">
                 <s>R$ {{ formatPrice(product.oldPrice) }}</s>
-                <span class="badge bg-danger ms-2">
+                <span class="badge bg-primary rounded-1 ms-2">
                   {{ discount }}%
                 </span>
               </div>
@@ -55,13 +54,13 @@
           </div>
 
           <!-- RIGHT -->
-          <div class="col-md-7" v-if="product?.options?.length">
+          <div class="col-md-7 scroll" v-if="product?.options?.length">
             <div
               v-for="group in product.options"
               :key="group.title"
               class="mb-4"
             >
-              <h6 class="fw-bold text-primary">
+              <h6 class="fw-bold text-primary text-center mb-4">
                 {{ group.title }}
               </h6>
 
@@ -75,8 +74,8 @@
                 <img
                   :src="item.image"
                   class="me-3 cover"
-                  width="90"
-                  height="90"
+                  width="105"
+                  height="105"
                 />
 
                 <div class="flex-grow-1">
@@ -104,7 +103,6 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import Header from '@/components/Header.vue'
 
 const props = defineProps({
   show: Boolean,       // mudou de modelValue → show
@@ -139,6 +137,16 @@ const discount = computed(() => {
 ::v-deep(.banner-inner) {
   height: 140px;
 }
+.scroll{
+  height: 550px;
+  overflow-y: scroll;
+}
+.text-primary{
+  color: #A4268E !important;
+}
+.bg-primary{
+  background: #A4268E !important;
+}
 .image{
   max-width: 380px;
 }
@@ -151,9 +159,8 @@ const discount = computed(() => {
   z-index: 20;
 }
 .modal-dialog{
-    max-width: 70vw;
+    max-width: 980px;
     height: 80vh;
-    /* margin: 0 auto; */
 }
 .cover{
   object-fit: cover;
