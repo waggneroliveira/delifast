@@ -20,7 +20,7 @@
           </div>
         </div>
 
-        <div class="row px-4">
+        <div class="row pb-5 px-4">
           <!-- LEFT -->
           <div class="col-md-5 text-center">
             <div class="image">
@@ -160,7 +160,8 @@ const discount = computed(() => {
 }
 .modal-dialog{
     max-width: 980px;
-    height: 80vh;
+    height: auto;
+    max-height: 500px;
 }
 .cover{
   object-fit: cover;
