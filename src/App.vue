@@ -44,13 +44,13 @@
               image: '../src/assets/images/prod.png'
             },
             {
-              id: 2,
+              id: 3,
               name: 'Sertaneja',
               description: 'Deliciosa...',
               image: '../src/assets/images/prod.png'
             },
             {
-              id: 2,
+              id: 4,
               name: 'Atum',
               description: 'Deliciosa...',
               image: '../src/assets/images/prod.png'
@@ -61,7 +61,7 @@
           title: 'Pizza Média',
           items: [
             {
-              id: 3,
+              id: 5,
               name: 'Frango',
               description: 'Muito sabor...',
               image: '../src/assets/images/prod.png'
