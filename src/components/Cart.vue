@@ -65,7 +65,10 @@
                     </span>
                 </div>
                 <div class="flex-grow-1 ms-2">
-                    <div class="fw-bold">{{ item.name }}</div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="fw-bold">{{ item.name }}</div>
+                        <span class="me-2 bi bi-pencil-square"></span>
+                    </div>
                     <p class="text-muted small mb-2">
                         {{ item.description }}
                     </p>
@@ -155,73 +158,91 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useToast } from 'vue-toastification'
-import IdentifyModal from './IdentifyModal.vue'
-import ProductModal from './ProductModal.vue'
-import { useCartStore } from '@/stores/useCartStore'
-import { useUserStore } from '@/stores/useUserStore'
+    import { ref, onMounted, computed } from 'vue'
+    import { useToast } from 'vue-toastification'
+    import IdentifyModal from './IdentifyModal.vue'
+    import ProductModal from './ProductModal.vue'
+    import { useCartStore } from '@/stores/useCartStore'
+    import { useUserStore } from '@/stores/useUserStore'
 
-const toast = useToast()
-const cart = useCartStore()
-const userStore = useUserStore()
-const showModal = ref(false)
+    const toast = useToast()
+    const cart = useCartStore()
+    const userStore = useUserStore()
+    const showModal = ref(false)
 
-// Product modal
-const showProductModal = ref(false)
-const selectedProduct = ref(null)
+    // Product modal
+    const showProductModal = ref(false)
+    const selectedProduct = ref(null)
 
-const openProductModal = (product) => {
+ const openProductModal = (product) => {
+    // 🔥 Guarda uma cópia dos adicionais originais para referência
+    const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
+    
     selectedProduct.value = {
-        ...product,
-        selectedOption: product.selectedOption || null
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      oldPrice: product.oldPrice,
+      image: product.image,
+      cashback: product.cashback || 0,
+      options: product.options || [],
+      selectedOption: product.selectedOption || null,
+      
+      // Adicionais com as quantidades atuais
+      aditionals: product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : [],
+      
+      // Guarda uma cópia original para o modal usar como base
+      originalAditionals: originalAditionals,
+      
+      // Para identificar que é uma edição
+      originalSelectedOption: product.selectedOption
     }
 
     showProductModal.value = true
-
-}
-
-// Computed para saber se pode confirmar
-const canConfirm = computed(() => {
-  return userStore.isLogged
-})
-
-//  quando recebe do modal
-const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
-  userStore.login({ fullName: name, whatsapp: wpp })
-  showModal.value = false
-  
-  // Toast de sucesso
-  toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
-    timeout: 4000
-  })
-}
-
-// carregar ao abrir página
-onMounted(() => {
-  userStore.loadUserFromStorage()
-})
-
-const handleConfirm = () => {
-  if (!canConfirm.value) {
-    toast.warning('Você precisa se identificar antes de continuar!', {
-      timeout: 3000
-    })
-    return
   }
-  
-  // Aqui vai a lógica de confirmação do pedido
-  toast.success('Pedido confirmado com sucesso!', {
-    timeout: 4000
-  })
-}
 
-const formatPrice = (value) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value)
-}
+    // Computed para saber se pode confirmar
+    const canConfirm = computed(() => {
+    return userStore.isLogged
+    })
+
+    //  quando recebe do modal
+    const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
+    userStore.login({ fullName: name, whatsapp: wpp })
+    showModal.value = false
+    
+    // Toast de sucesso
+    toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
+        timeout: 4000
+    })
+    }
+
+    // carregar ao abrir página
+    onMounted(() => {
+    userStore.loadUserFromStorage()
+    })
+
+    const handleConfirm = () => {
+    if (!canConfirm.value) {
+        toast.warning('Você precisa se identificar antes de continuar!', {
+        timeout: 3000
+        })
+        return
+    }
+    
+    // Aqui vai a lógica de confirmação do pedido
+    toast.success('Pedido confirmado com sucesso!', {
+        timeout: 4000
+    })
+    }
+
+    const formatPrice = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(value)
+    }
 </script>
 
 <style scoped>

@@ -43,28 +43,47 @@
               description: 'Deliciosa...',
               image: '../src/assets/images/prod.png'
             },
-            {
-              id: 3,
-              name: 'Sertaneja',
-              description: 'Deliciosa...',
-              image: '../src/assets/images/prod.png'
-            },
-            {
-              id: 4,
-              name: 'Atum',
-              description: 'Deliciosa...',
-              image: '../src/assets/images/prod.png'
-            },
           ]
         },
         {
           title: 'Pizza Média',
           items: [
             {
-              id: 5,
+              id: 3,
               name: 'Frango',
               description: 'Muito sabor...',
               image: '../src/assets/images/prod.png'
+            }
+          ]
+        }
+      ],
+      aditionals: [
+        {
+          title: 'Adicional',
+          items: [
+            {
+              id: 1,
+              name: 'Queijo Regular',
+              stock: 10,
+              price: 5.00  
+            },
+            {
+              id: 2,
+              name: 'Molho Rosê',
+              stock: 10,
+              price: 4.00  
+            },
+            {
+              id: 3,
+              name: 'Molho Rosê',
+              stock: 10,
+              price: 3.00  
+            },
+            {
+              id: 4,
+              name: 'Pote de Barbecue',
+              stock: 10,
+              price: 2.00  
             }
           ]
         }
@@ -202,11 +221,15 @@
         products: [/* array */]
       }
     ]
-
+import { watch } from 'vue'
     import { useCartStore } from '@/stores/useCartStore'
 
     const cart = useCartStore()
 
+// Monitora mudanças no carrinho
+watch(() => cart.items, (newItems) => {
+  console.log('Carrinho atualizado:', JSON.parse(JSON.stringify(newItems)))
+}, { deep: true })
     function addToCart(product) {
       cart.add(product)
     }
