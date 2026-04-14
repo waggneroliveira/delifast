@@ -175,7 +175,7 @@
     const selectedProduct = ref(null)
 
  const openProductModal = (product) => {
-    // 🔥 Guarda uma cópia dos adicionais originais para referência
+    // Guarda uma cópia dos adicionais originais para referência
     const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
     
     selectedProduct.value = {

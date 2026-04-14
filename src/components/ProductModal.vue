@@ -12,10 +12,6 @@
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-3 position-relative">
           <div class="my-3 d-flex justify-content-end align-items-center w-100 px-4 z-in">
-            <!-- <button class="btn btn-sm btn-back text-white py-1 px-3" @click="close">
-              ‹  Voltar
-            </button> -->
-
             <button class="btn-close" @click="close"></button>
           </div>
         </div>
@@ -95,6 +91,7 @@
                 </div>
               </div>
             </div>
+            
             <div class="col-md-12" v-if="product?.aditionals?.length">
               <div
                 v-for="group in product.aditionals"
@@ -110,12 +107,13 @@
                   :key="item.id"
                   class="d-flex align-items-center justify-content-between border rounded px-3 py-2 mb-2"
                 >
-                  <!-- Nome -->
                   <div class="fw-medium">
                     {{ item.name }}
+                    <small class="text-muted ms-1" v-if="item.price > 0">
+                      (+R$ {{ formatPrice(item.price) }})
+                    </small>
                   </div>
 
-                  <!-- Counter -->
                   <div class="d-flex align-items-center gap-2">
                     <button
                       class="btn btn-sm btn-outline-danger"
@@ -141,13 +139,11 @@
           </div>
 
           <div class="col-12 d-flex">
-
             <button 
               class="btn btn-sm btn-primary font-15"
               :disabled="!canSubmit"
               @click="addToCart"
             >
-
               <span class="me-2 bi bi-pencil-square"></span> 
               {{ isEditing ? 'Editar' : 'Adicionar' }}
             </button>
@@ -175,6 +171,7 @@
   const selected = ref(null)
   const originalSelected = ref(null)
   const aditionalState = ref({})
+  const originalAditionalsState = ref({})
 
   // Reset ao abrir o modal
   watch(
@@ -182,46 +179,92 @@
     (newProduct) => {
       if (!newProduct) return
 
+      console.log('Modal abriu com produto:', newProduct) // Debug
+
+      // Usa as propriedades que você já está passando do Cart.vue
       selected.value = newProduct.selectedOption || null
-      originalSelected.value = newProduct.selectedOption || null
+      originalSelected.value = newProduct.originalSelectedOption || null
 
       // Inicializa os adicionais
       const state = {}
-      if (newProduct.aditionals) {
+      const originalState = {}
+      
+      // Usa os adicionais que vieram do produto (já com as quantidades atuais)
+      if (newProduct.aditionals && newProduct.aditionals.length > 0) {
         newProduct.aditionals.forEach(group => {
           group.items.forEach(item => {
-            state[item.id] = item.quantity || 0
+            const quantity = item.quantity || 0
+            state[item.id] = quantity
+            originalState[item.id] = quantity
           })
         })
       }
+      
       aditionalState.value = state
+      originalAditionalsState.value = originalState
+      
+      console.log('Estado dos adicionais carregado:', aditionalState.value)
     },
-    { immediate: true }
+    { immediate: true, deep: true }
   )
 
   const isEditing = computed(() => originalSelected.value !== null)
-  const hasChanged = computed(() => selected.value !== originalSelected.value)
-
+  
+  // Verifica se as opções mudaram
+  const hasOptionsChanged = computed(() => selected.value !== originalSelected.value)
+  
+  // Verifica se os adicionais mudaram
+  const hasAditionalsChanged = computed(() => {
+    for (const [id, quantity] of Object.entries(aditionalState.value)) {
+      if (quantity !== (originalAditionalsState.value[id] || 0)) {
+        return true
+      }
+    }
+    return false
+  })
+  
+  // Botão só pode ser clicado se houver mudanças (na edição) ou se tiver opção selecionada (novo)
   const canSubmit = computed(() => {
-    if (!props.product?.options?.length) return true
-    if (!isEditing.value) return !!selected.value
-    return hasChanged.value
+    // Se tem opções e nenhuma selecionada, não pode
+    if (props.product?.options?.length && !selected.value) {
+      return false
+    }
+    
+    // Se for edição, precisa ter mudado algo (opção OU adicionais)
+    if (isEditing.value) {
+      return hasOptionsChanged.value || hasAditionalsChanged.value
+    }
+    
+    // Novo item: só precisa ter opção selecionada (se houver opções)
+    return true
   })
 
   function addToCart() {
     if (!props.product) return
 
-    // 🔥 ATUALIZA AS QUANTIDADES DOS ADICIONAIS
+    console.log('Salvando produto com adicionais:', aditionalState.value)
+
+    // ATUALIZA AS QUANTIDADES DOS ADICIONAIS
     const updatedAditionals = (props.product.aditionals || []).map(group => ({
       title: group.title,
       items: group.items.map(item => ({
-        ...item,
+        id: item.id,
+        name: item.name,
+        price: item.price || 0,
+        stock: item.stock || 99,
         quantity: aditionalState.value[item.id] || 0
       }))
     }))
 
     const productToAdd = {
-      ...props.product,
+      id: props.product.id,
+      name: props.product.name,
+      description: props.product.description,
+      price: props.product.price,
+      oldPrice: props.product.oldPrice,
+      image: props.product.image,
+      cashback: props.product.cashback || 0,
+      options: props.product.options || [],
       selectedOption: selected.value,
       originalSelectedOption: originalSelected.value,
       aditionals: updatedAditionals
@@ -236,12 +279,15 @@
     close()
   }
 
-  const select = (id) => { selected.value = id }
+  const select = (id) => { 
+    selected.value = id 
+  }
   
   const close = () => {
     selected.value = null
     originalSelected.value = null
     aditionalState.value = {}
+    originalAditionalsState.value = {}
     emit('update:show', false)
   }
 
@@ -259,7 +305,10 @@
   
   const increaseAditional = (item) => {
     const current = aditionalState.value[item.id] || 0
-    if (current >= item.stock) return
+    if (current >= (item.stock || 99)) {
+      console.warn(`Estoque máximo atingido para ${item.name}`)
+      return
+    }
     aditionalState.value[item.id] = current + 1
   }
   
@@ -269,7 +318,6 @@
     aditionalState.value[id] = current - 1
   }
 </script>
-
 
 <style scoped>
 ::v-deep(.banner-inner) {

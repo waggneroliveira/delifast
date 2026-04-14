@@ -75,12 +75,6 @@
             },
             {
               id: 3,
-              name: 'Molho Rosê',
-              stock: 10,
-              price: 3.00  
-            },
-            {
-              id: 4,
               name: 'Pote de Barbecue',
               stock: 10,
               price: 2.00  
