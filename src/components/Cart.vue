@@ -24,7 +24,6 @@
             >
                 <div class="d-flex justify-content-center align-items-center gap-2">
                     <div class="icon-user rounded-3 d-flex justify-content-center align-items-center p-3">
-                        <!-- SVG do usuário -->
                         <svg width="20" height="23" viewBox="0 0 20 23" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M10.2963 12.6129C13.6296 12.4645 16.2963 9.68226 16.2963 6.30645C16.2963 2.81936 13.4815 0 10 0C6.51852 0 3.7037 2.81936 3.7037 6.30645C3.7037 9.68226 6.37037 12.4274 9.7037 12.6129C4.22222 12.7984 0 17.1758 0 23H1.48148C1.48148 17.8065 5.14815 14.0968 10 14.0968C14.8519 14.0968 18.5185 17.8065 18.5185 23H20C20 17.1758 15.7778 12.7984 10.2963 12.6129ZM5.18518 6.34355C5.18518 3.67258 7.33333 1.52097 10 1.52097C12.6667 1.52097 14.8148 3.67258 14.8148 6.34355C14.8148 9.01452 12.6667 11.1661 10 11.1661C7.33333 11.1661 5.18518 8.97742 5.18518 6.34355Z" fill="#595959"/>
                         </svg>
@@ -38,7 +37,8 @@
                 </div>
                 <span class="border rounded-pill d-flex justify-content-center align-items-center arrow">›</span>
             </div>
-            <!-- Badge de Warning aparece só se não pode confirmar -->
+            
+            <!-- Badge de Warning -->
             <div v-if="!canConfirm" class="mb-2 text-center">
                 <span class="badge bg-warning p-2 text-dark d-flex align-items-center justify-content-center gap-1">
                     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -53,10 +53,10 @@
 
             <!-- Item -->
             <div 
-            v-for="item in cart.items" 
-            :key="item.id" 
-            class="cart-item d-flex mb-3"
-            @click="openProductModal(item)"
+                v-for="item in cart.items" 
+                :key="item.id + (item.selectedOption || '')" 
+                class="cart-item d-flex mb-3"
+                @click="openProductModal(item)"
             >   
                 <div class="d-flex flex-column">
                     <img :src="item.image" class="item-img">
@@ -64,20 +64,36 @@
                         {{ item.cashback }}% cashback
                     </span>
                 </div>
+                
                 <div class="flex-grow-1 ms-2">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <div class="fw-bold">{{ item.name }}</div>
                         <span class="me-2 bi bi-pencil-square"></span>
                     </div>
+                    
                     <p class="text-muted small mb-2">
                         {{ item.description }}
                     </p>
+                    
+                    <!-- Mostrar adicionais selecionados -->
+                    <div v-if="getItemAditionalsList(item).length > 0" class="mb-2">
+                        <div class="small fw-semibold mb-1 d-flex align-items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4V20M20 12H4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Adicionais
+                        </div>
+                        <div v-for="ad in getItemAditionalsList(item)" :key="ad.name" class="small d-flex justify-content-between align-items-center ms-1">
+                            <span class="text-muted">{{ ad.quantity }}x {{ ad.name }}</span>
+                            <span class="text-success fw-semibold">+{{ formatPrice(ad.total) }}</span>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between align-items-center mt-0">
-
                         <div class="d-flex flex-column gap-0">
-                            <strong> {{ formatPrice(item.price) }}</strong>
-                            <div class="d-flex gap-1" v-if="cart.oldPrice != ''">
-                                <div class="text-muted small text-decoration-line-through" v-if="item.oldPrice">
+                            <strong>{{ formatPrice(getItemTotalWithAditionals(item)) }}</strong>
+                            <div class="d-flex gap-1" v-if="item.oldPrice">
+                                <div class="text-muted small text-decoration-line-through">
                                     {{ formatPrice(item.oldPrice) }}
                                 </div>
                                 <div class="percent rounded-1 text-white d-flex justify-content-center align-items-center px-1">
@@ -87,54 +103,54 @@
                         </div>
 
                         <div class="qty-control d-flex justify-content-center align-items-center">
-                            <button class="btn-minus" @click.stop="cart.decrease(item.id)">-</button>
+                            <button class="btn-minus" @click.stop="cart.decrease(item.id, item.selectedOption)">-</button>
                             <span class="mx-2">{{ item.quantity }}</span>
-                            <button class="btn-plus" @click.stop="cart.add(item)">+</button>
+                            <button class="btn-plus" @click.stop="cart.increase(item.id, item.selectedOption)">+</button>
                         </div>
+                        
                         <button 
-                        @click.stop="cart.remove(item.id)" 
-                        type="button" 
-                        class="reset-button btn btn-red text-white rounded py-1 px-2"
+                            @click.stop="cart.remove(item.id, item.selectedOption)" 
+                            type="button" 
+                            class="reset-button btn btn-red text-white rounded py-1 px-2"
                         >
-                        Excluir
+                            Excluir
                         </button>    
                     </div>
                 </div>
             </div>
 
-        <!-- Totais -->
-        <div class="cart-summary mt-3">
+            <!-- Totais -->
+            <div class="cart-summary mt-3">
+                <!-- Subtotal -->
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="info-value">Sub Total:</span>
+                    <strong>{{ formatPrice(cart.subTotal) }}</strong>
+                </div>
 
-        <!-- Subtotal -->
-        <div class="d-flex justify-content-between mb-2">
-            <span class="info-value">Sub Total:</span>
-            <strong>{{ formatPrice(cart.subTotal) }}</strong>
-        </div>
+                <!-- Desconto -->
+                <div class="d-flex justify-content-between mb-2" v-if="cart.discount > 0">
+                    <span class="info-value">Desconto:</span>
+                    <strong>- {{ formatPrice(cart.discount) }}</strong>
+                </div>
+                
+                <!-- Cashback -->
+                <div class="d-flex justify-content-between d-none" v-if="cart.cashbackTotal > 0">
+                    <span class="info-value">Cashback:</span>
+                    <strong>+{{ formatPrice(cart.cashbackTotal) }}</strong>
+                </div>
 
-        <!-- Desconto -->
-        <div class="d-flex justify-content-between mb-2" v-if="cart.discount > 0">
-            <span class="info-value">Desconto:</span>
-            <strong>- {{ formatPrice(cart.discount) }}</strong>
-        </div>
-        <!-- Cashback -->
-        <div class="d-flex justify-content-between d-none" v-if="cart.cashbackTotal > 0">
-            <span class="info-value">Cashsback:</span>
-            <strong>+{{ formatPrice(cart.cashbackTotal) }}</strong>
-        </div>
-
-        <!-- Cupom -->
-        <div class="mt-2 d-flex gap-2 justify-content-between align-items-center mb-4">
-            <span class="info-value">Cupom:</span>
-            <input type="text" class="form-control w-75" placeholder="Digite o código aqui">
-        </div>
-        <!-- Total -->
-        <div class="d-flex justify-content-between">
-            <span class="info-value">Total:</span>
-            <strong>{{ formatPrice(cart.total) }}</strong>
-        </div>
-
-        </div>
-
+                <!-- Cupom -->
+                <div class="mt-2 d-flex gap-2 justify-content-between align-items-center mb-4">
+                    <span class="info-value">Cupom:</span>
+                    <input type="text" class="form-control w-75" placeholder="Digite o código aqui">
+                </div>
+                
+                <!-- Total -->
+                <div class="d-flex justify-content-between">
+                    <span class="info-value">Total:</span>
+                    <strong>{{ formatPrice(cart.total) }}</strong>
+                </div>
+            </div>
         </div>
 
         <!-- Footer -->
@@ -147,7 +163,6 @@
                 Avançar ›
             </button>
         </div>
-
     </div>
 
     <!-- Product Modal -->
@@ -174,74 +189,120 @@
     const showProductModal = ref(false)
     const selectedProduct = ref(null)
 
- const openProductModal = (product) => {
-    // Guarda uma cópia dos adicionais originais para referência
-    const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
-    
-    selectedProduct.value = {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      image: product.image,
-      cashback: product.cashback || 0,
-      options: product.options || [],
-      selectedOption: product.selectedOption || null,
-      
-      // Adicionais com as quantidades atuais
-      aditionals: product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : [],
-      
-      // Guarda uma cópia original para o modal usar como base
-      originalAditionals: originalAditionals,
-      
-      // Para identificar que é uma edição
-      originalSelectedOption: product.selectedOption
-    }
+    const openProductModal = (product) => {
+        // Guarda uma cópia dos adicionais originais para referência
+        const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
+        
+        selectedProduct.value = {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            oldPrice: product.oldPrice,
+            image: product.image,
+            cashback: product.cashback || 0,
+            options: product.options || [],
+            selectedOption: product.selectedOption || null,
+            
+            // Adicionais com as quantidades atuais
+            aditionals: product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : [],
+            
+            // Guarda uma cópia original para o modal usar como base
+            originalAditionals: originalAditionals,
+            
+            // Para identificar que é uma edição
+            originalSelectedOption: product.selectedOption
+        }
 
-    showProductModal.value = true
-  }
+        showProductModal.value = true
+    }
 
     // Computed para saber se pode confirmar
     const canConfirm = computed(() => {
-    return userStore.isLogged
+        return userStore.isLogged
     })
 
-    //  quando recebe do modal
     const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
-    userStore.login({ fullName: name, whatsapp: wpp })
-    showModal.value = false
-    
-    // Toast de sucesso
-    toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
-        timeout: 4000
-    })
+        userStore.login({ fullName: name, whatsapp: wpp })
+        showModal.value = false
+        
+        toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
+            timeout: 4000
+        })
     }
 
-    // carregar ao abrir página
     onMounted(() => {
-    userStore.loadUserFromStorage()
+        userStore.loadUserFromStorage()
     })
 
     const handleConfirm = () => {
-    if (!canConfirm.value) {
-        toast.warning('Você precisa se identificar antes de continuar!', {
-        timeout: 3000
+        if (!canConfirm.value) {
+            toast.warning('Você precisa se identificar antes de continuar!', {
+                timeout: 3000
+            })
+            return
+        }
+        
+        toast.success('Pedido confirmado com sucesso!', {
+            timeout: 4000
         })
-        return
-    }
-    
-    // Aqui vai a lógica de confirmação do pedido
-    toast.success('Pedido confirmado com sucesso!', {
-        timeout: 4000
-    })
     }
 
     const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(value)
+        if (!value && value !== 0) return 'R$ 0,00'
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value)
+    }
+
+    // =========================
+    // FUNÇÕES PARA ADICIONAIS
+    // =========================
+    
+    // Calcula o total dos adicionais de um item
+    const getItemAditionalsTotal = (item) => {
+        if (!item || !item.aditionals) return 0
+        
+        let total = 0
+        item.aditionals.forEach(group => {
+            group.items.forEach(aditional => {
+                if (aditional.quantity > 0 && aditional.price) {
+                    total += (aditional.price * aditional.quantity)
+                }
+            })
+        })
+        return total
+    }
+    
+    // Retorna a lista de adicionais com detalhes
+    const getItemAditionalsList = (item) => {
+        if (!item || !item.aditionals) return []
+        
+        const list = []
+        item.aditionals.forEach(group => {
+            group.items.forEach(aditional => {
+                if (aditional.quantity > 0) {
+                    list.push({
+                        name: aditional.name,
+                        quantity: aditional.quantity,
+                        price: aditional.price || 0,
+                        total: (aditional.price || 0) * aditional.quantity
+                    })
+                }
+            })
+        })
+        return list
+    }
+    
+    // Calcula o total do item (produto + adicionais)
+    const getItemTotalWithAditionals = (item) => {
+        if (!item) return 0
+        
+        const productTotal = item.price * item.quantity
+        const aditionalsTotal = getItemAditionalsTotal(item) * item.quantity
+        
+        return productTotal + aditionalsTotal
     }
 </script>
 
@@ -316,7 +377,7 @@
   border: 1px solid #eee;
   border-radius: 10px;
   padding: 10px;
-  cursor: pointer; /* indicar que é clicável */
+  cursor: pointer;
 }
 
 .item-img {
