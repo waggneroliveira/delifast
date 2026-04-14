@@ -96,41 +96,113 @@
           </div>
         </div>
 
+        <button 
+          class="btn btn-sm btn-primary"
+          :disabled="!canSubmit"
+          @click="addToCart"
+        >
+          <span class="me-2">+</span> 
+          {{ isEditing ? 'Editar' : 'Adicionar' }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
+  import { useCartStore } from '@/stores/useCartStore'
 
-const props = defineProps({
-  show: Boolean,       // mudou de modelValue → show
-  product: Object
-})
+  const cart = useCartStore()
 
-const emit = defineEmits(['update:show']) // mudou de update:modelValue → update:show
+  // Props
+  const props = defineProps({
+    show: Boolean,
+    product: Object
+  })
 
-const selected = ref(null)
+  const emit = defineEmits(['update:show'])
 
-const close = () => {
-  selected.value = null
-  emit('update:show', false)
-}
+  // Estados
+  const selected = ref(null)
+  const originalSelected = ref(null)
 
-const select = (id) => {
-  selected.value = id
-}
+  // Watch para sincronizar ao abrir modal
+  watch(
+    () => [props.product, props.show],
+    ([newProduct, isOpen]) => {
+      if (!isOpen || !newProduct) return
 
-const formatPrice = (value) => {
-  if (!value) return '0,00'
-  return value.toFixed(2).replace('.', ',')
-}
+      selected.value = newProduct.selectedOption || null
+      originalSelected.value = newProduct.selectedOption || null
+    },
+    { immediate: true }
+  )
 
-const discount = computed(() => {
-  if (!props.product?.oldPrice) return 0
-  return Math.round(100 - (props.product.price / props.product.oldPrice) * 100)
-})
+  // Saber se está editando
+  const isEditing = computed(() => {
+    return originalSelected.value !== null
+  })
+
+  // Saber se houve mudança
+  const hasChanged = computed(() => {
+    return selected.value !== originalSelected.value
+  })
+
+  // Controle do botão
+  const canSubmit = computed(() => {
+    // Sem opções → sempre pode
+    if (!props.product?.options?.length) return true
+
+    // Produto novo → precisa selecionar
+    if (!isEditing.value) {
+      return !!selected.value
+    }
+
+    // Produto em edição → só se mudou
+    return hasChanged.value
+  })
+
+  // Ação principal
+  function addToCart() {
+    if (!props.product) return
+
+    const productToAdd = {
+      ...props.product,
+      selectedOption: selected.value
+    }
+
+    // Se estiver editando, remove o antigo antes
+    if (isEditing.value) {
+      cart.remove(props.product.id)
+    }
+
+    cart.add(productToAdd)
+    close()
+  }
+
+  // Seleção de opção
+  const select = (id) => {
+    selected.value = id
+  }
+
+  // Fechar modal
+  const close = () => {
+    selected.value = null
+    originalSelected.value = null
+    emit('update:show', false)
+  }
+
+  // Utils
+  const formatPrice = (value) => {
+    if (!value) return '0,00'
+    return value.toFixed(2).replace('.', ',')
+  }
+
+  const discount = computed(() => {
+    if (!props.product?.oldPrice) return 0
+    return Math.round(100 - (props.product.price / props.product.oldPrice) * 100)
+  })
 </script>
 
 <style scoped>

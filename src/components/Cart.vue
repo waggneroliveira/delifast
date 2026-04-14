@@ -172,8 +172,13 @@ const showProductModal = ref(false)
 const selectedProduct = ref(null)
 
 const openProductModal = (product) => {
-    selectedProduct.value = product
+    selectedProduct.value = {
+        ...product,
+        selectedOption: product.selectedOption || null
+    }
+
     showProductModal.value = true
+
 }
 
 // Computed para saber se pode confirmar

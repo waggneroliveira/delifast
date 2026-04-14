@@ -1,11 +1,11 @@
 <template>
-  <div class="card product-card h-100 cursor-pointer" @click="$emit('open', product)">
+  <div class="card product-card h-100 cursor-pointer">
     <div class="position-relative">
       <span class="badge cashback position-absolute top-0 start-0 m-2 small">
         {{ product.cashback }}% cashback
       </span>
 
-      <img :src="product.image" class="card-img-top" />
+      <img :src="product.image" class="card-img-top" @click="$emit('open', product)"/>
     </div>
 
     <div class="card-body d-flex flex-column">
@@ -27,8 +27,11 @@
             </div>
           </div>
         </div>
-
-        <button class="btn btn-sm btn-primary" @click.stop="$emit('add', product)">
+        <!-- 
+          Adicionar no button p click ao carrinho
+          @click.stop="$emit('add', product)"
+         -->
+        <button class="btn btn-sm btn-primary" @click="$emit('open', product)">
           <span class="me-2">+</span> Adicionar
         </button>
       </div>

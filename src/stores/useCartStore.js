@@ -63,7 +63,10 @@ getters: {
   actions: {
     add(product) {
       const toast = useToast()
-      const existing = this.items.find(i => i.id === product.id)
+      const existing = this.items.find(i =>
+        i.id === product.id &&
+        i.selectedOption === product.selectedOption
+      )
 
       if (existing) {
         existing.quantity++
@@ -80,7 +83,8 @@ getters: {
           image: product.image,
           cashback: product.cashback || 0,
           quantity: 1,
-          options: product.options || []
+          options: product.options || [],
+          selectedOption: product.selectedOption || null
         })
   
         toast.success(`"${product.name}" adicionado ao carrinho!`, {

@@ -236,10 +236,12 @@
               <Announcement/>
               
               <div class="carousel-breakout">
-
+                <!-- 
+                  Adicionar caso queira o click de adc ao carrinho 
+                  @add="addToCart"
+                -->
                 <ProductCarousel
                   :products="highlights"
-                  @add="addToCart"
                   @open="openProductModal"
                 />
               </div>
@@ -247,7 +249,6 @@
               <div class="list-product">
                 <ProductList
                   :categories="categories"
-                  @add="addToCart"
                   @open="openProductModal"
                 />
               </div>
