@@ -83,7 +83,7 @@
                             </svg>
                             Adicionais
                         </div>
-                        <div v-for="ad in getItemAditionalsList(item)" :key="ad.name" class="small d-flex justify-content-between align-items-center ms-1">
+                        <div v-for="ad in getItemAditionalsList(item)" :key="ad.name" class="small d-flex justify-content-between align-items-center ms-0">
                             <span class="text-muted">{{ ad.quantity }}x {{ ad.name }}</span>
                             <span class="text-success fw-semibold">+{{ formatPrice(ad.total) }}</span>
                         </div>
