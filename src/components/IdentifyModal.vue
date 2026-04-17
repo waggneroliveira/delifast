@@ -298,7 +298,7 @@ const checkUserExists = async (whatsappNumber, name) => {
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(false) // Mude para true quando quiser simular usuário existente
+        resolve(true) // Mude para true quando quiser simular usuário existente
       }
     }, 500)
   })
@@ -509,10 +509,10 @@ watch(() => props.modelValue, async (open) => {
       display: block;
     }
 
-    .step-section {
-  transition: all 0.3s ease;
-  animation: fadeIn 0.3s ease;
-}
+  .step-section {
+    transition: all 0.3s ease;
+    animation: fadeIn 0.3s ease;
+  }
 
 @keyframes fadeIn {
   from {
