@@ -77,7 +77,45 @@
             </button>
           </div>
 
-          <!-- ETAPA 2: FORMA DE ENTREGA -->
+          <!-- ETAPA 2: VALIDAÇÃO DE CEP (quando usuário já existe) -->
+          <div v-show="currentStep === 'cep'" ref="cepSectionRef" class="step-section py-3">
+            <div class="text-center mb-4">
+              <h4 class="fw-semibold text-secondary">Confirme seu CEP</h4>
+              <p class="text-muted small">Digite o CEP cadastrado em sua conta</p>
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+              <input 
+                v-for="(digit, index) in 8" 
+                :key="index"
+                ref="cepInputs"
+                type="text" 
+                maxlength="1" 
+                class="form-control text-center cep-box"
+                v-model="cepDigits[index]"
+                @input="handleCepDigit(index, $event)"
+                @keydown="handleCepKeydown(index, $event)"
+                @paste="handleCepPaste"
+                :disabled="isLoading"
+              >
+            </div>
+            
+            <div v-if="cepError" class="text-center mt-3">
+              <span class="text-danger small">{{ cepError }}</span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button class="btn btn-secondary w-50" @click="backToForm" :disabled="isLoading">
+                Voltar
+              </button>
+              <button class="btn btn-primary w-50" @click="validateCepAndLogin" :disabled="isLoading || !isCepComplete">
+                <span v-if="isLoading">Verificando...</span>
+                <span v-else>Verificar CEP</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ETAPA 3: FORMA DE ENTREGA -->
           <div v-show="currentStep === 'delivery'" ref="deliverySectionRef" class="step-section">
             <div class="mb-3">
               <label class="form-label">Como Entregar?</label>
@@ -151,7 +189,7 @@
             </div>
           </div>
 
-          <!-- ETAPA 3: FORMA DE PAGAMENTO -->
+          <!-- ETAPA 4: FORMA DE PAGAMENTO -->
           <div v-show="currentStep === 'payment'" ref="paymentSectionRef" class="step-section">
             <div class="mb-3">
               <label class="form-label">Forma de Pagamento</label>
@@ -227,7 +265,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 
 const props = defineProps({
   modelValue: Boolean
@@ -242,14 +280,31 @@ const paymentMethod = ref('')
 const deliveryMethod = ref('')
 
 // Controle de etapas
-const currentStep = ref('form') // form, payment, delivery
+const currentStep = ref('form') // form, cep, delivery, payment
 const isLoading = ref(false)
 const userFound = ref(false)
+
+// CEP fields
+const cepDigits = ref(['', '', '', '', '', '', '', ''])
+const cepError = ref('')
+const cepInputs = ref([])
+const expectedCep = ref('')
 
 // Referências para os elementos do DOM (para scroll smooth)
 const paymentSectionRef = ref(null)
 const deliverySectionRef = ref(null)
 const formSectionRef = ref(null)
+const cepSectionRef = ref(null)
+
+// Computed para verificar se CEP está completo
+const isCepComplete = computed(() => {
+  return cepDigits.value.every(digit => digit !== '')
+})
+
+// Função para obter o CEP completo
+const getFullCep = () => {
+  return cepDigits.value.join('')
+}
 
 // Fecha o modal e reseta
 const close = () => {
@@ -265,6 +320,9 @@ const resetModal = () => {
     deliveryMethod.value = ''
     userFound.value = false
     isLoading.value = false
+    cepDigits.value = ['', '', '', '', '', '', '', '']
+    cepError.value = ''
+    expectedCep.value = ''
   }, 300)
 }
 
@@ -279,6 +337,19 @@ const formatWhatsapp = () => {
   } else if (v.length > 0) {
     whatsapp.value = `(${v}`
   }
+}
+
+// Busca o CEP do endereço principal nos addresses salvos
+const getPrimaryAddressCep = () => {
+  const addresses = localStorage.getItem('addresses')
+  if (addresses) {
+    const parsedAddresses = JSON.parse(addresses)
+    const primaryAddress = parsedAddresses.find(addr => addr.primary === true)
+    if (primaryAddress && primaryAddress.cep) {
+      return primaryAddress.cep.replace(/\D/g, '')
+    }
+  }
+  return null
 }
 
 // Simula verificação de usuário no backend
@@ -304,7 +375,7 @@ const checkUserExists = async (whatsappNumber, name) => {
   })
 }
 
-// Verifica dados iniciais e avança para pagamento
+// Verifica dados iniciais
 const checkAndAdvanceToDelivery = async () => {
   if (!whatsapp.value || !fullName.value) {
     alert('Preencha todos os campos!')
@@ -324,21 +395,34 @@ const checkAndAdvanceToDelivery = async () => {
     userFound.value = await checkUserExists(whatsapp.value, fullName.value)
 
     if (userFound.value) {
-      // Usuário já existe - salva e fecha
-      const data = {
-        whatsapp: whatsapp.value,
-        fullName: fullName.value,
-        paymentMethod: paymentMethod.value,
-        deliveryMethod: deliveryMethod.value
+      // Usuário já existe - busca o CEP do endereço principal
+      expectedCep.value = getPrimaryAddressCep()
+      
+      if (expectedCep.value) {
+        // Tem CEP cadastrado - vai para etapa de validação
+        currentStep.value = 'cep'
+        await nextTick()
+        // Limpa os campos de CEP e foca no primeiro
+        cepDigits.value = ['', '', '', '', '', '', '', '']
+        cepError.value = ''
+        if (cepInputs.value[0]) {
+          cepInputs.value[0].focus()
+        }
+        if (cepSectionRef.value) {
+          cepSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      } else {
+        // Não tem CEP cadastrado - vai direto para entrega
+        currentStep.value = 'delivery'
+        await nextTick()
+        if (deliverySectionRef.value) {
+          deliverySectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
       }
-      localStorage.setItem('userData', JSON.stringify(data))
-      emit('submit', data)
-      close()
     } else {
       // Usuário não existe - mostra forma de entrega
       currentStep.value = 'delivery'
       await nextTick()
-      // Scroll suave para a seção de entrega
       if (deliverySectionRef.value) {
         deliverySectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
@@ -348,6 +432,94 @@ const checkAndAdvanceToDelivery = async () => {
     alert('Erro ao verificar dados. Tente novamente.')
   } finally {
     isLoading.value = false
+  }
+}
+
+// Voltar para o formulário inicial
+const backToForm = () => {
+  currentStep.value = 'form'
+  cepDigits.value = ['', '', '', '', '', '', '', '']
+  cepError.value = ''
+}
+
+// Valida o CEP digitado e faz login
+const validateCepAndLogin = () => {
+  const typedCep = getFullCep()
+  
+  if (typedCep === expectedCep.value) {
+    // CEP correto - realiza login
+    cepError.value = ''
+    const data = {
+      whatsapp: whatsapp.value,
+      fullName: fullName.value,
+      paymentMethod: paymentMethod.value,
+      deliveryMethod: deliveryMethod.value
+    }
+    localStorage.setItem('userData', JSON.stringify(data))
+    emit('submit', data)
+    close()
+  } else {
+    cepError.value = 'CEP não encontrado! Verifique o CEP cadastrado.'
+    // Limpa os campos de CEP
+    cepDigits.value = ['', '', '', '', '', '', '', '']
+    if (cepInputs.value[0]) {
+      cepInputs.value[0].focus()
+    }
+  }
+}
+
+// Manipula a digitação do CEP (auto-tab)
+const handleCepDigit = (index, event) => {
+  const value = event.target.value.replace(/\D/g, '')
+  
+  if (value.length > 0) {
+    cepDigits.value[index] = value.charAt(0)
+    
+    // Avança para o próximo input se não for o último
+    if (index < 7 && cepDigits.value[index] !== '') {
+      if (cepInputs.value[index + 1]) {
+        cepInputs.value[index + 1].focus()
+      }
+    }
+  } else {
+    cepDigits.value[index] = ''
+  }
+}
+
+// Manipula tecla backspace para voltar
+const handleCepKeydown = (index, event) => {
+  if (event.key === 'Backspace') {
+    if (cepDigits.value[index] === '' && index > 0) {
+      // Se o campo atual está vazio, volta para o anterior
+      if (cepInputs.value[index - 1]) {
+        cepInputs.value[index - 1].focus()
+      }
+    } else if (cepDigits.value[index] !== '') {
+      // Se tem conteúdo, limpa o campo atual
+      cepDigits.value[index] = ''
+      event.preventDefault()
+    }
+  }
+}
+
+// Manipula colagem de CEP completo
+const handleCepPaste = (event) => {
+  event.preventDefault()
+  const pastedText = event.clipboardData.getData('text').replace(/\D/g, '')
+  const digits = pastedText.split('').slice(0, 8)
+  
+  digits.forEach((digit, idx) => {
+    if (idx < 8) {
+      cepDigits.value[idx] = digit
+    }
+  })
+  
+  // Foca no próximo campo vazio ou no último preenchido
+  const nextEmptyIndex = cepDigits.value.findIndex(d => d === '')
+  if (nextEmptyIndex !== -1 && cepInputs.value[nextEmptyIndex]) {
+    cepInputs.value[nextEmptyIndex].focus()
+  } else if (cepInputs.value[7]) {
+    cepInputs.value[7].focus()
   }
 }
 
@@ -416,6 +588,9 @@ watch(() => props.modelValue, async (open) => {
     currentStep.value = 'form'
     paymentMethod.value = ''
     deliveryMethod.value = ''
+    cepDigits.value = ['', '', '', '', '', '', '', '']
+    cepError.value = ''
+    expectedCep.value = ''
     
     const saved = localStorage.getItem('userData')
     if (saved) {
@@ -438,7 +613,22 @@ watch(() => props.modelValue, async (open) => {
 })
 </script>
 
+
 <style scoped>
+    .cep-box {
+      width: 45px;
+      height: 45px;
+      border-radius: 8px;
+      font-size: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .cep-box:focus {
+      border-color: #FF8C00;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
+    }
     .payment-form-title{
       font-size: clamp(0.938rem, 1vw, 1rem);
     }

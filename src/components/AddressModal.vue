@@ -23,11 +23,12 @@
           <div v-if="view === 'list'" class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6>Endereços cadastrados</h6>
+                <!-- No lugar do botão Novo Endereço existente -->
                 <button
                     v-if="addresses.length < 2"
                     class="btn btn-outline-primary btn-sm"
                     @click="showForm"
-                    >
+                >
                     <i class="bi bi-plus"></i> Novo Endereço
                 </button>
             </div>
@@ -186,13 +187,13 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue'
+    import { ref, watch } from 'vue'
 
     const props = defineProps({
-    modelValue: Boolean
+        modelValue: Boolean
     })
 
-    const emit = defineEmits(['update:modelValue'])
+    const emit = defineEmits(['update:modelValue', 'address-selected'])
 
     const view = ref('list')         // 'list' ou 'form'
     const step = ref(1)              // passo do formulário
@@ -201,64 +202,29 @@
 
     let debounceTimer = null
 
+    // Função para disparar evento de atualização
+    const triggerAddressUpdate = () => {
+        // Dispara evento customizado para notificar o Cart
+        window.dispatchEvent(new CustomEvent('addresses-updated'))
+        // Também salva no storage para outras abas
+        localStorage.setItem('addressesUpdated', Date.now().toString())
+    }
+
     // lista de endereços (carrega do LocalStorage se existir)
     const addresses = ref([])
-    if (localStorage.getItem('addresses')) {
-    addresses.value = JSON.parse(localStorage.getItem('addresses'))
+    
+    const loadAddresses = () => {
+        if (localStorage.getItem('addresses')) {
+            addresses.value = JSON.parse(localStorage.getItem('addresses'))
+        } else {
+            addresses.value = []
+        }
     }
+    
+    loadAddresses()
 
     // formulário
     const form = ref({
-    cep: ''
-    })
-
-    /* 🔥 MÁSCARA + TRIGGER AUTOMÁTICO */
-    const handleCepInput = () => {
-    let v = form.value.cep.replace(/\D/g, '')
-
-    if (v.length > 5) {
-        v = v.slice(0,5) + '-' + v.slice(5,8)
-    }
-
-    form.value.cep = v
-
-    const cepLimpo = v.replace(/\D/g, '')
-
-    if (cepLimpo.length === 8) {
-        clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(() => {
-        searchCEP(cepLimpo)
-        }, 400)
-    }
-    }
-
-    /* 🔥 AJAX VIA CEP */
-    const searchCEP = async (cep) => {
-    loadingCEP.value = true
-
-    try {
-        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
-        const data = await res.json()
-
-        if (!data.erro) {
-        form.value.street = data.logradouro
-        form.value.neighborhood = data.bairro
-        form.value.city = data.localidade
-        form.value.state = data.uf
-        }
-    } catch (e) {
-        console.error(e)
-    }
-
-    loadingCEP.value = false
-    }
-
-    /* ---- NAVIGATION ---- */
-    const showForm = () => {
-    view.value = 'form'
-    step.value = 1
-    // limpa o form apenas para novo endereço
-    form.value = {
         cep: '',
         nickname: '',
         street: '',
@@ -269,56 +235,199 @@
         state: '',
         reference: '',
         instructions: '',
-        primary: false
-    }
+        primary: false,
+        id: null
+    })
+
+    /* 🔥 MÁSCARA + TRIGGER AUTOMÁTICO */
+    const handleCepInput = () => {
+        let v = form.value.cep.replace(/\D/g, '')
+
+        if (v.length > 5) {
+            v = v.slice(0,5) + '-' + v.slice(5,8)
+        }
+
+        form.value.cep = v
+
+        const cepLimpo = v.replace(/\D/g, '')
+
+        if (cepLimpo.length === 8) {
+            clearTimeout(debounceTimer)
+            debounceTimer = setTimeout(() => {
+                searchCEP(cepLimpo)
+            }, 400)
+        }
     }
 
-    const showList = () => view.value = 'list'
+    /* 🔥 AJAX VIA CEP */
+    const searchCEP = async (cep) => {
+        loadingCEP.value = true
+
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            const data = await res.json()
+
+            if (!data.erro) {
+                form.value.street = data.logradouro
+                form.value.neighborhood = data.bairro
+                form.value.city = data.localidade
+                form.value.state = data.uf
+            }
+        } catch (e) {
+            console.error(e)
+        }
+
+        loadingCEP.value = false
+    }
+
+    /* ---- NAVIGATION ---- */
+    const showForm = () => {
+        view.value = 'form'
+        step.value = 1
+        // limpa o form apenas para novo endereço
+        form.value = {
+            cep: '',
+            nickname: '',
+            street: '',
+            number: '',
+            complement: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            reference: '',
+            instructions: '',
+            primary: false,
+            id: null
+        }
+    }
+
+    const showList = () => {
+        view.value = 'list'
+        loadAddresses() // Recarrega a lista ao voltar
+        triggerAddressUpdate() // Notifica mudança
+    }
+    
     const nextStep = () => step.value = 2
     const prevStep = () => step.value = 1
 
     /* ---- ENDEREÇOS ---- */
-    const selectAddress = (id) => selectedId.value = id
+    const selectAddress = (id) => {
+        selectedId.value = id
+        const selectedAddr = addresses.value.find(a => a.id === id)
+        if (selectedAddr) {
+            emit('address-selected', selectedAddr)
+            close()
+        }
+    }
 
     const editAddress = (id) => {
-    const addr = addresses.value.find(a => a.id === id)
-    if (addr) {
-        form.value = { ...addr } // mantém id
-        view.value = 'form'
-        step.value = 1
-    }
+        const addr = addresses.value.find(a => a.id === id)
+        if (addr) {
+            form.value = { ...addr } // mantém id
+            view.value = 'form'
+            step.value = 1
+        }
     }
 
     const deleteAddress = (id) => {
-    if (confirm('Deseja excluir?')) {
-        addresses.value = addresses.value.filter(a => a.id !== id)
-        localStorage.setItem('addresses', JSON.stringify(addresses.value))
-        if (selectedId.value === id) selectedId.value = null
-    }
+        if (confirm('Deseja excluir este endereço?')) {
+            const deletedAddress = addresses.value.find(a => a.id === id)
+            const wasSelected = localStorage.getItem('selectedAddressId') === id.toString()
+            
+            addresses.value = addresses.value.filter(a => a.id !== id)
+            localStorage.setItem('addresses', JSON.stringify(addresses.value))
+            
+            // Se o endereço excluído era o selecionado
+            if (wasSelected) {
+                // Tenta encontrar um endereço principal
+                const primaryAddress = addresses.value.find(addr => addr.primary === true)
+                if (primaryAddress) {
+                    emit('address-selected', primaryAddress)
+                } else if (addresses.value.length > 0) {
+                    // Se não tem principal, seleciona o primeiro da lista
+                    emit('address-selected', addresses.value[0])
+                } else {
+                    // Não tem mais endereços
+                    emit('address-selected', null)
+                }
+            }
+            
+            triggerAddressUpdate() // Notifica mudança
+            loadAddresses() // Recarrega a lista
+            
+            toast.success('Endereço removido com sucesso!', {
+                timeout: 3000
+            })
+        }
     }
 
     /* ---- SALVAR ---- */
     const saveAddress = () => {
-    if (form.value.id) {
-        // edição: atualiza endereço existente
-        const index = addresses.value.findIndex(a => a.id === form.value.id)
-        if (index !== -1) addresses.value[index] = { ...form.value }
-    } else {
-        // novo endereço: adiciona
-        form.value.id = Date.now()
-        addresses.value.push({ ...form.value })
-    }
+        // Se for definir como principal, remove primary dos outros
+        if (form.value.primary) {
+            addresses.value.forEach(addr => {
+                addr.primary = false
+            })
+        }
+        
+        let isNewAddress = false
+        
+        if (form.value.id) {
+            // edição: atualiza endereço existente
+            const index = addresses.value.findIndex(a => a.id === form.value.id)
+            if (index !== -1) {
+                // Verifica se o endereço editado era o selecionado
+                const wasSelected = localStorage.getItem('selectedAddressId') === form.value.id.toString()
+                addresses.value[index] = { ...form.value }
+                
+                // Se era o selecionado, atualiza a seleção
+                if (wasSelected) {
+                    emit('address-selected', form.value)
+                }
+            }
+        } else {
+            // novo endereço: adiciona
+            isNewAddress = true
+            form.value.id = Date.now()
+            addresses.value.push({ ...form.value })
+        }
 
-    // persistir no LocalStorage
-    localStorage.setItem('addresses', JSON.stringify(addresses.value))
-
-    // volta para lista
-    showList()
+        // persistir no LocalStorage
+        localStorage.setItem('addresses', JSON.stringify(addresses.value))
+        
+        // Se o endereço salvo for o principal, emite evento
+        if (form.value.primary) {
+            emit('address-selected', form.value)
+        } else if (isNewAddress && addresses.value.length === 1) {
+            // Se é o primeiro endereço, seleciona automaticamente
+            emit('address-selected', form.value)
+        }
+        
+        triggerAddressUpdate() // Notifica mudança
+        
+        // volta para lista
+        showList()
+        
+        toast.success(isNewAddress ? 'Endereço cadastrado com sucesso!' : 'Endereço atualizado com sucesso!', {
+            timeout: 3000
+        })
     }
 
     /* ---- FECHAR MODAL ---- */
-    const close = () => emit('update:modelValue', false)
+    const close = () => {
+        emit('update:modelValue', false)
+        loadAddresses() // Recarrega endereços ao fechar
+        triggerAddressUpdate() // Notifica mudança
+    }
+    
+    // Observa quando o modal abre para recarregar os endereços
+    watch(() => props.modelValue, (newValue) => {
+        if (newValue) {
+            loadAddresses()
+        }
+    })
 </script>
+
 
 <style scoped>
     .badge.text-black{
