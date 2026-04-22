@@ -21,7 +21,7 @@
           <div class="col-md-5 text-center">
             <div class="image">
               <img
-                :src="product?.image"
+                :src="product?.images?.[0] || product?.image"
                 class="img-fluid w-100 rounded-4 mb-2"
               />
             </div>
@@ -37,7 +37,7 @@
 
             <div class="mt-2">
               <h5 class="fw-bold">
-                R$ {{ formatPrice(product?.price) }}
+                R$ {{ formatPrice(finalPrice) }}
               </h5>
 
               <div class="text-muted small" v-if="product?.oldPrice">
@@ -51,9 +51,10 @@
 
           <!-- RIGHT -->
           <div class="col-md-7 scroll">
-            <div class="col-md-12" v-if="product?.options?.length">
+            <!-- Opções (Sabores/Tamanhos) baseado na nova estrutura -->
+            <div class="col-md-12" v-if="hasOptions">
               <div
-                v-for="group in product.options"
+                v-for="group in optionGroups"
                 :key="group.title"
                 class="mb-4"
               >
@@ -65,11 +66,11 @@
                   v-for="item in group.items"
                   :key="item.id"
                   class="d-flex align-items-center border gap-1 rounded p-0 mb-2 option-item pe-3"
-                  :class="{ active: selected === item.id }"
-                  @click="select(item.id)"
+                  :class="{ active: isOptionSelected(item) }"
+                  @click="selectOption(item)"
                 >
                   <img
-                    :src="item.image"
+                    :src="item.image || product?.images?.[0]"
                     class="me-3 cover"
                     width="105"
                     height="105"
@@ -82,19 +83,100 @@
                     <small class="text-muted">
                       {{ item.description }}
                     </small>
+                    <div v-if="item.price > 0" class="text-primary small fw-bold">
+                      + R$ {{ formatPrice(item.price) }}
+                    </div>
                   </div>
 
                   <input
                     type="radio"
-                    :checked="selected === item.id"
+                    :checked="isOptionSelected(item)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Opção de Tamanhos (estrutura alternativa) -->
+            <div class="col-md-12" v-if="hasSizes">
+              <div class="mb-4">
+                <h6 class="fw-bold text-primary text-center mb-4">
+                  Tamanhos
+                </h6>
+
+                <div
+                  v-for="size in product?.customization?.sizes"
+                  :key="size.id"
+                  class="d-flex align-items-center border gap-1 rounded p-0 mb-2 option-item pe-3"
+                  :class="{ active: selectedSize?.id === size.id }"
+                  @click="selectedSize = size"
+                >
+                  <div class="flex-grow-1 p-3">
+                    <div class="fw-semibold">
+                      {{ size.name }}
+                    </div>
+                    <small class="text-muted" v-if="size.description">
+                      {{ size.description }}
+                    </small>
+                    <div class="text-primary fw-bold">
+                      R$ {{ formatPrice(size.price) }}
+                      <span v-if="size.oldPrice" class="text-muted small ms-2">
+                        <s>R$ {{ formatPrice(size.oldPrice) }}</s>
+                      </span>
+                    </div>
+                  </div>
+
+                  <input
+                    type="radio"
+                    :checked="selectedSize?.id === size.id"
+                    class="me-3"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Sabores (para pizzas) -->
+            <div class="col-md-12" v-if="hasFlavors">
+              <div class="mb-4">
+                <h6 class="fw-bold text-primary text-center mb-4">
+                  Sabores (máx. {{ maxFlavors }})
+                </h6>
+
+                <div
+                  v-for="flavor in product?.customization?.flavors"
+                  :key="flavor.id"
+                  class="d-flex align-items-center border gap-1 rounded p-0 mb-2 option-item pe-3"
+                  :class="{ active: isFlavorSelected(flavor) }"
+                  @click="toggleFlavor(flavor)"
+                >
+                  <div class="flex-grow-1 p-3">
+                    <div class="fw-semibold">
+                      {{ flavor.name }}
+                      <span v-if="flavor.isRecommended" class="badge bg-primary ms-2">
+                        Recomendado
+                      </span>
+                    </div>
+                    <small class="text-muted">
+                      {{ flavor.description }}
+                    </small>
+                    <div v-if="flavor.price > 0" class="text-primary small fw-bold">
+                      + R$ {{ formatPrice(flavor.price) }}
+                    </div>
+                  </div>
+
+                  <input
+                    type="checkbox"
+                    :checked="isFlavorSelected(flavor)"
+                    :disabled="maxFlavorsReached && !isFlavorSelected(flavor)"
+                    class="me-3"
                   />
                 </div>
               </div>
             </div>
             
-            <div class="col-md-12" v-if="product?.aditionals?.length">
+            <!-- Adicionais (Toppings) -->
+            <div class="col-md-12" v-if="hasAditionals">
               <div
-                v-for="group in product.aditionals"
+                v-for="group in aditionalGroups"
                 :key="group.title"
                 class="mb-4"
               >
@@ -168,28 +250,239 @@
 
   const emit = defineEmits(['update:show'])
 
-  const selected = ref(null)
-  const originalSelected = ref(null)
+  // Estados para personalizações
+  const selectedOption = ref(null)
+  const selectedSize = ref(null)
+  const selectedFlavors = ref([])
   const aditionalState = ref({})
+  
+  // Estados originais para edição
+  const originalSelectedOption = ref(null)
+  const originalSelectedSize = ref(null)
+  const originalSelectedFlavors = ref([])
   const originalAditionalsState = ref({})
 
+  // Computed properties para verificar disponibilidade
+  const hasOptions = computed(() => {
+    return props.product?.options?.length > 0
+  })
+
+  const hasSizes = computed(() => {
+    return props.product?.customization?.hasSize && props.product?.customization?.sizes?.length > 0
+  })
+
+  const hasFlavors = computed(() => {
+    return props.product?.customization?.hasFlavors && props.product?.customization?.flavors?.length > 0
+  })
+
+  const hasAditionals = computed(() => {
+    return (props.product?.aditionals?.length > 0) || 
+           (props.product?.customization?.hasToppings && props.product?.customization?.toppings?.length > 0)
+  })
+
+  const maxFlavors = computed(() => {
+    return props.product?.customization?.maxFlavors || 
+           (props.product?.cuisineType === 'pizza' ? 2 : 
+           (props.product?.cuisineType === 'acai' ? 3 : 0))
+  })
+
+  const maxFlavorsReached = computed(() => {
+    return selectedFlavors.value.length >= maxFlavors.value
+  })
+
+  // Agrupa adicionais (prioriza a nova estrutura)
+  const aditionalGroups = computed(() => {
+    if (props.product?.aditionals?.length > 0) {
+      return props.product.aditionals
+    }
+    
+    if (props.product?.customization?.hasToppings && props.product?.customization?.toppings?.length > 0) {
+      return [{
+        title: 'Adicionais',
+        items: props.product.customization.toppings
+      }]
+    }
+    
+    return []
+  })
+
+  // Agrupa opções (backward compatibility)
+  const optionGroups = computed(() => {
+    if (props.product?.options?.length > 0) {
+      return props.product.options
+    }
+    return []
+  })
+
+  // Preço final calculado
+  const finalPrice = computed(() => {
+    let price = props.product?.price || 0
+    
+    // Se tem tamanho selecionado
+    if (selectedSize.value) {
+      price = selectedSize.value.price
+    }
+    
+    // Adiciona preço dos sabores selecionados
+    selectedFlavors.value.forEach(flavor => {
+      price += flavor.price || 0
+    })
+    
+    // Adiciona preço dos adicionais
+    Object.entries(aditionalState.value).forEach(([id, quantity]) => {
+      const item = findAditionalById(parseInt(id))
+      if (item && item.price) {
+        price += item.price * quantity
+      }
+    })
+    
+    return price
+  })
+
+  // Verifica se está editando
+  const isEditing = computed(() => {
+    return originalSelectedOption.value !== null || 
+           originalSelectedSize.value !== null || 
+           originalSelectedFlavors.value.length > 0
+  })
+  
+  // Verifica se houve mudanças
+  const hasOptionsChanged = computed(() => {
+    return selectedOption.value !== originalSelectedOption.value
+  })
+  
+  const hasSizeChanged = computed(() => {
+    return selectedSize.value?.id !== originalSelectedSize.value?.id
+  })
+  
+  const hasFlavorsChanged = computed(() => {
+    if (selectedFlavors.value.length !== originalSelectedFlavors.value.length) return true
+    return selectedFlavors.value.some(f => !originalSelectedFlavors.value.find(of => of.id === f.id))
+  })
+  
+  const hasAditionalsChanged = computed(() => {
+    for (const [id, quantity] of Object.entries(aditionalState.value)) {
+      if (quantity !== (originalAditionalsState.value[id] || 0)) {
+        return true
+      }
+    }
+    return false
+  })
+  
+  // Botão habilitado
+  const canSubmit = computed(() => {
+    // Validação para produtos que exigem seleção
+    if (hasOptions.value && !selectedOption.value) return false
+    if (hasSizes.value && !selectedSize.value) return false
+    if (hasFlavors.value && selectedFlavors.value.length === 0) return false
+    
+    // Se for edição, precisa ter mudado algo
+    if (isEditing.value) {
+      return hasOptionsChanged.value || 
+             hasSizeChanged.value || 
+             hasFlavorsChanged.value || 
+             hasAditionalsChanged.value
+    }
+    
+    return true
+  })
+
+  const discount = computed(() => {
+    if (!props.product?.oldPrice) return 0
+    return Math.round(100 - (props.product.price / props.product.oldPrice) * 100)
+  })
+
+  // Funções auxiliares
+  const findAditionalById = (id) => {
+    for (const group of aditionalGroups.value) {
+      const item = group.items.find(i => i.id === id)
+      if (item) return item
+    }
+    return null
+  }
+
+  const isOptionSelected = (item) => {
+    return selectedOption.value === item.id
+  }
+
+  const isFlavorSelected = (flavor) => {
+    return selectedFlavors.value.some(f => f.id === flavor.id)
+  }
+
+  const selectOption = (item) => {
+    selectedOption.value = item.id
+  }
+
+  const toggleFlavor = (flavor) => {
+    const index = selectedFlavors.value.findIndex(f => f.id === flavor.id)
+    if (index > -1) {
+      selectedFlavors.value.splice(index, 1)
+    } else {
+      if (!maxFlavorsReached.value) {
+        selectedFlavors.value.push(flavor)
+      }
+    }
+  }
+
+  const getAditionalQty = (id) => aditionalState.value[id] || 0
+  
+  const increaseAditional = (item) => {
+    const current = aditionalState.value[item.id] || 0
+    const maxStock = item.stock || 99
+    if (current >= maxStock) return
+    aditionalState.value[item.id] = current + 1
+  }
+  
+  const decreaseAditional = (id) => {
+    const current = aditionalState.value[id] || 0
+    if (current <= 0) return
+    aditionalState.value[id] = current - 1
+  }
+
   // Reset ao abrir o modal
+  const resetState = () => {
+    selectedOption.value = null
+    selectedSize.value = null
+    selectedFlavors.value = []
+    aditionalState.value = {}
+    
+    originalSelectedOption.value = null
+    originalSelectedSize.value = null
+    originalSelectedFlavors.value = []
+    originalAditionalsState.value = {}
+  }
+
+  // Carrega dados do produto ao abrir
   watch(
     () => props.product,
     (newProduct) => {
-      if (!newProduct) return
+      if (!newProduct || !props.show) return
 
-      console.log('Modal abriu com produto:', newProduct) // Debug
+      resetState()
 
-      // Usa as propriedades que você já está passando do Cart.vue
-      selected.value = newProduct.selectedOption || null
-      originalSelected.value = newProduct.originalSelectedOption || null
+      // Carrega opção selecionada (se existir)
+      if (newProduct.selectedOption) {
+        selectedOption.value = newProduct.selectedOption
+        originalSelectedOption.value = newProduct.selectedOption
+      }
 
-      // Inicializa os adicionais
+      // Carrega tamanho selecionado (se existir)
+      if (newProduct.selectedSize) {
+        selectedSize.value = newProduct.selectedSize
+        originalSelectedSize.value = newProduct.selectedSize
+      }
+
+      // Carrega sabores selecionados (se existir)
+      if (newProduct.selectedFlavors && newProduct.selectedFlavors.length) {
+        selectedFlavors.value = [...newProduct.selectedFlavors]
+        originalSelectedFlavors.value = [...newProduct.selectedFlavors]
+      }
+
+      // Carrega adicionais
       const state = {}
       const originalState = {}
       
-      // Usa os adicionais que vieram do produto (já com as quantidades atuais)
+      // Para estrutura antiga (aditionals)
       if (newProduct.aditionals && newProduct.aditionals.length > 0) {
         newProduct.aditionals.forEach(group => {
           group.items.forEach(item => {
@@ -200,52 +493,27 @@
         })
       }
       
+      // Para estrutura nova (customization.toppings)
+      if (newProduct.customization?.hasToppings && newProduct.customization?.toppings) {
+        newProduct.customization.toppings.forEach(item => {
+          if (state[item.id] === undefined) {
+            state[item.id] = 0
+            originalState[item.id] = 0
+          }
+        })
+      }
+      
       aditionalState.value = state
       originalAditionalsState.value = originalState
-      
-      console.log('Estado dos adicionais carregado:', aditionalState.value)
     },
     { immediate: true, deep: true }
   )
 
-  const isEditing = computed(() => originalSelected.value !== null)
-  
-  // Verifica se as opções mudaram
-  const hasOptionsChanged = computed(() => selected.value !== originalSelected.value)
-  
-  // Verifica se os adicionais mudaram
-  const hasAditionalsChanged = computed(() => {
-    for (const [id, quantity] of Object.entries(aditionalState.value)) {
-      if (quantity !== (originalAditionalsState.value[id] || 0)) {
-        return true
-      }
-    }
-    return false
-  })
-  
-  // Botão só pode ser clicado se houver mudanças (na edição) ou se tiver opção selecionada (novo)
-  const canSubmit = computed(() => {
-    // Se tem opções e nenhuma selecionada, não pode
-    if (props.product?.options?.length && !selected.value) {
-      return false
-    }
-    
-    // Se for edição, precisa ter mudado algo (opção OU adicionais)
-    if (isEditing.value) {
-      return hasOptionsChanged.value || hasAditionalsChanged.value
-    }
-    
-    // Novo item: só precisa ter opção selecionada (se houver opções)
-    return true
-  })
-
   function addToCart() {
     if (!props.product) return
 
-    console.log('Salvando produto com adicionais:', aditionalState.value)
-
-    // ATUALIZA AS QUANTIDADES DOS ADICIONAIS
-    const updatedAditionals = (props.product.aditionals || []).map(group => ({
+    // Prepara os adicionais atualizados
+    const updatedAditionals = aditionalGroups.value.map(group => ({
       title: group.title,
       items: group.items.map(item => ({
         id: item.id,
@@ -260,14 +528,23 @@
       id: props.product.id,
       name: props.product.name,
       description: props.product.description,
-      price: props.product.price,
+      price: finalPrice.value,
+      originalPrice: props.product.price,
       oldPrice: props.product.oldPrice,
-      image: props.product.image,
+      image: props.product.images?.[0] || props.product.image,
       cashback: props.product.cashback || 0,
-      options: props.product.options || [],
-      selectedOption: selected.value,
-      originalSelectedOption: originalSelected.value,
-      aditionals: updatedAditionals
+      // Dados de personalização
+      selectedOption: selectedOption.value,
+      selectedSize: selectedSize.value,
+      selectedFlavors: selectedFlavors.value,
+      originalSelectedOption: originalSelectedOption.value,
+      originalSelectedSize: originalSelectedSize.value,
+      originalSelectedFlavors: originalSelectedFlavors.value,
+      // Adicionais
+      aditionals: updatedAditionals,
+      // Metadados
+      customization: props.product.customization,
+      cuisineType: props.product.cuisineType
     }
 
     if (isEditing.value) {
@@ -279,43 +556,14 @@
     close()
   }
 
-  const select = (id) => { 
-    selected.value = id 
-  }
-  
   const close = () => {
-    selected.value = null
-    originalSelected.value = null
-    aditionalState.value = {}
-    originalAditionalsState.value = {}
+    resetState()
     emit('update:show', false)
   }
 
   const formatPrice = (value) => {
-    if (!value) return '0,00'
+    if (!value && value !== 0) return '0,00'
     return value.toFixed(2).replace('.', ',')
-  }
-
-  const discount = computed(() => {
-    if (!props.product?.oldPrice) return 0
-    return Math.round(100 - (props.product.price / props.product.oldPrice) * 100)
-  })
-
-  const getAditionalQty = (id) => aditionalState.value[id] || 0
-  
-  const increaseAditional = (item) => {
-    const current = aditionalState.value[item.id] || 0
-    if (current >= (item.stock || 99)) {
-      console.warn(`Estoque máximo atingido para ${item.name}`)
-      return
-    }
-    aditionalState.value[item.id] = current + 1
-  }
-  
-  const decreaseAditional = (id) => {
-    const current = aditionalState.value[id] || 0
-    if (current <= 0) return
-    aditionalState.value[id] = current - 1
   }
 </script>
 
