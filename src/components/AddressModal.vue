@@ -420,11 +420,23 @@
         triggerAddressUpdate() // Notifica mudança
     }
     
+    const handleNoAddresses = () => {
+      // Se não há endereços e o modal abriu, já mostra o formulário
+      if (addresses.value.length === 0 && props.modelValue) {
+        showForm()
+      }
+    }
+
+
     // Observa quando o modal abre para recarregar os endereços
     watch(() => props.modelValue, (newValue) => {
-        if (newValue) {
-            loadAddresses()
+      if (newValue) {
+        loadAddresses()
+        // Se não tem endereços, já abre o formulário
+        if (addresses.value.length === 0) {
+          showForm()
         }
+      }
     })
 </script>
 

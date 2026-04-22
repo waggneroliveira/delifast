@@ -262,10 +262,17 @@
       </div>
     </div>
   </div>
+
+  <!-- ADDRESS MODAL-->
+  <AddressModal 
+    v-model="showAddressModal"
+    @address-selected="handleAddressSelected"
+  />
 </template>
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
+import AddressModal from './AddressModal.vue'
 
 const props = defineProps({
   modelValue: Boolean
@@ -289,6 +296,10 @@ const cepDigits = ref(['', '', '', '', '', '', '', ''])
 const cepError = ref('')
 const cepInputs = ref([])
 const expectedCep = ref('')
+
+// Controle do modal de endereços
+const showAddressModal = ref(false)
+const pendingAddressSelection = ref(false)
 
 // Referências para os elementos do DOM (para scroll smooth)
 const paymentSectionRef = ref(null)
@@ -323,6 +334,7 @@ const resetModal = () => {
     cepDigits.value = ['', '', '', '', '', '', '', '']
     cepError.value = ''
     expectedCep.value = ''
+    pendingAddressSelection.value = false
   }, 300)
 }
 
@@ -369,10 +381,44 @@ const checkUserExists = async (whatsappNumber, name) => {
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(true) // Mude para true quando quiser simular usuário existente
+        resolve(false) // Mude para true quando quiser simular usuário existente
       }
     }, 500)
   })
+}
+
+// Manipula seleção de endereço vindo do AddressModal
+const handleAddressSelected = async (address) => {
+  showAddressModal.value = false
+  
+  if (address && pendingAddressSelection.value) {
+    pendingAddressSelection.value = false
+    
+    // Salva o endereço selecionado
+    const userData = {
+      whatsapp: whatsapp.value,
+      fullName: fullName.value,
+      deliveryMethod: deliveryMethod.value,
+      selectedAddress: address
+    }
+    
+    // Se já tinha dados salvos, mescla
+    const existingData = localStorage.getItem('userData')
+    if (existingData) {
+      const parsed = JSON.parse(existingData)
+      Object.assign(userData, parsed)
+    }
+    
+    localStorage.setItem('userData', JSON.stringify(userData))
+    
+    // IMPORTANTE: Não chama advanceToPayment novamente
+    // Vai direto para a etapa de pagamento
+    currentStep.value = 'payment'
+    await nextTick()
+    if (paymentSectionRef.value) {
+      paymentSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 }
 
 // Verifica dados iniciais
@@ -523,19 +569,45 @@ const handleCepPaste = (event) => {
   }
 }
 
-// Avança para forma de pagamento
+// Verifica se o usuário tem endereços cadastrados
+const hasAddresses = () => {
+  const addresses = localStorage.getItem('addresses')
+  if (addresses) {
+    const parsedAddresses = JSON.parse(addresses)
+    return parsedAddresses.length > 0
+  }
+  return false
+}
+
+// Avança para forma de pagamento ou abre modal de endereços
 const advanceToPayment = async () => {
   if (!deliveryMethod.value) {
     alert('Selecione uma forma de entrega!')
-    return
+    return false
   }
 
+  // Se escolheu delivery e o usuário NÃO existe (novo cadastro)
+  if (deliveryMethod.value === 'delivery' && !userFound.value) {
+    pendingAddressSelection.value = true
+    showAddressModal.value = true
+    return false
+  }
+  
+  // Se escolheu delivery e usuário já existe, mas não tem CEP cadastrado
+  if (deliveryMethod.value === 'delivery' && userFound.value && !expectedCep.value) {
+    pendingAddressSelection.value = true
+    showAddressModal.value = true
+    return false
+  }
+
+  // Para opções que não são delivery (pickup, local)
+  // ou usuário existente com CEP, avança direto para pagamento
   currentStep.value = 'payment'
   await nextTick()
-  // Scroll suave para a seção de pagamento
   if (paymentSectionRef.value) {
     paymentSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+  return true
 }
 
 // Volta para etapa anterior
@@ -552,27 +624,49 @@ const backToDelivery = () => {
 // Submissão final do formulário
 const submitForm = async () => {
   if (!paymentMethod.value) {
-    alert('Selecione uma forma de entrega!')
+    alert('Selecione uma forma de pagamento!')
     return
   }
 
   isLoading.value = true
 
+  // Recupera o endereço selecionado se existir
+  const userData = localStorage.getItem('userData')
+  let selectedAddress = null
+  
+  if (userData) {
+    const parsed = JSON.parse(userData)
+    selectedAddress = parsed.selectedAddress
+  }
+
   const data = {
     whatsapp: whatsapp.value,
     fullName: fullName.value,
     deliveryMethod: deliveryMethod.value,
-    paymentMethod: paymentMethod.value
+    paymentMethod: paymentMethod.value,
+    selectedAddress: selectedAddress,
+    completedAt: new Date().toISOString()
   }
 
   try {
-    // 🔁 Aqui será a chamada real para salvar no backend
-    // await axios.post('/api/save-user', data)
-    
     // Salva no localStorage
     localStorage.setItem('userData', JSON.stringify(data))
     
+    // IMPORTANTE: Dispara evento para o Cart saber que o usuário está logado
+    // Isso evita precisar recarregar a página
+    const loginEvent = new CustomEvent('user-login', { 
+      detail: { 
+        fullName: fullName.value, 
+        whatsapp: whatsapp.value,
+        isLogged: true 
+      } 
+    })
+    window.dispatchEvent(loginEvent)
+    
+    // Emite o evento com os dados completos para o componente pai
     emit('submit', data)
+    
+    // Fecha o modal
     close()
   } catch (error) {
     console.error('Erro ao salvar dados:', error)
@@ -591,6 +685,7 @@ watch(() => props.modelValue, async (open) => {
     cepDigits.value = ['', '', '', '', '', '', '', '']
     cepError.value = ''
     expectedCep.value = ''
+    pendingAddressSelection.value = false
     
     const saved = localStorage.getItem('userData')
     if (saved) {

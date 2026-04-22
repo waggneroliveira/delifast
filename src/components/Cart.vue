@@ -452,6 +452,20 @@
         
         // Listener para evento customizado (dentro da mesma aba)
         window.addEventListener('addresses-updated', handleCustomAddressUpdate)
+        
+        // NOVO: Listener para evento de login do IdentifyModal
+        window.addEventListener('user-login', (event) => {
+            if (event.detail) {
+                userStore.login({
+                    fullName: event.detail.fullName,
+                    whatsapp: event.detail.whatsapp
+                })
+                // Recarrega endereços após login
+                setTimeout(() => {
+                    updateSelectedAddress()
+                }, 100)
+            }
+        })
     })
 
     onUnmounted(() => {
