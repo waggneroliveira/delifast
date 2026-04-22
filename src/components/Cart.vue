@@ -374,25 +374,48 @@
         // Guarda uma cópia dos adicionais originais para referência
         const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
         
+        // PREPARA OS ADICIONAIS COM AS QUANTIDADES ATUAIS
+        const aditionalsWithQuantity = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
+        
+        // Se tiver customization com toppings, converte para estrutura de adicionais
+        if (product.customization?.hasToppings && product.customization?.toppings && !aditionalsWithQuantity.length) {
+            aditionalsWithQuantity.push({
+                title: 'Adicionais',
+                items: product.customization.toppings.map(topping => ({
+                    ...topping,
+                    quantity: product.selectedToppings?.find(t => t.id === topping.id)?.quantity || 0
+                }))
+            })
+        }
+        
         selectedProduct.value = {
             id: product.id,
             name: product.name,
             description: product.description,
             price: product.price,
+            originalPrice: product.originalPrice || product.price,
             oldPrice: product.oldPrice,
-            image: product.image,
+            image: product.images?.[0] || product.image,
             cashback: product.cashback || 0,
-            options: product.options || [],
+            cuisineType: product.cuisineType,
+            customization: product.customization,
+            
+            // IMPORTANTE: Campos para identificar que é EDIÇÃO
             selectedOption: product.selectedOption || null,
+            originalSelectedOption: product.selectedOption || null,  // CHAVE: mantém o original
             
-            // Adicionais com as quantidades atuais
-            aditionals: product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : [],
+            selectedSize: product.selectedSize || null,
+            originalSelectedSize: product.selectedSize || null,      // CHAVE: mantém o original
             
-            // Guarda uma cópia original para o modal usar como base
+            selectedFlavors: product.selectedFlavors || [],
+            originalSelectedFlavors: product.selectedFlavors || [],  // CHAVE: mantém o original
+            
+            // Adicionais com quantidades
+            aditionals: aditionalsWithQuantity,
             originalAditionals: originalAditionals,
             
-            // Para identificar que é uma edição
-            originalSelectedOption: product.selectedOption
+            // FLAG EXPLÍCITA de edição (opcional, mas útil)
+            isEditing: true
         }
 
         showProductModal.value = true

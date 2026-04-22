@@ -341,11 +341,24 @@
 
   // Verifica se está editando
   const isEditing = computed(() => {
-    return originalSelectedOption.value !== null || 
-           originalSelectedSize.value !== null || 
-           originalSelectedFlavors.value.length > 0
+      // Se veio com flag explícita
+      if (props.product?.isEditing) return true
+      
+      // Se tem qualquer opção original
+      if (props.product?.originalSelectedOption !== null && 
+          props.product?.originalSelectedOption !== undefined) return true
+      
+      // Se tem tamanho original
+      if (props.product?.originalSelectedSize !== null && 
+          props.product?.originalSelectedSize !== undefined) return true
+      
+      // Se tem sabores originais
+      if (props.product?.originalSelectedFlavors && 
+          props.product.originalSelectedFlavors.length > 0) return true
+      
+      return false
   })
-  
+    
   // Verifica se houve mudanças
   const hasOptionsChanged = computed(() => {
     return selectedOption.value !== originalSelectedOption.value
@@ -371,18 +384,13 @@
   
   // Botão habilitado
   const canSubmit = computed(() => {
-    // Validação para produtos que exigem seleção
+    // Se é edição, sempre pode clicar (mesmo sem mudanças, mantém o original)
+    if (isEditing.value) return true
+    
+    // Para novo item, precisa ter seleção
     if (hasOptions.value && !selectedOption.value) return false
     if (hasSizes.value && !selectedSize.value) return false
     if (hasFlavors.value && selectedFlavors.value.length === 0) return false
-    
-    // Se for edição, precisa ter mudado algo
-    if (isEditing.value) {
-      return hasOptionsChanged.value || 
-             hasSizeChanged.value || 
-             hasFlavorsChanged.value || 
-             hasAditionalsChanged.value
-    }
     
     return true
   })

@@ -16,15 +16,10 @@ export const useCartStore = defineStore('cart', {
     totalItems: (state) =>
       state.items.reduce((total, item) => total + item.quantity, 0),
 
-    // =========================
-    // SUBTOTAL COM ADICIONAIS
-    // =========================
     subTotal: (state) =>
       state.items.reduce((total, item) => {
-        // Calcula o preço base do produto
         let itemTotal = item.price * item.quantity
         
-        // Soma o preço dos adicionais
         if (item.aditionals && item.aditionals.length > 0) {
           item.aditionals.forEach(group => {
             group.items.forEach(aditional => {
@@ -38,9 +33,6 @@ export const useCartStore = defineStore('cart', {
         return total + itemTotal
       }, 0),
 
-    // =========================
-    // DESCONTO (apenas produtos, adicionais não têm desconto)
-    // =========================
     discount: (state) =>
       state.items.reduce((total, item) => {
         if (item.oldPrice && item.oldPrice > item.price) {
@@ -49,9 +41,6 @@ export const useCartStore = defineStore('cart', {
         return total
       }, 0),
 
-    // =========================
-    // CASHBACK (apenas produtos, adicionais não dão cashback)
-    // =========================
     cashbackTotal: (state) =>
       state.items.reduce(
         (total, item) =>
@@ -59,18 +48,12 @@ export const useCartStore = defineStore('cart', {
         0
       ),
 
-    // =========================
-    // TOTAL COM ADICIONAIS E DESCONTO
-    // =========================
     total: (state) => {
-      // Calcula subtotal com adicionais
       let subtotalWithAditionals = 0
       
       state.items.forEach(item => {
-        // Preço base do produto
         let itemTotal = item.price * item.quantity
         
-        // Adicionais
         if (item.aditionals && item.aditionals.length > 0) {
           item.aditionals.forEach(group => {
             group.items.forEach(aditional => {
@@ -84,7 +67,6 @@ export const useCartStore = defineStore('cart', {
         subtotalWithAditionals += itemTotal
       })
       
-      // Calcula desconto (apenas nos produtos, não nos adicionais)
       const discount = state.items.reduce((total, item) => {
         if (item.oldPrice && item.oldPrice > item.price) {
           return total + (item.oldPrice - item.price) * item.quantity
@@ -95,9 +77,6 @@ export const useCartStore = defineStore('cart', {
       return subtotalWithAditionals - discount
     },
     
-    // =========================
-    // DETALHAMENTO DO ITEM (para exibir no carrinho)
-    // =========================
     getItemDetails: (state) => (itemId, selectedOption) => {
       const item = state.items.find(i => 
         i.id === itemId && i.selectedOption === selectedOption
@@ -138,20 +117,21 @@ export const useCartStore = defineStore('cart', {
 
   actions: {
 
-    // =========================
-    // ADD - COM ADICIONAIS
-    // =========================
     add(product) {
       const toast = useToast()
 
-      // Verifica se já existe
-      const existing = this.items.find(i =>
-        i.id === product.id &&
-        i.selectedOption === product.selectedOption
-      )
+      // Gera um ID único para o item baseado nas personalizações
+      const generateItemKey = (item) => {
+        return `${item.id}_${item.selectedOption || ''}_${item.selectedSize?.id || ''}_${JSON.stringify(item.selectedFlavors?.map(f => f.id) || [])}`
+      }
 
-      if (existing) {
-        existing.quantity++
+      const newItemKey = generateItemKey(product)
+      
+      // Verifica se já existe
+      const existingIndex = this.items.findIndex(item => generateItemKey(item) === newItemKey)
+
+      if (existingIndex !== -1) {
+        this.items[existingIndex].quantity++
         toast.info(`Mais 1 unidade de "${product.name}" adicionada!`, { timeout: 3000 })
         return
       }
@@ -168,42 +148,55 @@ export const useCartStore = defineStore('cart', {
         name: product.name,
         description: product.description,
         price: product.price,
+        originalPrice: product.originalPrice || product.price,
         oldPrice: product.oldPrice,
         image: product.image,
         cashback: product.cashback || 0,
         quantity: 1,
         options: product.options || [],
         selectedOption: product.selectedOption || null,
-        aditionals: aditionalsCopy
+        selectedSize: product.selectedSize || null,
+        selectedFlavors: product.selectedFlavors || [],
+        aditionals: aditionalsCopy,
+        cuisineType: product.cuisineType,
+        customization: product.customization
       })
 
       toast.success(`"${product.name}" adicionado ao carrinho!`, { timeout: 3000 })
     },
 
-    // =========================
-    // UPDATE ITEM - COM ADICIONAIS
-    // =========================
     updateItem(product) {
       const toast = useToast()
 
+      // Função para gerar chave única do item
+      const generateItemKey = (item) => {
+        return `${item.id}_${item.selectedOption || ''}_${item.selectedSize?.id || ''}_${JSON.stringify(item.selectedFlavors?.map(f => f.id) || [])}`
+      }
+
+      // Gera chave do item original
+      const originalKey = `${product.id}_${product.originalSelectedOption || ''}_${product.originalSelectedSize?.id || ''}_${JSON.stringify(product.originalSelectedFlavors?.map(f => f.id) || [])}`
+      
       // Encontra o item original
-      const index = this.items.findIndex(i =>
-        i.id === product.id &&
-        i.selectedOption === product.originalSelectedOption
-      )
+      const originalIndex = this.items.findIndex(item => generateItemKey(item) === originalKey)
 
-      if (index === -1) return
+      if (originalIndex === -1) return
 
-      const originalItem = this.items[index]
+      const originalItem = this.items[originalIndex]
+      const originalQuantity = originalItem.quantity
       
       // Remove o original
-      this.items.splice(index, 1)
+      this.items.splice(originalIndex, 1)
 
-      // Verifica se já existe com a nova opção
-      const existing = this.items.find(i =>
-        i.id === product.id &&
-        i.selectedOption === product.selectedOption
-      )
+      // Gera chave do novo item
+      const newKey = generateItemKey({
+        id: product.id,
+        selectedOption: product.selectedOption,
+        selectedSize: product.selectedSize,
+        selectedFlavors: product.selectedFlavors
+      })
+
+      // Verifica se já existe com as novas opções
+      const existingIndex = this.items.findIndex(item => generateItemKey(item) === newKey)
 
       // CRIA UMA CÓPIA DOS ADICIONAIS ATUALIZADOS
       let updatedAditionals = []
@@ -211,35 +204,38 @@ export const useCartStore = defineStore('cart', {
         updatedAditionals = JSON.parse(JSON.stringify(product.aditionals))
       }
 
-      if (existing) {
-        existing.quantity++
+      if (existingIndex !== -1) {
+        this.items[existingIndex].quantity += originalQuantity
       } else {
         this.items.push({
           id: product.id,
           name: product.name,
           description: product.description,
           price: product.price,
+          originalPrice: product.originalPrice || product.price,
           oldPrice: product.oldPrice,
           image: product.image,
           cashback: product.cashback || 0,
-          quantity: originalItem.quantity,
+          quantity: originalQuantity,
           options: product.options || [],
           selectedOption: product.selectedOption || null,
-          aditionals: updatedAditionals
+          selectedSize: product.selectedSize || null,
+          selectedFlavors: product.selectedFlavors || [],
+          aditionals: updatedAditionals,
+          cuisineType: product.cuisineType,
+          customization: product.customization
         })
       }
 
       toast.success(`"${product.name}" atualizado!`, { timeout: 3000 })
     },
 
-    // =========================
-    // INCREASE ITEM
-    // =========================
     increase(productId, selectedOption = null) {
       const toast = useToast()
+      
+      // Encontra o item pelo ID e opção selecionada
       const item = this.items.find(i => 
-        i.id === productId && 
-        i.selectedOption === selectedOption
+        i.id === productId && i.selectedOption === selectedOption
       )
       
       if (item) {
@@ -248,14 +244,11 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    // =========================
-    // DECREASE ITEM
-    // =========================
     decrease(productId, selectedOption = null) {
       const toast = useToast()
+      
       const item = this.items.find(i => 
-        i.id === productId && 
-        i.selectedOption === selectedOption
+        i.id === productId && i.selectedOption === selectedOption
       )
       
       if (item) {
@@ -268,14 +261,11 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    // =========================
-    // REMOVE ITEM
-    // =========================
     remove(productId, selectedOption = null) {
       const toast = useToast()
+      
       const item = this.items.find(i => 
-        i.id === productId && 
-        i.selectedOption === selectedOption
+        i.id === productId && i.selectedOption === selectedOption
       )
       
       if (item) {
@@ -286,18 +276,12 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    // =========================
-    // CLEAR CART
-    // =========================
     clear() {
       const toast = useToast()
       this.items = []
       toast.info('Carrinho esvaziado!', { timeout: 3000 })
     },
     
-    // =========================
-    // CALCULAR TOTAL DE UM ITEM ESPECÍFICO
-    // =========================
     calculateItemTotal(item) {
       let total = item.price * item.quantity
       
