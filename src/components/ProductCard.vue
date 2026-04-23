@@ -18,8 +18,8 @@
       <div class="mt-auto d-flex justify-content-between align-items-center">
         <div class="info-price">
           <strong class="text-dark price">R$ {{ product.price }}</strong>
-          <div class="d-flex gap-1">
-            <div class="text-muted small text-decoration-line-through" v-if="product.oldPrice">
+          <div class="d-flex gap-1" v-if="product.oldPrice">
+            <div class="text-muted small text-decoration-line-through">
               R$ {{ product.oldPrice }}
             </div>
             <div class="percent rounded-1 text-white d-flex justify-content-center align-items-center px-1">

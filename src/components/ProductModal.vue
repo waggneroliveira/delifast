@@ -26,6 +26,35 @@
               />
             </div>
 
+            <!-- BADGES DE INFORMAÇÕES -->
+            <div class="specifications-badges mb-1">
+              <small v-if="product?.specifications?.preparationTime" class="badge-spec">
+                ⏱️ {{ product.specifications.preparationTime }}min
+              </small>
+              <small v-if="product?.specifications?.calories" class="badge-spec">
+                🔥 {{ product.specifications.calories }}kcal
+              </small>
+              <small v-if="product?.specifications?.serves" class="badge-spec">
+                👥 {{ product.specifications.serves }} pessoa(s)
+              </small>
+              <small v-if="product?.specifications?.isVegetarian" class="badge-spec veg">
+                🌱 Vegetariano
+              </small>
+              <small v-if="product?.specifications?.isVegan" class="badge-spec vegan">
+                🌿 Vegano
+              </small>
+              <small v-if="product?.specifications?.isGlutenFree" class="badge-spec gluten">
+                🚫 Sem Glúten
+              </small>
+            </div>
+
+            <!-- Alérgicos (separado, em vermelho) -->
+            <div v-if="product?.specifications?.allergens?.length" class="allergens-warning mb-2">
+              <small class="text-danger">
+                ⚠️ Alérgicos: {{ product.specifications.allergens.join(', ') }}
+              </small>
+            </div>
+
             <span v-if="product?.cashback" class="badge bg-warning text-dark mb-2">
               {{ product.cashback }}% cashback
             </span>
@@ -576,6 +605,47 @@
 </script>
 
 <style scoped>
+/* Badges de especificações */
+.specifications-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.badge-spec {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  background: #f0f0f0;
+  color: #595959;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-spec.veg {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-spec.vegan {
+  background: #c8e6e0;
+  color: #1b5e20;
+}
+
+.badge-spec.gluten {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.allergens-warning {
+  background: #fef2f2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+}
 ::v-deep(.banner-inner) {
   height: 140px;
 }
