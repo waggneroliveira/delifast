@@ -380,7 +380,7 @@ const checkUserExists = async (whatsappNumber, name) => {
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(false)
+        resolve(true)
       }
     }, 500)
   })
@@ -541,7 +541,7 @@ const validateCepAndLogin = () => {
     userStore.login(data)
     isLoggedIn.value = true
     
-    toast.success(`Bem-vindo de volta, ${fullName.value}!`, { timeout: 3000 })
+    // toast.success(`Bem-vindo de volta, ${fullName.value}!`, { timeout: 3000 })
     
     emit('submit', data)
     close()
