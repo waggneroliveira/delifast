@@ -26,7 +26,7 @@
             <div class="mb-3">
               <label class="form-label">Digite seu número de WhatsApp</label>
               <div class="input-group gap-2">
-                <span class="input-group-text">
+                <span class="input-group-text rounded">
                     <svg class="me-2" width="27" height="20" viewBox="0 0 27 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_16_469)">
                     <path d="M27 0H0V20H27V0Z" fill="#00923F"/>
@@ -47,11 +47,11 @@
                 <input
                   v-model="whatsapp"
                   type="text"
-                  class="form-control"
+                  class="form-control rounded"
                   placeholder="(99) 99999-9999"
                   @input="formatWhatsapp"
                   maxlength="15"
-                  :disabled="isLoading"
+                  :disabled="isLoading || isLoggedIn"
                 >
               </div>
             </div>
@@ -63,7 +63,7 @@
                 type="text"
                 class="form-control"
                 placeholder="Nome completo"
-                :disabled="isLoading"
+                :disabled="isLoading || isLoggedIn"
               >
             </div>
 
@@ -73,7 +73,7 @@
               :disabled="isLoading"
             >
               <span v-if="isLoading">Verificando...</span>
-              <span v-else>Continuar</span>
+              <span v-else>{{ isLoggedIn ? 'Sair' : 'Continuar' }}</span>
             </button>
           </div>
 
@@ -272,13 +272,18 @@
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
+import { useToast } from 'vue-toastification'
 import AddressModal from './AddressModal.vue'
+import { useUserStore } from '@/stores/useUserStore'
 
+const toast = useToast()
 const props = defineProps({
   modelValue: Boolean
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
+
+const userStore = useUserStore()
 
 // Dados do formulário
 const whatsapp = ref('')
@@ -290,6 +295,7 @@ const deliveryMethod = ref('')
 const currentStep = ref('form') // form, cep, delivery, payment
 const isLoading = ref(false)
 const userFound = ref(false)
+const isLoggedIn = ref(false)
 
 // CEP fields
 const cepDigits = ref(['', '', '', '', '', '', '', ''])
@@ -365,23 +371,16 @@ const getPrimaryAddressCep = () => {
 }
 
 // Simula verificação de usuário no backend
-// TODO: Substituir por chamada real à API Laravel
 const checkUserExists = async (whatsappNumber, name) => {
-  // 🔁 Aqui será substituído pela chamada real:
-  // return await api.post('/check-user', { whatsapp: whatsappNumber, name })
-  
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Simulação: retorna false para sempre mostrar as etapas
-      // Quando tiver API, mude a lógica aqui
       const savedData = localStorage.getItem('userData')
       if (savedData) {
         const data = JSON.parse(savedData)
-        // Se o número e nome forem iguais aos salvos, considera usuário existente
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(false) // Mude para true quando quiser simular usuário existente
+        resolve(false)
       }
     }, 500)
   })
@@ -411,7 +410,8 @@ const handleAddressSelected = async (address) => {
     
     localStorage.setItem('userData', JSON.stringify(userData))
     
-    // IMPORTANTE: Não chama advanceToPayment novamente
+    toast.success('Endereço selecionado com sucesso!', { timeout: 3000 })
+    
     // Vai direto para a etapa de pagamento
     currentStep.value = 'payment'
     await nextTick()
@@ -421,23 +421,57 @@ const handleAddressSelected = async (address) => {
   }
 }
 
+// Logout do usuário
+const logout = () => {
+  // Faz logout no store global
+  const userName = userStore.fullName
+  userStore.logout()
+  
+  // Reseta estado local
+  isLoggedIn.value = false
+  userFound.value = false
+  whatsapp.value = ''
+  fullName.value = ''
+  paymentMethod.value = ''
+  deliveryMethod.value = ''
+  
+  // toast.success('Você saiu da sua conta!', { timeout: 3000 })
+  toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, {
+    timeout: 4000
+  })
+  
+  // Fecha o modal
+  close()
+}
+
+// Verifica se o usuário está logado
+const checkIfLoggedIn = () => {
+  if (userStore.isLogged) {
+    whatsapp.value = userStore.whatsapp || ''
+    fullName.value = userStore.fullName || ''
+    isLoggedIn.value = true
+    userFound.value = true
+    return true
+  }
+  return false
+}
+
 // Verifica dados iniciais
 const checkAndAdvanceToDelivery = async () => {
+  // Se já está logado, faz logout
+  if (isLoggedIn.value) {
+    logout()
+    return
+  }
+
   if (!whatsapp.value || !fullName.value) {
-    alert('Preencha todos os campos!')
+    toast.warning('Preencha todos os campos!', { timeout: 3000 })
     return
   }
 
   isLoading.value = true
 
   try {
-    // 🔁 Chamada real para API:
-    // const response = await axios.post('/api/check-user', {
-    //   whatsapp: whatsapp.value,
-    //   fullName: fullName.value
-    // })
-    // userFound.value = response.data.exists
-    
     userFound.value = await checkUserExists(whatsapp.value, fullName.value)
 
     if (userFound.value) {
@@ -457,6 +491,7 @@ const checkAndAdvanceToDelivery = async () => {
         if (cepSectionRef.value) {
           cepSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
+        toast.info('Digite o CEP de validação', { timeout: 3000 })
       } else {
         // Não tem CEP cadastrado - vai direto para entrega
         currentStep.value = 'delivery'
@@ -475,7 +510,7 @@ const checkAndAdvanceToDelivery = async () => {
     }
   } catch (error) {
     console.error('Erro ao verificar usuário:', error)
-    alert('Erro ao verificar dados. Tente novamente.')
+    toast.error('Erro ao verificar dados. Tente novamente.', { timeout: 3000 })
   } finally {
     isLoading.value = false
   }
@@ -501,11 +536,18 @@ const validateCepAndLogin = () => {
       paymentMethod: paymentMethod.value,
       deliveryMethod: deliveryMethod.value
     }
-    localStorage.setItem('userData', JSON.stringify(data))
+    
+    // Login no store global
+    userStore.login(data)
+    isLoggedIn.value = true
+    
+    toast.success(`Bem-vindo de volta, ${fullName.value}!`, { timeout: 3000 })
+    
     emit('submit', data)
     close()
   } else {
     cepError.value = 'CEP não encontrado! Verifique o CEP cadastrado.'
+    toast.error(cepError.value, { timeout: 3000 })
     // Limpa os campos de CEP
     cepDigits.value = ['', '', '', '', '', '', '', '']
     if (cepInputs.value[0]) {
@@ -582,7 +624,7 @@ const hasAddresses = () => {
 // Avança para forma de pagamento ou abre modal de endereços
 const advanceToPayment = async () => {
   if (!deliveryMethod.value) {
-    alert('Selecione uma forma de entrega!')
+    toast.warning('Selecione uma forma de entrega!', { timeout: 3000 })
     return false
   }
 
@@ -624,7 +666,7 @@ const backToDelivery = () => {
 // Submissão final do formulário
 const submitForm = async () => {
   if (!paymentMethod.value) {
-    alert('Selecione uma forma de pagamento!')
+    toast.warning('Selecione uma forma de pagamento!', { timeout: 3000 })
     return
   }
 
@@ -649,11 +691,13 @@ const submitForm = async () => {
   }
 
   try {
-    // Salva no localStorage
-    localStorage.setItem('userData', JSON.stringify(data))
+    // Login no store global
+    userStore.login(data)
+    isLoggedIn.value = true
     
-    // IMPORTANTE: Dispara evento para o Cart saber que o usuário está logado
-    // Isso evita precisar recarregar a página
+    // toast.success(`Pedido finalizado com sucesso, ${fullName.value}!`, { timeout: 4000 })
+    
+    // Dispara evento para o Cart saber que o usuário está logado
     const loginEvent = new CustomEvent('user-login', { 
       detail: { 
         fullName: fullName.value, 
@@ -670,7 +714,7 @@ const submitForm = async () => {
     close()
   } catch (error) {
     console.error('Erro ao salvar dados:', error)
-    alert('Erro ao salvar. Tente novamente.')
+    toast.error('Erro ao finalizar. Tente novamente.', { timeout: 3000 })
   } finally {
     isLoading.value = false
   }
@@ -687,27 +731,19 @@ watch(() => props.modelValue, async (open) => {
     expectedCep.value = ''
     pendingAddressSelection.value = false
     
-    const saved = localStorage.getItem('userData')
-    if (saved) {
-      const data = JSON.parse(saved)
-      fullName.value = data.fullName || ''
-      whatsapp.value = data.whatsapp || ''
-      paymentMethod.value = data.paymentMethod || ''
-      deliveryMethod.value = data.deliveryMethod || ''
-      
-      // Opcional: verificar se já existe e pular etapas
-      // userFound.value = true
-    } else {
+    const loggedIn = checkIfLoggedIn()
+    
+    if (!loggedIn) {
       fullName.value = ''
       whatsapp.value = ''
       paymentMethod.value = ''
       deliveryMethod.value = ''
       userFound.value = false
+      isLoggedIn.value = false
     }
   }
 })
 </script>
-
 
 <style scoped>
     .cep-box {

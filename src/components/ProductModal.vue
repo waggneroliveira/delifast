@@ -27,31 +27,48 @@
             </div>
 
             <!-- BADGES DE INFORMAÇÕES -->
-            <div class="specifications-badges mb-1">
-              <small v-if="product?.specifications?.preparationTime" class="badge-spec">
-                ⏱️ {{ product.specifications.preparationTime }}min
-              </small>
-              <small v-if="product?.specifications?.calories" class="badge-spec">
-                🔥 {{ product.specifications.calories }}kcal
-              </small>
-              <small v-if="product?.specifications?.serves" class="badge-spec">
-                👥 {{ product.specifications.serves }} pessoa(s)
-              </small>
-              <small v-if="product?.specifications?.isVegetarian" class="badge-spec veg">
-                🌱 Vegetariano
-              </small>
-              <small v-if="product?.specifications?.isVegan" class="badge-spec vegan">
-                🌿 Vegano
-              </small>
-              <small v-if="product?.specifications?.isGlutenFree" class="badge-spec gluten">
-                🚫 Sem Glúten
-              </small>
+            <div class="badge bg-warning-subtle text-dark border border-warning-subtle w-100 mb-1">
+              <div class="specifications-badges d-flex justify-content-center align-items-center gap-2">
+                <small v-if="product?.specifications?.preparationTime" class="badge-spec">
+                  <i class="bi bi-clock"></i>
+                  {{ product.specifications.preparationTime }}min
+                </small>
+
+                <small v-if="product?.specifications?.calories" class="badge-spec">
+                  <i class="bi bi-fire"></i>
+                  {{ product.specifications.calories }}kcal
+                </small>
+
+                <small v-if="product?.specifications?.serves" class="badge-spec">
+                  <i class="bi bi-people"></i>
+                  {{ product.specifications.serves }} pessoa(s)
+                </small>
+
+                <small v-if="product?.specifications?.isVegetarian" class="badge-spec veg">
+                  <i class="bi bi-flower1"></i>
+                  Vegetariano
+                </small>
+
+                <small v-if="product?.specifications?.isVegan" class="badge-spec vegan">
+                  <i class="bi bi-tree"></i>
+                  Vegano
+                </small>
+
+                <small v-if="product?.specifications?.isGlutenFree" class="badge-spec gluten">
+                  <i class="bi bi-ban"></i>
+                  Sem Glúten
+                </small>
+              </div>
             </div>
 
             <!-- Alérgicos (separado, em vermelho) -->
-            <div v-if="product?.specifications?.allergens?.length" class="allergens-warning mb-2">
-              <small class="text-danger">
-                ⚠️ Alérgicos: {{ product.specifications.allergens.join(', ') }}
+            <div 
+              v-if="product?.specifications?.allergens?.length" 
+              class="allergens-warning mb-2 px-2 py-1 rounded d-flex justify-content-center align-items-center bg-danger-subtle text-danger"
+            >
+              <small class="badge-spec">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Alérgicos: {{ product.specifications.allergens.join(', ') }}
               </small>
             </div>
 
@@ -69,8 +86,8 @@
                 R$ {{ formatPrice(finalPrice) }}
               </h5>
 
-              <div class="text-muted small" v-if="product?.oldPrice">
-                <s>R$ {{ formatPrice(product.oldPrice) }}</s>
+              <div class="text-muted small" v-if="currentOldPrice">
+                <s>R$ {{ formatPrice(currentOldPrice) }}</s>
                 <span class="badge bg-primary rounded-1 ms-2">
                   {{ discount }}%
                 </span>
@@ -343,14 +360,33 @@
     return []
   })
 
-  // Preço final calculado
-  const finalPrice = computed(() => {
-    let price = props.product?.price || 0
-    
-    // Se tem tamanho selecionado
+  // Preço atual baseado no tamanho selecionado
+  const currentPrice = computed(() => {
     if (selectedSize.value) {
-      price = selectedSize.value.price
+      return selectedSize.value.price
     }
+    return props.product?.price || 0
+  })
+
+  // Old price atual baseado no tamanho selecionado
+  const currentOldPrice = computed(() => {
+    if (selectedSize.value && selectedSize.value.oldPrice) {
+      return selectedSize.value.oldPrice
+    }
+    return props.product?.oldPrice || null
+  })
+
+  // Desconto atual baseado no tamanho selecionado
+  const discount = computed(() => {
+    const old = currentOldPrice.value
+    const curr = currentPrice.value
+    if (!old || old <= curr) return 0
+    return Math.round(100 - (curr / old) * 100)
+  })
+
+  // Preço final calculado (inclui sabores e adicionais)
+  const finalPrice = computed(() => {
+    let price = currentPrice.value
     
     // Adiciona preço dos sabores selecionados
     selectedFlavors.value.forEach(flavor => {
@@ -422,11 +458,6 @@
     if (hasFlavors.value && selectedFlavors.value.length === 0) return false
     
     return true
-  })
-
-  const discount = computed(() => {
-    if (!props.product?.oldPrice) return 0
-    return Math.round(100 - (props.product.price / props.product.oldPrice) * 100)
   })
 
   // Funções auxiliares
@@ -567,7 +598,7 @@
       description: props.product.description,
       price: finalPrice.value,
       originalPrice: props.product.price,
-      oldPrice: props.product.oldPrice,
+      oldPrice: currentOldPrice.value,
       image: props.product.images?.[0] || props.product.image,
       cashback: props.product.cashback || 0,
       // Dados de personalização
@@ -604,48 +635,15 @@
   }
 </script>
 
+
 <style scoped>
 /* Badges de especificações */
-.specifications-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-}
 
 .badge-spec {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.75rem;
-  background: #f0f0f0;
-  color: #595959;
-  border-radius: 5px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
-.badge-spec.veg {
-  background: #d4edda;
-  color: #155724;
-}
-
-.badge-spec.vegan {
-  background: #c8e6e0;
-  color: #1b5e20;
-}
-
-.badge-spec.gluten {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.allergens-warning {
-  background: #fef2f2;
-  padding: 0.25rem 0.5rem;
-  border-radius: 5px;
-  font-size: 0.7rem;
-}
 ::v-deep(.banner-inner) {
   height: 140px;
 }

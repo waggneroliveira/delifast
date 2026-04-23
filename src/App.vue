@@ -76,7 +76,7 @@
         name: 'Pizza Portuguesa',
         description: 'Molho especial, presunto, ovos, cebola, azeitona e queijo mussarela',
         price: 45.90,
-        oldPrice: 55.90,
+        oldPrice: 0,
         cashback: 8,
         image: ['../src/assets/images/prod.png'],
         category: 'pizzas',
@@ -86,8 +86,8 @@
         customization: {
           hasSize: true,
           sizes: [
-            { id: 1, name: 'P', price: 45.90, description: '4 fatias - 2 pessoas' },
-            { id: 2, name: 'M', price: 59.90, description: '6 fatias - 3 pessoas' },
+            { id: 1, name: 'P', price: 45.90, description: '4 fatias - 2 pessoas', oldPrice: 55.90 },
+            { id: 2, name: 'M', price: 59.90, description: '6 fatias - 3 pessoas', oldPrice: 69.90 },
             { id: 3, name: 'G', price: 79.90, description: '8 fatias - 4 pessoas', oldPrice: 89.90 }
           ],
           hasFlavors: true,
@@ -188,6 +188,33 @@
         stock: { available: true, quantity: 200 },
         featured: false,
         order: 4
+      },
+      {
+        id: 5,
+        name: 'Coca-Cola 1L',
+        description: 'Refrigerante gelado',
+        price: 9.90,
+        image: ['../src/assets/images/prod.png'],
+        category: 'bebidas',
+        tags: ['refrigerante', 'gelada'],
+        productType: 'beverage',
+        cuisineType: 'drink',
+        customization: {
+          hasSize: true,
+          sizes: [],
+          hasFlavors: false,
+          hasToppings: false,
+          hasSpiciness: false
+        },
+        specifications: {
+          isVegetarian: true,
+          isVegan: true,
+          isGlutenFree: true,
+          allergens: []
+        },
+        stock: { available: true, quantity: 200 },
+        featured: false,
+        order: 5
       }
     ])
 
