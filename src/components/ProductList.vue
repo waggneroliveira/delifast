@@ -17,4 +17,6 @@ import ProductSection from './ProductSection.vue'
 defineProps({
   categories: Array
 })
+
+defineEmits(['add', 'open'])
 </script>

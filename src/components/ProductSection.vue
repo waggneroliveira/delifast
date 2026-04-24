@@ -21,6 +21,8 @@
     title: String,
     products: Array
   })
+
+  defineEmits(['add', 'open'])
 </script>
 
 <style scoped>
