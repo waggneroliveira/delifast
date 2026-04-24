@@ -18,7 +18,6 @@
             <button type="button" class="btn-close" @click="close"></button>
         </div>
 
-
       <div class="modal-body" :class="{ 'loading-overlay': isLoading }">
           
           <!-- ETAPA 1: DADOS INICIAIS -->
@@ -115,140 +114,83 @@
             </div>
           </div>
 
-          <!-- ETAPA 3: FORMA DE ENTREGA -->
-          <div v-show="currentStep === 'delivery'" ref="deliverySectionRef" class="step-section">
-            <div class="mb-3">
-              <label class="form-label">Como Entregar?</label>
-              <div class="row g-2">
-                <div class="col-md-12">
-                  <label class="option-card border">
-                    <input type="radio" value="delivery" v-model="deliveryMethod" :disabled="isLoading">
-                    <div>
-                      <h6 class="payment-form-title">
-                        Delivery 
-                        <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M1.75 9.81067H15.75V13.81067H1.75V9.81067Z" fill="#595959" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M3.75 15.8107C4.85457 15.8107 5.75 14.9152 5.75 13.8107C5.75 12.7061 4.85457 11.8107 3.75 11.8107C2.64543 11.8107 1.75 12.7061 1.75 13.8107C1.75 14.9152 2.64543 15.8107 3.75 15.8107Z" fill="#595959"/>
-                          <path d="M13.75 15.8107C14.8546 15.8107 15.75 14.9152 15.75 13.8107C15.75 12.7061 14.8546 11.8107 13.75 11.8107C12.6454 11.8107 11.75 12.7061 11.75 13.8107C11.75 14.9152 12.6454 15.8107 13.75 15.8107Z" fill="#595959"/>
-                          <path d="M12.75 5.81067L16.75 1.81067V7.81067H12.75V5.81067Z" fill="#595959" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M12.75 1.81067H7.75V5.81067H12.75V1.81067Z" fill="#595959" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M8.75 5.81067H0.75V9.81067H8.75V5.81067Z" fill="#595959" stroke="#595959" stroke-width="1.5"/>
-                        </svg>
-                      </h6>
-                      <small>Entrega no endereço</small>
-                    </div>
-                  </label>
-                </div>
-
-                <div class="col-md-12">
-                  <label class="option-card border">
-                    <input type="radio" value="pickup" v-model="deliveryMethod" :disabled="isLoading">
-                    <div>
-                      <h6 class="payment-form-title">
-                        Retirada no Local 
-                        <svg width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M17.1004 12.353H0.900391V14.1177H17.1004V12.353Z" fill="#595959"/>
-                          <path d="M7.20039 7.05884H5.40039V12.353H7.20039V7.05884Z" fill="#595959"/>
-                          <path d="M12.5998 7.05884H10.7998V12.353H12.5998V7.05884Z" fill="#595959"/>
-                          <path d="M6.3 7.05883C7.29411 7.05883 8.1 6.26874 8.1 5.29412C8.1 4.3195 7.29411 3.52942 6.3 3.52942C5.30589 3.52942 4.5 4.3195 4.5 5.29412C4.5 6.26874 5.30589 7.05883 6.3 7.05883Z" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M11.7004 7.05883C12.6945 7.05883 13.5004 6.26874 13.5004 5.29412C13.5004 4.3195 12.6945 3.52942 11.7004 3.52942C10.7063 3.52942 9.90039 4.3195 9.90039 5.29412C9.90039 6.26874 10.7063 7.05883 11.7004 7.05883Z" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M15.3002 1.76471H2.7002V5.29412H15.3002V1.76471Z" stroke="#595959" stroke-width="1.5"/>
-                        </svg>
-                      </h6>
-                      <small>Você retira no balcão</small>
-                    </div>
-                  </label>
-                </div>
-
-                <div class="col-md-12">
-                  <label class="option-card border">
-                    <input type="radio" value="local" v-model="deliveryMethod" :disabled="isLoading">
-                    <div>
-                      <h6 class="payment-form-title">
-                        Consumo no Local
-                        <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M0.75 12.75V4.75H16.75V12.75H0.75Z" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M4.75 4.75V0.75H12.75V4.75" stroke="#595959" stroke-width="1.5"/>
-                          <path d="M8.75 8.75L6.75 12.75H10.75L8.75 8.75Z" fill="#595959"/>
-                        </svg>
-                      </h6>
-                      <small>Pagamento presencial</small>
-                    </div>
-                  </label>
-                </div>
-              </div>
+          <!-- ETAPA 3: FORMA DE ENTREGA (usando o modal) -->
+          <div v-show="currentStep === 'delivery'" class="step-section text-center py-4">
+            <div class="text-center mb-4">
+              <h4 class="fw-semibold text-secondary">Selecione a forma de entrega</h4>
+              <p class="text-muted small">Clique no botão abaixo para escolher como deseja receber seu pedido</p>
             </div>
 
-            <div class="d-flex gap-2">
-              <button class="btn btn-secondary w-50" @click="currentStep = 'form'" :disabled="isLoading">
-                Voltar
+            <div class="d-flex flex-column align-items-center gap-3">
+              <div 
+                v-if="tempDeliveryMethod" 
+                class="selected-option-card p-3 rounded border border-success bg-light"
+              >
+                <h6 class="mb-1 text-success">✅ Método selecionado:</h6>
+                <p class="mb-0 fw-semibold">{{ tempDeliveryMethod.label }}</p>
+                <small class="text-muted">{{ getDeliveryMethodTime(tempDeliveryMethod) }}</small>
+              </div>
+
+              <button 
+                class="btn btn-primary w-100" 
+                @click="openDeliveryMethodModal"
+                :disabled="isLoading"
+              >
+                {{ tempDeliveryMethod ? 'Alterar forma de entrega' : 'Selecionar forma de entrega' }}
               </button>
-              <button class="btn btn-primary w-50" @click="advanceToPayment" :disabled="isLoading">
-                Continuar
-              </button>
+
+              <div class="d-flex gap-2 w-100 mt-2">
+                <button class="btn btn-secondary w-50" @click="backToForm" :disabled="isLoading">
+                  Voltar
+                </button>
+                <button 
+                  class="btn btn-primary w-50" 
+                  @click="confirmDeliveryMethod" 
+                  :disabled="!tempDeliveryMethod || isLoading"
+                >
+                  Continuar
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- ETAPA 4: FORMA DE PAGAMENTO -->
-          <div v-show="currentStep === 'payment'" ref="paymentSectionRef" class="step-section">
-            <div class="mb-3">
-              <label class="form-label">Forma de Pagamento</label>
-              <div class="row g-2">
-                <div class="col-md-12">
-                  <label class="option-card border">
-                    <input type="radio" value="card" v-model="paymentMethod" :disabled="isLoading">
-                    <div>
-                      <h6 class="payment-form-title">
-                        Cartão 
-                        <svg width="16" height="13" viewBox="0 0 16 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M0 10.9375V6.125H15.75V10.9375C15.75 11.6758 15.1484 12.25 14.4375 12.25H1.3125C0.574219 12.25 0 11.6758 0 10.9375ZM5.25 9.07812V10.1719C5.25 10.3633 5.38672 10.5 5.57812 10.5H9.29688C9.46094 10.5 9.625 10.3633 9.625 10.1719V9.07812C9.625 8.91406 9.46094 8.75 9.29688 8.75H5.57812C5.38672 8.75 5.25 8.91406 5.25 9.07812ZM1.75 9.07812V10.1719C1.75 10.3633 1.88672 10.5 2.07812 10.5H4.04688C4.21094 10.5 4.375 10.3633 4.375 10.1719V9.07812C4.375 8.91406 4.21094 8.75 4.04688 8.75H2.07812C1.88672 8.75 1.75 8.91406 1.75 9.07812ZM15.75 1.3125V2.625H0V1.3125C0 0.601562 0.574219 0 1.3125 0H14.4375C15.1484 0 15.75 0.601562 15.75 1.3125Z" fill="#595959"/>
-                        </svg>
-                      </h6>
-                      <small>Débito ou crédito presencialmente ou via link de pagamento</small>
-                    </div>
-                  </label>
-                </div>
-
-                <div class="col-md-12">
-                  <label class="option-card border">
-                    <input type="radio" value="pix" v-model="paymentMethod" :disabled="isLoading">
-                    <div>
-                      <h6 class="payment-form-title">
-                        Pix
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M0 5.25V0H5.25V5.25H0ZM1.75 1.75V3.5H3.5V1.75H1.75ZM7 0H12.25V5.25H7V0ZM10.5 3.5V1.75H8.75V3.5H10.5ZM0 12.25V7H5.25V12.25H0ZM1.75 8.75V10.5H3.5V8.75H1.75ZM11.375 7H12.25V10.5H9.625V9.625H8.75V12.25H7V7H9.625V7.875H11.375V7ZM11.375 11.375H12.25V12.25H11.375V11.375ZM9.625 11.375H10.5V12.25H9.625V11.375Z" fill="#595959"/>
-                        </svg>
-                      </h6>
-                      <small>Você receberá um código pix para pagamento via WhatsApp</small>
-                    </div>
-                  </label>
-                </div>
-
-                <div class="col-md-12">
-                  <label class="option-card border">
-                    <input type="radio" value="cash" v-model="paymentMethod" :disabled="isLoading">
-                    <div>
-                      <h6 class="payment-form-title">
-                        Dinheiro 
-                        <svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M16.9805 0.628906C17.2812 0.765625 17.5 1.09375 17.5 1.42188V10.1172C17.5 10.6094 17.0625 10.9648 16.5977 10.9648C16.5156 10.9648 16.4062 10.9648 16.3242 10.9375C15.4766 10.6641 14.6289 10.5547 13.7812 10.5547C10.418 10.5547 7.05469 12.25 3.69141 12.25C2.625 12.25 1.55859 12.0859 0.492188 11.6484C0.191406 11.5117 0 11.1836 0 10.8555V2.16016C0 1.66797 0.410156 1.28516 0.875 1.28516C0.957031 1.28516 1.06641 1.3125 1.14844 1.33984C1.99609 1.61328 2.84375 1.72266 3.69141 1.72266C7.05469 1.72266 10.418 0 13.7812 0C14.8477 0 15.9141 0.191406 16.9805 0.628906ZM1.3125 2.76172V4.40234C2.16016 4.40234 2.84375 3.80078 3.00781 3.00781C2.43359 2.95312 1.85938 2.89844 1.3125 2.76172ZM1.3125 10.5547C1.85938 10.7461 2.43359 10.8828 3.03516 10.9102C3.00781 9.98047 2.24219 9.24219 1.3125 9.24219V10.5547ZM8.75 8.75C9.95312 8.75 10.9375 7.60156 10.9375 6.125C10.9375 4.67578 9.95312 3.5 8.75 3.5C7.51953 3.5 6.5625 4.67578 6.5625 6.125C6.5625 7.60156 7.51953 8.75 8.75 8.75ZM16.1875 9.51562V7.95703C15.4492 8.03906 14.8477 8.58594 14.6836 9.29688C15.2031 9.32422 15.6953 9.40625 16.1875 9.51562ZM16.1875 3.0625V1.72266C15.6953 1.55859 15.1758 1.44922 14.6562 1.39453C14.6836 2.24219 15.3398 2.95312 16.1875 3.0625Z" fill="#595959"/>
-                        </svg>
-                      </h6>
-                      <small>O pagamento será realizado presencialmente, em nosso balcão.</small>
-                    </div>
-                  </label>
-                </div>
-              </div>
+          <!-- ETAPA 4: FORMA DE PAGAMENTO (usando o modal) -->
+          <div v-show="currentStep === 'payment'" class="step-section text-center py-4">
+            <div class="text-center mb-4">
+              <h4 class="fw-semibold text-secondary">Selecione a forma de pagamento</h4>
+              <p class="text-muted small">Clique no botão abaixo para escolher como deseja pagar</p>
             </div>
 
-            <div class="d-flex gap-2">
-              <button class="btn btn-secondary w-50" @click="backToDelivery" :disabled="isLoading">
-                Voltar
+            <div class="d-flex flex-column align-items-center gap-3">
+              <div 
+                v-if="tempPaymentMethod" 
+                class="selected-option-card p-3 rounded border border-success bg-light"
+              >
+                <h6 class="mb-1 text-success">✅ Forma de pagamento selecionada:</h6>
+                <p class="mb-0 fw-semibold">{{ getPaymentMethodLabel(tempPaymentMethod) }}</p>
+              </div>
+
+              <button 
+                class="btn btn-primary w-100" 
+                @click="openPaymentMethodModal"
+                :disabled="isLoading"
+              >
+                {{ tempPaymentMethod ? 'Alterar forma de pagamento' : 'Selecionar forma de pagamento' }}
               </button>
-              <button class="btn btn-primary w-50" @click="submitForm" :disabled="isLoading">
-                <span v-if="isLoading">Finalizando...</span>
-                <span v-else>Confirmar Pedido</span>
-              </button>
+
+              <div class="d-flex gap-2 w-100 mt-2">
+                <button class="btn btn-secondary w-50" @click="backToDeliveryStep" :disabled="isLoading">
+                  Voltar
+                </button>
+                <button 
+                  class="btn btn-primary w-50" 
+                  @click="submitForm" 
+                  :disabled="!tempPaymentMethod || isLoading"
+                >
+                  <span v-if="isLoading">Finalizando...</span>
+                  <span v-else>Continuar</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -263,10 +205,23 @@
     </div>
   </div>
 
-  <!-- ADDRESS MODAL-->
+  <!-- Address Modal -->
   <AddressModal 
     v-model="showAddressModal"
     @address-selected="handleAddressSelected"
+  />
+
+  <!-- Delivery Method Modal -->
+  <DeliveryMethodModal
+    v-model="showDeliveryMethodModal"
+    @method-selected="handleDeliveryMethodSelected"
+  />
+
+  <!-- Payment Method Modal -->
+  <PaymentMethodModal
+    v-model="showPaymentMethodModal"
+    :selected-value="tempPaymentMethod"
+    @payment-selected="handlePaymentMethodSelected"
   />
 </template>
 
@@ -274,6 +229,8 @@
 import { ref, watch, nextTick, computed } from 'vue'
 import { useToast } from 'vue-toastification'
 import AddressModal from './AddressModal.vue'
+import DeliveryMethodModal from './DeliveryMethodModal.vue'
+import PaymentMethodModal from './PaymentMethodModal.vue'
 import { useUserStore } from '@/stores/useUserStore'
 
 const toast = useToast()
@@ -288,8 +245,6 @@ const userStore = useUserStore()
 // Dados do formulário
 const whatsapp = ref('')
 const fullName = ref('')
-const paymentMethod = ref('')
-const deliveryMethod = ref('')
 
 // Controle de etapas
 const currentStep = ref('form') // form, cep, delivery, payment
@@ -307,9 +262,15 @@ const expectedCep = ref('')
 const showAddressModal = ref(false)
 const pendingAddressSelection = ref(false)
 
-// Referências para os elementos do DOM (para scroll smooth)
-const paymentSectionRef = ref(null)
-const deliverySectionRef = ref(null)
+// Modais de entrega e pagamento
+const showDeliveryMethodModal = ref(false)
+const showPaymentMethodModal = ref(false)
+
+// Dados temporários para entrega e pagamento
+const tempDeliveryMethod = ref(null)
+const tempPaymentMethod = ref('')
+
+// Referências para os elementos do DOM
 const formSectionRef = ref(null)
 const cepSectionRef = ref(null)
 
@@ -333,14 +294,14 @@ const close = () => {
 const resetModal = () => {
   setTimeout(() => {
     currentStep.value = 'form'
-    paymentMethod.value = ''
-    deliveryMethod.value = ''
     userFound.value = false
     isLoading.value = false
     cepDigits.value = ['', '', '', '', '', '', '', '']
     cepError.value = ''
     expectedCep.value = ''
     pendingAddressSelection.value = false
+    tempDeliveryMethod.value = null
+    tempPaymentMethod.value = ''
   }, 300)
 }
 
@@ -380,7 +341,7 @@ const checkUserExists = async (whatsappNumber, name) => {
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(false)
+        resolve(true)
       }
     }, 500)
   })
@@ -397,7 +358,6 @@ const handleAddressSelected = async (address) => {
     const userData = {
       whatsapp: whatsapp.value,
       fullName: fullName.value,
-      deliveryMethod: deliveryMethod.value,
       selectedAddress: address
     }
     
@@ -411,37 +371,7 @@ const handleAddressSelected = async (address) => {
     localStorage.setItem('userData', JSON.stringify(userData))
     
     toast.success('Endereço selecionado com sucesso!', { timeout: 3000 })
-    
-    // Vai direto para a etapa de pagamento
-    currentStep.value = 'payment'
-    await nextTick()
-    if (paymentSectionRef.value) {
-      paymentSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
   }
-}
-
-// Logout do usuário
-const logout = () => {
-  // Faz logout no store global
-  const userName = userStore.fullName
-  userStore.logout()
-  
-  // Reseta estado local
-  isLoggedIn.value = false
-  userFound.value = false
-  whatsapp.value = ''
-  fullName.value = ''
-  paymentMethod.value = ''
-  deliveryMethod.value = ''
-  
-  // toast.success('Você saiu da sua conta!', { timeout: 3000 })
-  toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, {
-    timeout: 4000
-  })
-  
-  // Fecha o modal
-  close()
 }
 
 // Verifica se o usuário está logado
@@ -456,9 +386,80 @@ const checkIfLoggedIn = () => {
   return false
 }
 
+// Abre o modal de seleção de entrega
+const openDeliveryMethodModal = () => {
+  showDeliveryMethodModal.value = true
+}
+
+// Manipula a seleção do método de entrega
+const handleDeliveryMethodSelected = (method) => {
+  tempDeliveryMethod.value = method
+  showDeliveryMethodModal.value = false
+  toast.info(`Forma de entrega selecionada: ${method.label}`, { timeout: 2000 })
+}
+
+// Obtém o texto do tempo estimado do método de entrega
+const getDeliveryMethodTime = (method) => {
+  if (!method) return ''
+  if (method.timeEstimate) return `⏱️ ${method.timeEstimate}`
+  return ''
+}
+
+// Confirma o método de entrega e avança para pagamento
+const confirmDeliveryMethod = async () => {
+  if (!tempDeliveryMethod.value) {
+    toast.warning('Selecione uma forma de entrega!', { timeout: 3000 })
+    return
+  }
+  
+  currentStep.value = 'payment'
+}
+
+// Volta para a etapa de entrega
+const backToDeliveryStep = () => {
+  currentStep.value = 'delivery'
+}
+
+// Abre o modal de seleção de pagamento
+const openPaymentMethodModal = () => {
+  showPaymentMethodModal.value = true
+}
+
+// Manipula a seleção do método de pagamento
+const handlePaymentMethodSelected = (method) => {
+  tempPaymentMethod.value = method
+  showPaymentMethodModal.value = false
+  toast.info(`Forma de pagamento selecionada: ${getPaymentMethodLabel(method)}`, { timeout: 2000 })
+}
+
+// Obtém o label do método de pagamento
+const getPaymentMethodLabel = (method) => {
+  const labels = {
+    card: 'Cartão de Crédito/Débito',
+    pix: 'PIX',
+    cash: 'Dinheiro'
+  }
+  return labels[method] || method
+}
+
+// Logout do usuário
+const logout = () => {
+  const userName = userStore.fullName
+  userStore.logout()
+  
+  isLoggedIn.value = false
+  userFound.value = false
+  whatsapp.value = ''
+  fullName.value = ''
+  tempPaymentMethod.value = ''
+  tempDeliveryMethod.value = null
+  
+  toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, { timeout: 4000 })
+  close()
+}
+
 // Verifica dados iniciais
 const checkAndAdvanceToDelivery = async () => {
-  // Se já está logado, faz logout
   if (isLoggedIn.value) {
     logout()
     return
@@ -475,38 +476,24 @@ const checkAndAdvanceToDelivery = async () => {
     userFound.value = await checkUserExists(whatsapp.value, fullName.value)
 
     if (userFound.value) {
-      // Usuário já existe - busca o CEP do endereço principal
       expectedCep.value = getPrimaryAddressCep()
       
       if (expectedCep.value) {
-        // Tem CEP cadastrado - vai para etapa de validação
         currentStep.value = 'cep'
         await nextTick()
-        // Limpa os campos de CEP e foca no primeiro
         cepDigits.value = ['', '', '', '', '', '', '', '']
         cepError.value = ''
         if (cepInputs.value[0]) {
           cepInputs.value[0].focus()
         }
-        if (cepSectionRef.value) {
-          cepSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
         toast.info('Digite o CEP de validação', { timeout: 3000 })
       } else {
-        // Não tem CEP cadastrado - vai direto para entrega
+        // Usuário existente mas sem CEP, vai direto para entrega
         currentStep.value = 'delivery'
-        await nextTick()
-        if (deliverySectionRef.value) {
-          deliverySectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
       }
     } else {
-      // Usuário não existe - mostra forma de entrega
+      // Novo usuário, vai para entrega
       currentStep.value = 'delivery'
-      await nextTick()
-      if (deliverySectionRef.value) {
-        deliverySectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
     }
   } catch (error) {
     console.error('Erro ao verificar usuário:', error)
@@ -521,6 +508,8 @@ const backToForm = () => {
   currentStep.value = 'form'
   cepDigits.value = ['', '', '', '', '', '', '', '']
   cepError.value = ''
+  tempDeliveryMethod.value = null
+  tempPaymentMethod.value = ''
 }
 
 // Valida o CEP digitado e faz login
@@ -528,27 +517,20 @@ const validateCepAndLogin = () => {
   const typedCep = getFullCep()
   
   if (typedCep === expectedCep.value) {
-    // CEP correto - realiza login
     cepError.value = ''
     const data = {
       whatsapp: whatsapp.value,
-      fullName: fullName.value,
-      paymentMethod: paymentMethod.value,
-      deliveryMethod: deliveryMethod.value
+      fullName: fullName.value
     }
     
-    // Login no store global
     userStore.login(data)
     isLoggedIn.value = true
     
-    // toast.success(`Bem-vindo de volta, ${fullName.value}!`, { timeout: 3000 })
-    
-    emit('submit', data)
-    close()
+    // Avança para entrega
+    currentStep.value = 'delivery'
   } else {
     cepError.value = 'CEP não encontrado! Verifique o CEP cadastrado.'
     toast.error(cepError.value, { timeout: 3000 })
-    // Limpa os campos de CEP
     cepDigits.value = ['', '', '', '', '', '', '', '']
     if (cepInputs.value[0]) {
       cepInputs.value[0].focus()
@@ -563,7 +545,6 @@ const handleCepDigit = (index, event) => {
   if (value.length > 0) {
     cepDigits.value[index] = value.charAt(0)
     
-    // Avança para o próximo input se não for o último
     if (index < 7 && cepDigits.value[index] !== '') {
       if (cepInputs.value[index + 1]) {
         cepInputs.value[index + 1].focus()
@@ -578,12 +559,10 @@ const handleCepDigit = (index, event) => {
 const handleCepKeydown = (index, event) => {
   if (event.key === 'Backspace') {
     if (cepDigits.value[index] === '' && index > 0) {
-      // Se o campo atual está vazio, volta para o anterior
       if (cepInputs.value[index - 1]) {
         cepInputs.value[index - 1].focus()
       }
     } else if (cepDigits.value[index] !== '') {
-      // Se tem conteúdo, limpa o campo atual
       cepDigits.value[index] = ''
       event.preventDefault()
     }
@@ -602,7 +581,6 @@ const handleCepPaste = (event) => {
     }
   })
   
-  // Foca no próximo campo vazio ou no último preenchido
   const nextEmptyIndex = cepDigits.value.findIndex(d => d === '')
   if (nextEmptyIndex !== -1 && cepInputs.value[nextEmptyIndex]) {
     cepInputs.value[nextEmptyIndex].focus()
@@ -611,68 +589,20 @@ const handleCepPaste = (event) => {
   }
 }
 
-// Verifica se o usuário tem endereços cadastrados
-const hasAddresses = () => {
-  const addresses = localStorage.getItem('addresses')
-  if (addresses) {
-    const parsedAddresses = JSON.parse(addresses)
-    return parsedAddresses.length > 0
-  }
-  return false
-}
-
-// Avança para forma de pagamento ou abre modal de endereços
-const advanceToPayment = async () => {
-  if (!deliveryMethod.value) {
-    toast.warning('Selecione uma forma de entrega!', { timeout: 3000 })
-    return false
-  }
-
-  // Se escolheu delivery e o usuário NÃO existe (novo cadastro)
-  if (deliveryMethod.value === 'delivery' && !userFound.value) {
-    pendingAddressSelection.value = true
-    showAddressModal.value = true
-    return false
-  }
-  
-  // Se escolheu delivery e usuário já existe, mas não tem CEP cadastrado
-  if (deliveryMethod.value === 'delivery' && userFound.value && !expectedCep.value) {
-    pendingAddressSelection.value = true
-    showAddressModal.value = true
-    return false
-  }
-
-  // Para opções que não são delivery (pickup, local)
-  // ou usuário existente com CEP, avança direto para pagamento
-  currentStep.value = 'payment'
-  await nextTick()
-  if (paymentSectionRef.value) {
-    paymentSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-  return true
-}
-
-// Volta para etapa anterior
-const backToDelivery = () => {
-  currentStep.value = 'delivery'
-  paymentMethod.value = ''
-  nextTick(() => {
-    if (deliverySectionRef.value) {
-      deliverySectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  })
-}
-
 // Submissão final do formulário
 const submitForm = async () => {
-  if (!paymentMethod.value) {
+  if (!tempPaymentMethod.value) {
     toast.warning('Selecione uma forma de pagamento!', { timeout: 3000 })
+    return
+  }
+
+  if (!tempDeliveryMethod.value) {
+    toast.warning('Selecione uma forma de entrega!', { timeout: 3000 })
     return
   }
 
   isLoading.value = true
 
-  // Recupera o endereço selecionado se existir
   const userData = localStorage.getItem('userData')
   let selectedAddress = null
   
@@ -681,36 +611,42 @@ const submitForm = async () => {
     selectedAddress = parsed.selectedAddress
   }
 
+  // Para delivery, verifica se tem endereço
+  if (tempDeliveryMethod.value.value === 'delivery' && !selectedAddress) {
+    pendingAddressSelection.value = true
+    showAddressModal.value = true
+    isLoading.value = false
+    return
+  }
+
   const data = {
     whatsapp: whatsapp.value,
     fullName: fullName.value,
-    deliveryMethod: deliveryMethod.value,
-    paymentMethod: paymentMethod.value,
+    deliveryMethod: tempDeliveryMethod.value,
+    paymentMethod: tempPaymentMethod.value,
     selectedAddress: selectedAddress,
     completedAt: new Date().toISOString()
   }
 
   try {
-    // Login no store global
     userStore.login(data)
     isLoggedIn.value = true
     
     // toast.success(`Pedido finalizado com sucesso, ${fullName.value}!`, { timeout: 4000 })
     
-    // Dispara evento para o Cart saber que o usuário está logado
     const loginEvent = new CustomEvent('user-login', { 
       detail: { 
         fullName: fullName.value, 
         whatsapp: whatsapp.value,
-        isLogged: true 
+        isLogged: true,
+        deliveryMethod: tempDeliveryMethod.value,
+        paymentMethod: tempPaymentMethod.value,
+        selectedAddress: selectedAddress
       } 
     })
     window.dispatchEvent(loginEvent)
     
-    // Emite o evento com os dados completos para o componente pai
     emit('submit', data)
-    
-    // Fecha o modal
     close()
   } catch (error) {
     console.error('Erro ao salvar dados:', error)
@@ -724,20 +660,18 @@ const submitForm = async () => {
 watch(() => props.modelValue, async (open) => {
   if (open) {
     currentStep.value = 'form'
-    paymentMethod.value = ''
-    deliveryMethod.value = ''
     cepDigits.value = ['', '', '', '', '', '', '', '']
     cepError.value = ''
     expectedCep.value = ''
     pendingAddressSelection.value = false
+    tempDeliveryMethod.value = null
+    tempPaymentMethod.value = ''
     
     const loggedIn = checkIfLoggedIn()
     
     if (!loggedIn) {
       fullName.value = ''
       whatsapp.value = ''
-      paymentMethod.value = ''
-      deliveryMethod.value = ''
       userFound.value = false
       isLoggedIn.value = false
     }
@@ -760,6 +694,12 @@ watch(() => props.modelValue, async (open) => {
       outline: none;
       box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
     }
+    
+    .selected-option-card {
+      width: 100%;
+      text-align: center;
+    }
+    
     .payment-form-title{
       font-size: clamp(0.938rem, 1vw, 1rem);
     }

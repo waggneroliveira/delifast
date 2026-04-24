@@ -170,11 +170,10 @@ const handleAddressSelected = async (address) => {
     window.dispatchEvent(new CustomEvent('addresses-updated'))
     emit('method-selected', methodData)
     close()
-    // toast.info(`Forma de entrega selecionada: ${methodData.label}`, { timeout: 3000 })
     toast.success(`Endereço selecionado: ${formatAddress(address)}`, { timeout: 3000 })
   } else if (!address && pendingMethod.value === 'delivery') {
     toast.warning('Para entrega em domicílio, é necessário selecionar um endereço!', { timeout: 3000 })
-    loadCurrentMethod() // Recarrega o método anterior
+    loadCurrentMethod()
   }
   
   pendingMethod.value = null
@@ -200,20 +199,29 @@ const confirmSelection = async () => {
   isLoading.value = true
 
   if (selectedMethod.value === 'delivery') {
-    if (!userStore.isLogged) {
-      toast.warning('Você precisa se identificar primeiro!', { timeout: 3000 })
-      isLoading.value = false
-      close()
-      return
-    }
-
+    // 🔥 REMOVIDA a verificação de login aqui!
+    // O usuário pode selecionar delivery mesmo sem estar logado
+    // O cadastro será feito depois no IdentifyModal
+    
     const hasAddress = hasSelectedAddress()
     
     if (!hasAddress) {
-      pendingMethod.value = selectedMethod.value
-      showAddressModal.value = true
-      isLoading.value = false
-      return
+      // Se não tem endereço, abre o modal de endereço APENAS se o usuário já estiver logado
+      // ou se estiver vindo de um fluxo onde o cadastro já foi iniciado
+      if (userStore.isLogged) {
+        pendingMethod.value = selectedMethod.value
+        showAddressModal.value = true
+        isLoading.value = false
+        return
+      } else {
+        // Se não está logado, apenas emite o método selecionado
+        // O IdentifyModal vai pedir cadastro depois
+        const methodData = deliveryMethodsOptions[selectedMethod.value]
+        emit('method-selected', methodData)
+        close()
+        isLoading.value = false
+        return
+      }
     }
   }
 
@@ -221,7 +229,6 @@ const confirmSelection = async () => {
   emit('method-selected', methodData)
   close()
   
-//   toast.info(`Forma de entrega selecionada: ${methodData.label}`, { timeout: 3000 })
   isLoading.value = false
 }
 
