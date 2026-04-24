@@ -71,7 +71,7 @@
                                     </small>
                                 </div>
                                 <!-- RIGHT CHECK / EDIT BUTTON - ATUALIZADO -->
-                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="d-flex align-items-center justify-content-center gap-0">
                                     <button 
                                         @click="selectedDeliveryMethod?.value === 'delivery' && !selectedAddress ? openAddressModal() : openDeliveryMethodModal()" 
                                         class="btn btn-sm p-0 border-0 bg-transparent"
@@ -151,10 +151,11 @@
                         <div class="text-content flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="info">
-                                    <h5 class="mb-0 fw-bold address-title d-flex justify-content-start align-items-end">
+                                    <h5 class="mb-0 fw-bold address-title d-inline-flex gap-1 flex-wrap">
                                         {{ selectedPaymentMethod ? getPaymentMethodText() : 'Definir forma de pagamento' }} -
+                                        
                                         <span 
-                                            class="ms-1 text-primary fw-medium d-flex pointer"
+                                            class="ms-0 text-primary fw-medium d-flex pointer"
                                             :class="{ 'd-none': !selectedPaymentMethod }"
                                             @click="openPaymentMethodModal"
                                         >Alterar</span>
@@ -165,7 +166,7 @@
                                     </small>
                                 </div>
 
-                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="d-flex align-items-center justify-content-center gap-0">
                                     <button 
                                         @click="openPaymentMethodModal" 
                                         class="btn btn-sm p-0 border-0 bg-transparent"
@@ -896,6 +897,8 @@
 }
 .finish{
     font-size: 0.75rem !important;
+    line-height: 18px;
+    display: table;
 }
 .address-title{
     color: #595959;
