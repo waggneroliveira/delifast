@@ -341,7 +341,7 @@ const checkUserExists = async (whatsappNumber, name) => {
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(true)
+        resolve(false)
       }
     }, 500)
   })
