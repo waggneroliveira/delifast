@@ -1,5 +1,5 @@
 <template>
-  <div class="top-bar d-flex justify-content-between align-items-start gap-2 gap-md-3 flex-wrap position-relative">
+  <div class="top-bar d-flex justify-content-center justify-content-md-between align-items-center align-items-md-start gap-2 gap-md-3 flex-wrap position-relative">
     <div class="content-logo">
       <!-- Logo -->
       <div class="image text-center mb-3 position-relative rounded-circle">
@@ -11,11 +11,11 @@
       </div>
 
       <!-- Nome + status -->
-      <div class="text-start mb-4 w-100">
+      <div class="text-center text-md-start mb-3 mb-md-4 w-100">
         <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
         <small class="d-block">Praticidade que alimenta.</small>
         
-        <div class="d-flex justify-content-start align-items-center mt-2">
+        <div class="d-flex justify-content-center justify-content-md-start align-items-center mt-2">
           <span class="status-dot me-1"></span>
           <small>Aberto</small>
         </div>
@@ -23,7 +23,7 @@
     </div>
     
     <!-- Horários e contato -->
-    <div class="d-flex flex-row flex-wrap align-items-start gap-2 text-secondary small mt-5">
+    <div class="d-flex flex-row flex-wrap align-items-start gap-2 text-secondary small mt-0 mt-md-5">
       
       <div class="horous">
         <div class="d-flex align-items-start gap-2 mb-1 pe-2 border-end">
@@ -57,7 +57,7 @@
     </div>
 
     <!-- Busca e ações -->
-    <div class="border-start ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-end flex-wrap flex-grow-1 right-container mt-5">
+    <div class="border-start ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-between justify-content-md-end flex-wrap flex-grow-1 right-container mt-3 mt-md-5 mb-3 mb-md-0">
 
       <!-- Botão -->
       <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" @click="showModalLocation = true">
@@ -65,7 +65,7 @@
       </button>
 
       <!-- Campo de busca -->
-      <div class="position-relative flex-grow-1 search-wrapper">
+      <div class="position-relative flex-grow-1 search-wrapper mt-2 mt-md-0">
         <input
           type="text"
           placeholder="Buscar produto..."
@@ -268,7 +268,7 @@
 
   /* TEXTO */
   .horous-day {
-    font-size: clamp(0.75rem, 0.85vw, 0.9rem);
+    font-size: clamp(0.9rem, 0.85vw, 0.9rem);
   }
 
   .horous-day i {

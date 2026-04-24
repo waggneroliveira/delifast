@@ -9,6 +9,12 @@
 </template>
 
 <style scoped>
+@media (max-width: 768px) {
+    .image{
+        margin-left: 0 !important;
+        width: 100% !important
+    }
+}
     .image{
         text-align: end;
         width: 90vw;

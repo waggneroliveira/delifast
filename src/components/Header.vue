@@ -2,7 +2,7 @@
     <div class="banner-inner container-fluid p-0 position-relative">
         <img src="@/assets/images/banner-inner.png" 
         alt="Banner interno" 
-        class="w-100 h-100 position-relative z-10">
+        class="w-100 h-100 position-relative z-10 cover">
 
         <div class="overlay"></div>
     </div>
@@ -11,6 +11,9 @@
 <style scoped>
     .banner-inner{
         height: 209px;
+    }
+    .cover{
+        object-fit: cover;
     }
     .overlay{
         position: absolute;

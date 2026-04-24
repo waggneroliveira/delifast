@@ -26,7 +26,7 @@
     </Swiper>
 
     <!-- Banner -->
-    <div class="mt-5 text-start">
+    <div class="mt-5 text-start d-none d-md-block">
       <img 
         src="@/assets/images/anuncio.png" 
         class="img-fluid"

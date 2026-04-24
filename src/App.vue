@@ -328,8 +328,8 @@
           <div class="d-flex flex-wrap">
             <Aside class="aside" />
 
-            <div class="content">
-
+            <div class="content w-mobile-100">
+              
               <Announcement/>
               
               <div class="carousel-breakout">
@@ -368,6 +368,18 @@
 </template>
 
 <style scoped>
+@media (max-width: 768px) {
+  .aside{
+    width: 100%;
+  }
+  .w-mobile-100{
+    width: 100%;
+  }
+  .carousel-breakout{
+    margin-left: 0 !important;
+    width: 100vw !important;
+  }
+}
   .list-product{
       width: 69vw;
       margin-left: calc(-30vw + 50%);
