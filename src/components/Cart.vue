@@ -42,12 +42,12 @@
             <div v-if="userStore.isLogged" class="d-flex align-items-center justify-content-between mb-3 rounded my-2">
                 <div
                     class="contorno p-2 d-flex align-items-start justify-content-between rounded-3 w-100"
-                    :class="{ 'not-address': !selectedAddress }"
+                    :class="{ 'not-address': !selectedDeliveryMethod }"
                 >
                     <!-- LEFT ICON -->
                     <div class="d-flex align-items-start w-100">
                         <div class="icon-address rounded-3 d-flex justify-content-center align-items-center p-3 me-2"
-                            :class="{ 'not-address': !selectedAddress }">
+                            :class="{ 'not-address': !selectedDeliveryMethod }">
                             <svg width="23" height="21" viewBox="0 0 23 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22.3242 1.35555H20.6327C20.2199 1.35555 19.8346 1.47081 19.4892 1.66038C19.3675 1.47748 19.1715 1.35555 18.9413 1.35555H14.2057C13.8338 1.35555 13.5294 1.66038 13.5294 2.03283C13.5294 2.40529 13.8338 2.71012 14.2057 2.71012H14.9021C14.4759 3.27881 14.2057 3.97707 14.2057 4.742V11.5158C14.2057 11.8883 13.9013 12.1931 13.5294 12.1931H11.5002C11.1283 12.1931 10.8238 11.8883 10.8238 11.5158V0.678238C10.8238 0.305784 10.5194 0.000952597 10.1475 0.000952597L3.38278 0C3.01083 0 2.70641 0.304831 2.70641 0.677286V7.45112C2.70641 7.55971 2.74065 7.66069 2.78727 7.75595C1.11676 8.84668 0 10.7299 0 12.8705V16.9353C0 17.3077 0.30442 17.6125 0.676372 17.6125H2.02914C2.02914 19.0414 2.93575 20.356 4.23429 20.8028C4.62623 20.9381 5.01913 20.999 5.41105 20.999C6.11502 20.999 6.79141 20.7894 7.37266 20.3694C8.25928 19.733 8.79296 18.7033 8.79296 17.6125H15.5645C15.5645 19.1566 16.5586 20.4845 18.0198 20.8781C18.3242 20.959 18.6353 21 18.9397 21C19.8121 21 20.6511 20.6685 21.2875 20.0512C22.1532 19.211 22.5052 17.9984 22.2274 16.8C21.9364 15.5873 20.9689 14.6186 19.7655 14.327C19.718 14.3136 19.6638 14.3136 19.6171 14.3003V5.86039C19.9282 6.009 20.2669 6.09759 20.6322 6.09759H22.3236C22.6956 6.09759 23 5.79276 23 5.4203V2.03278C23 1.66032 22.6956 1.35549 22.3236 1.35549L22.3242 1.35555ZM4.05896 6.77495V1.35555H6.0881V2.71014C6.0881 3.0826 6.39252 3.38743 6.76447 3.38743C7.13642 3.38743 7.44084 3.0826 7.44084 2.71014V1.35555H9.46998V6.77495H4.05896ZM6.58856 19.2655C6.04061 19.6579 5.35091 19.7465 4.67452 19.516C3.90967 19.2521 3.38263 18.4729 3.38263 17.6127H7.44189C7.44189 18.27 7.12415 18.8863 6.58951 19.2654L6.58856 19.2655ZM8.02981 16.2581H1.35254V12.8706C1.35254 10.2556 3.47683 8.12865 6.0881 8.12865H9.47106V11.5162C9.47106 12.6336 10.3843 13.5481 11.5002 13.5481H13.5293C14.6452 13.5481 15.5585 12.6336 15.5585 11.5162V4.74234C15.5585 3.62495 16.4717 2.71046 17.5876 2.71046H18.264V14.294C18.264 14.294 18.2231 14.3074 18.2031 14.3074C18.0947 14.334 17.9862 14.3617 17.8854 14.395C17.8511 14.4084 17.8178 14.415 17.7836 14.4293C17.6751 14.4703 17.5667 14.5169 17.4658 14.5646C17.4392 14.5779 17.405 14.5913 17.3783 14.6055C17.2765 14.6598 17.1757 14.7208 17.0805 14.7884C17.0539 14.8084 17.0263 14.8227 16.9997 14.8361C16.8779 14.917 16.7695 15.0123 16.661 15.1142C16.5868 15.1819 16.505 15.2562 16.4517 15.3238C16.3366 15.4524 16.2348 15.5876 16.1407 15.7239C16.114 15.7648 16.0931 15.8048 16.0665 15.8391C15.9989 15.9544 15.9314 16.0697 15.8771 16.1916C15.8638 16.2116 15.8505 16.2326 15.8429 16.2592H8.02978L8.02981 16.2581ZM20.9172 17.1117C21.0866 17.8366 20.8763 18.5682 20.356 19.0759C19.828 19.5836 19.1116 19.7665 18.381 19.5703C17.4744 19.3331 16.8856 18.5072 16.9198 17.5241C16.9198 17.3822 16.9465 17.2536 16.9874 17.1107C17.0749 16.7792 17.2309 16.4877 17.4678 16.2305C17.4944 16.1962 17.5287 16.1695 17.5762 16.1219C17.9482 15.7761 18.4353 15.5865 18.9499 15.5865C19.1126 15.5865 19.2886 15.6065 19.4636 15.6475C20.1809 15.8171 20.7489 16.3924 20.9249 17.1107L20.9172 17.1117ZM21.6479 4.7421H20.6328C20.0715 4.7421 19.6177 4.28866 19.6177 3.72567C19.6177 3.16363 20.0706 2.70924 20.6328 2.70924H21.6479V4.7421Z" fill="white"/>
                             </svg>
@@ -57,35 +57,40 @@
                         <div class="text-content flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="info">
-                                    <h5 class="mb-0 fw-bold address-title">
-                                        {{ selectedAddress ? selectedAddress.nickname || 'Endereço selecionado' : 'Definir forma de entrega' }}
+                                    <h5 class="mb-0 fw-bold address-title d-flex justify-content-start align-items-end">
+                                        {{ selectedDeliveryMethod ? selectedDeliveryMethod.label : 'Definir forma de entrega' }}
+                                        <span 
+                                            class="ms-1 bi bi-pencil-square d-flex pointer"
+                                            :class="{ 'd-none': !selectedDeliveryMethod }"
+                                            @click="openDeliveryMethodModal"
+                                        ></span>
                                     </h5>
 
                                     <small class="finish text-muted fw-medium">
-                                        Entrega em domicílio • 30-45 min
+                                        {{ getDeliveryMethodText() }} 
                                     </small>
                                 </div>
                                 <!-- RIGHT CHECK / EDIT BUTTON -->
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     <button 
-                                        @click="openAddressModal" 
+                                        @click="openDeliveryMethodModal" 
                                         class="btn btn-sm p-0 border-0 bg-transparent"
                                         style="line-height: 0;"
                                     >
-                                        <svg v-if="!selectedAddress" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <svg v-if="!selectedDeliveryMethod" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <rect x="0.5" y="0.5" width="27" height="27" rx="13.5" fill="#E9ECEF"/>
                                             <rect x="0.5" y="0.5" width="27" height="27" rx="13.5" stroke="#DEE2E6"/>
                                             <path d="M14.4365 12.9808H17.0573V14.8672H14.4365V17.4016H12.5501V14.8672H9.92925V12.9808H12.5501V10.4032H14.4365V12.9808Z" fill="#6C757D"/>
                                         </svg>
                                     </button>
-                                    <svg v-if="selectedAddress" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <svg v-if="selectedDeliveryMethod" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <rect width="28" height="28" rx="14" fill="#FF8C00"/>
                                         <path d="M11.8656 18.775L7.19687 14.1063C6.91563 13.825 6.91563 13.3469 7.19687 13.0656L8.20937 12.0531C8.49062 11.7719 8.94062 11.7719 9.22187 12.0531L12.4 15.2031L19.15 8.45313C19.4312 8.17188 19.8812 8.17188 20.1625 8.45313L21.175 9.46563C21.4562 9.74688 21.4562 10.225 21.175 10.5063L12.9062 18.775C12.625 19.0562 12.1469 19.0562 11.8656 18.775Z" fill="white"/>
                                     </svg>
                                 </div>
                             </div>
 
-                            <div v-if="selectedAddress" class="d-flex text-muted small mt-2">
+                            <div v-if="selectedDeliveryMethod?.value === 'delivery' && selectedAddress" class="d-flex text-muted small mt-2">
                                 <svg width="11" height="16" viewBox="0 0 11 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M3.451 12.0711C3.55472 12.0469 3.61938 11.9425 3.59513 11.8387C3.57021 11.7344 3.46447 11.6697 3.36276 11.6946C2.18408 11.9728 1.50781 12.4537 1.50781 13.0141C1.50781 14.0196 3.56415 14.5625 5.4991 14.5625C7.43422 14.5625 9.49038 14.0197 9.49038 13.0141C9.49038 12.4537 8.81415 11.9728 7.63544 11.6946C7.53239 11.6697 7.42732 11.7344 7.40306 11.8387C7.37882 11.9425 7.4428 12.0469 7.5472 12.0711C8.49284 12.2941 9.10373 12.6645 9.10373 13.0141C9.10373 13.5637 7.62331 14.1759 5.49971 14.1759C3.37544 14.1759 1.89569 13.5637 1.89569 13.0141C1.89434 12.6645 2.50537 12.2947 3.451 12.0711Z" fill="#595959"/>
                                     <path d="M8.17916 11.0271C8.07543 11.0035 7.97104 11.0668 7.94611 11.1705C7.92119 11.2743 7.98585 11.3787 8.08957 11.4036C9.62253 11.768 10.6127 12.4435 10.6127 13.1251C10.6127 14.2129 8.27148 15.1316 5.49993 15.1316C2.72837 15.1316 0.387192 14.213 0.387192 13.1251C0.387192 12.4435 1.37729 11.7673 2.91028 11.4036C3.014 11.3787 3.07866 11.2749 3.05374 11.1705C3.02882 11.0668 2.92375 11.0035 2.82069 11.0271C1.05472 11.4467 0 12.2314 0 13.1251C0 14.4668 2.41601 15.5182 5.5 15.5182C8.58416 15.5182 11 14.4668 11 13.1251C10.9993 12.2314 9.9451 11.4467 8.17916 11.0271Z" fill="#595959"/>
@@ -105,8 +110,20 @@
                                 </p>
                             </div>
 
-                            <div v-else class="d-flex text-muted small mt-2">
+                            <div v-else-if="selectedDeliveryMethod?.value === 'delivery' && !selectedAddress" class="d-flex text-muted small mt-2">
                                 <p class="mb-0">Clique no botão + para adicionar um endereço de entrega</p>
+                            </div>
+
+                            <div v-else-if="selectedDeliveryMethod?.value === 'pickup'" class="d-flex text-muted small mt-2">
+                                <p class="mb-0">Retirada na loja selecionada</p>
+                            </div>
+
+                            <div v-else-if="selectedDeliveryMethod?.value === 'local'" class="d-flex text-muted small mt-2">
+                                <p class="mb-0">Pagamento presencial selecionado</p>
+                            </div>
+
+                            <div v-else class="d-flex text-muted small mt-2">
+                                <p class="mb-0">Clique no botão + para selecionar a forma de entrega</p>
                             </div>
                         </div>
                     </div>
@@ -251,6 +268,12 @@
         v-model:show="showProductModal"
         :product="selectedProduct"
     />
+
+    <!-- Delivery Method Modal -->
+    <DeliveryMethodModal
+        v-model="showDeliveryMethodModal"
+        @method-selected="handleDeliveryMethodSelected"
+    />
 </template>
 
 <script setup>
@@ -259,6 +282,7 @@
     import IdentifyModal from './IdentifyModal.vue'
     import ProductModal from './ProductModal.vue'
     import AddressModal from './AddressModal.vue'
+    import DeliveryMethodModal from './DeliveryMethodModal.vue'
     import { useCartStore } from '@/stores/useCartStore'
     import { useUserStore } from '@/stores/useUserStore'
 
@@ -267,15 +291,58 @@
     const userStore = useUserStore()
     const showModal = ref(false)
     const showAddressModal = ref(false)
+    const showDeliveryMethodModal = ref(false)
     const selectedAddress = ref(null)
+    const selectedDeliveryMethod = ref(null)
 
     // Product modal
     const showProductModal = ref(false)
     const selectedProduct = ref(null)
 
-    // Função para atualizar o endereço selecionado baseado na lista atual
+    // Função para obter o texto do método de entrega
+    const getDeliveryMethodText = () => {
+        if (!selectedDeliveryMethod.value) return 'Selecione uma forma de entrega'
+        
+        if (selectedDeliveryMethod.value.value === 'delivery') {
+            return `Entrega em domicílio • ${selectedDeliveryMethod.value.timeEstimate}`
+        } else if (selectedDeliveryMethod.value.value === 'pickup') {
+            return `Retirada na loja • ${selectedDeliveryMethod.value.timeEstimate}`
+        }else if (selectedDeliveryMethod.value.value === 'local') {
+            return `Consumo no local`
+        }
+        return selectedDeliveryMethod.value.label
+    }
+
+    // Função para abrir modal de seleção de entrega
+    const openDeliveryMethodModal = () => {
+        if (!userStore.isLogged) {
+            toast.warning('Você precisa se identificar primeiro!', {
+                timeout: 3000
+            })
+            return
+        }
+        showDeliveryMethodModal.value = true
+    }
+
+    // Função para lidar com a seleção do método de entrega
+    const handleDeliveryMethodSelected = (method) => {
+        selectedDeliveryMethod.value = method
+        
+        if (method.value === 'delivery' && !selectedAddress.value) {
+            setTimeout(() => {
+                openAddressModal()
+            }, 300)
+        }
+        
+        localStorage.setItem('selectedDeliveryMethod', JSON.stringify(method))
+        
+        toast.info(`Forma de entrega selecionada: ${method.label}`, {
+            timeout: 3000
+        })
+    }
+
+    // Função para atualizar o endereço selecionado
     const updateSelectedAddress = () => {
-        // Só carrega endereço se estiver logado
         if (!userStore.isLogged) {
             selectedAddress.value = null
             return
@@ -292,13 +359,11 @@
         const savedSelectedId = localStorage.getItem('selectedAddressId')
         
         if (savedSelectedId) {
-            // Tenta encontrar o endereço salvo pelo ID
             const foundAddress = addresses.find(addr => addr.id === parseInt(savedSelectedId))
             if (foundAddress) {
                 selectedAddress.value = foundAddress
                 localStorage.setItem('selectedAddress', JSON.stringify(foundAddress))
             } else {
-                // Endereço não existe mais, tenta pegar o principal
                 const primaryAddress = addresses.find(addr => addr.primary === true)
                 if (primaryAddress) {
                     selectedAddress.value = primaryAddress
@@ -311,7 +376,6 @@
                 }
             }
         } else {
-            // Não tem ID salvo, tenta pegar o principal
             const primaryAddress = addresses.find(addr => addr.primary === true)
             if (primaryAddress) {
                 selectedAddress.value = primaryAddress
@@ -324,13 +388,23 @@
         }
     }
 
-    // Load saved address from localStorage
+    // Carregar método de entrega salvo
+    const loadSavedDeliveryMethod = () => {
+        const savedMethod = localStorage.getItem('selectedDeliveryMethod')
+        if (savedMethod) {
+            try {
+                selectedDeliveryMethod.value = JSON.parse(savedMethod)
+            } catch (e) {
+                console.error('Erro ao carregar método de entrega:', e)
+            }
+        }
+    }
+
     const loadSavedAddress = () => {
         updateSelectedAddress()
     }
 
     const openAddressModal = () => {
-        // Só abre o modal se estiver logado
         if (!userStore.isLogged) {
             toast.warning('Você precisa se identificar primeiro!', {
                 timeout: 3000
@@ -350,12 +424,6 @@
             localStorage.removeItem('selectedAddressId')
             localStorage.removeItem('selectedAddress')
         }
-        
-        toast.success(address ? 
-            `Endereço selecionado: ${address.nickname || formatAddress(address)}` : 
-            'Endereço removido', {
-            timeout: 3000
-        })
     }
 
     const formatAddress = (address) => {
@@ -371,13 +439,10 @@
     }
 
     const openProductModal = (product) => {
-        // Guarda uma cópia dos adicionais originais para referência
         const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
         
-        // PREPARA OS ADICIONAIS COM AS QUANTIDADES ATUAIS
         const aditionalsWithQuantity = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
         
-        // Se tiver customization com toppings, converte para estrutura de adicionais
         if (product.customization?.hasToppings && product.customization?.toppings && !aditionalsWithQuantity.length) {
             aditionalsWithQuantity.push({
                 title: 'Adicionais',
@@ -400,21 +465,18 @@
             cuisineType: product.cuisineType,
             customization: product.customization,
             
-            // IMPORTANTE: Campos para identificar que é EDIÇÃO
             selectedOption: product.selectedOption || null,
-            originalSelectedOption: product.selectedOption || null,  // CHAVE: mantém o original
+            originalSelectedOption: product.selectedOption || null,
             
             selectedSize: product.selectedSize || null,
-            originalSelectedSize: product.selectedSize || null,      // CHAVE: mantém o original
+            originalSelectedSize: product.selectedSize || null,
             
             selectedFlavors: product.selectedFlavors || [],
-            originalSelectedFlavors: product.selectedFlavors || [],  // CHAVE: mantém o original
+            originalSelectedFlavors: product.selectedFlavors || [],
             
-            // Adicionais com quantidades
             aditionals: aditionalsWithQuantity,
             originalAditionals: originalAditionals,
             
-            // FLAG EXPLÍCITA de edição (opcional, mas útil)
             isEditing: true
         }
 
@@ -423,7 +485,10 @@
 
     // Computed para saber se pode confirmar
     const canConfirm = computed(() => {
-        return userStore.isLogged && selectedAddress.value !== null
+        if (!userStore.isLogged) return false
+        if (!selectedDeliveryMethod.value) return false
+        if (selectedDeliveryMethod.value.value === 'delivery' && !selectedAddress.value) return false
+        return true
     })
 
     const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
@@ -434,59 +499,80 @@
             timeout: 4000
         })
         
-        // Após login, tenta carregar endereços novamente
         setTimeout(() => {
             updateSelectedAddress()
+            loadSavedDeliveryMethod()
         }, 100)
     }
 
-    // Event listener para atualizações de endereço
     const handleStorageChange = (e) => {
         if ((e.key === 'addresses' || e.key === 'addressesUpdated') && userStore.isLogged) {
             updateSelectedAddress()
         }
     }
 
-    // Evento customizado para atualização de endereços
     const handleCustomAddressUpdate = () => {
         if (userStore.isLogged) {
             updateSelectedAddress()
         }
     }
 
-    // Observa mudanças no login para carregar endereços
-    watch(() => userStore.isLogged, (isLogged) => {
+    // Observa mudanças no localStorage de endereços
+    watch(() => userStore.isLogged, async (isLogged) => {
         if (isLogged) {
-            updateSelectedAddress()
+            await updateSelectedAddress()
+            loadSavedDeliveryMethod()
         } else {
-            // Limpa endereço quando desloga
             selectedAddress.value = null
+            selectedDeliveryMethod.value = null
             localStorage.removeItem('selectedAddressId')
             localStorage.removeItem('selectedAddress')
+            localStorage.removeItem('selectedDeliveryMethod')
         }
     })
+
+    // Watcher para observar mudanças no selectedAddress via localStorage
+    const checkAddressChanges = () => {
+        const checkInterval = setInterval(() => {
+            if (userStore.isLogged) {
+            const savedAddressId = localStorage.getItem('selectedAddressId')
+            const savedAddress = localStorage.getItem('selectedAddress')
+            
+            if (savedAddressId && savedAddress) {
+                const parsedAddress = JSON.parse(savedAddress)
+                if (selectedAddress.value?.id !== parsedAddress.id) {
+                console.log('Endereço atualizado, recarregando...')
+                updateSelectedAddress()
+                }
+            }
+            }
+        }, 500) // Verifica a cada 500ms
+        
+        // Limpa o intervalo quando o componente for desmontado
+        onUnmounted(() => {
+            clearInterval(checkInterval)
+        })
+    }
 
     onMounted(() => {
         userStore.loadUserFromStorage()
         loadSavedAddress()
+        loadSavedDeliveryMethod()
+        checkAddressChanges() // Adicione esta linha
         
-        // Listeners para eventos de storage (quando outra aba/modifica)
         window.addEventListener('storage', handleStorageChange)
-        
-        // Listener para evento customizado (dentro da mesma aba)
         window.addEventListener('addresses-updated', handleCustomAddressUpdate)
         
-        // NOVO: Listener para evento de login do IdentifyModal
         window.addEventListener('user-login', (event) => {
             if (event.detail) {
-                userStore.login({
-                    fullName: event.detail.fullName,
-                    whatsapp: event.detail.whatsapp
-                })
-                // Recarrega endereços após login
-                setTimeout(() => {
-                    updateSelectedAddress()
-                }, 100)
+            userStore.login({
+                fullName: event.detail.fullName,
+                whatsapp: event.detail.whatsapp
+            })
+            setTimeout(() => {
+                updateSelectedAddress()
+                loadSavedDeliveryMethod()
+            }, 100)
             }
         })
     })
@@ -502,7 +588,11 @@
                 toast.warning('Você precisa se identificar antes de continuar!', {
                     timeout: 3000
                 })
-            } else if (!selectedAddress.value) {
+            } else if (!selectedDeliveryMethod.value) {
+                toast.warning('Por favor, selecione uma forma de entrega antes de continuar!', {
+                    timeout: 3000
+                })
+            } else if (selectedDeliveryMethod.value.value === 'delivery' && !selectedAddress.value) {
                 toast.warning('Por favor, selecione um endereço de entrega antes de continuar!', {
                     timeout: 3000
                 })
@@ -522,12 +612,7 @@
             currency: 'BRL'
         }).format(value)
     }
-
-    // =========================
-    // FUNÇÕES PARA ADICIONAIS
-    // =========================
     
-    // Calcula o total dos adicionais de um item
     const getItemAditionalsTotal = (item) => {
         if (!item || !item.aditionals) return 0
         
@@ -542,7 +627,6 @@
         return total
     }
     
-    // Retorna a lista de adicionais com detalhes
     const getItemAditionalsList = (item) => {
         if (!item || !item.aditionals) return []
         
@@ -562,7 +646,6 @@
         return list
     }
     
-    // Calcula o total do item (produto + adicionais)
     const getItemTotalWithAditionals = (item) => {
         if (!item) return 0
         
@@ -574,6 +657,10 @@
 </script>
 
 <style scoped>
+.pointer{
+    cursor: pointer;
+    display: flex;
+}
 .icon-address.not-address{
     background: #E9ECEF;
 }

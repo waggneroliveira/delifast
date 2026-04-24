@@ -187,7 +187,10 @@
 </template>
 
 <script setup>
-    import { ref, watch } from 'vue'
+    import { ref, watch, onMounted } from 'vue'
+    import { useToast } from 'vue-toastification'
+
+    const toast = useToast()
 
     const props = defineProps({
         modelValue: Boolean
@@ -412,6 +415,9 @@
             timeout: 3000
         })
     }
+
+    // Após salvar o endereço, dispare este evento:
+     window.dispatchEvent(new CustomEvent('addresses-updated'))
 
     /* ---- FECHAR MODAL ---- */
     const close = () => {
