@@ -2,7 +2,16 @@
   <div class="card product-card h-100 cursor-pointer">
     <div class="product-content">
       <div class="position-relative product-image-wrapper">
-        <span class="badge cashback position-absolute top-0 start-0 m-2 small" v-if="product.cashback">
+        <!-- Badge de COMBO -->
+        <span
+          class="badge combo position-absolute top-0 start-0 m-2 d-flex align-items-center gap-1"
+          v-if="product.isCombo"
+        >
+          <i class="bi bi-bullseye"></i>
+          COMBO
+        </span>
+        
+        <span class="badge cashback position-absolute top-0 start-0 m-2 small" v-else-if="product.cashback">
           {{ product.cashback }}% cashback
         </span>
 
@@ -59,13 +68,20 @@
   const emit = defineEmits(['open', 'add'])
   const cart = useCartStore()
 
+  // Verifica se é combo
+  const isCombo = computed(() => {
+    return props.product?.isCombo === true
+  })
+
   // Verifica se o produto tem variações (tamanhos ou opções com preços diferentes)
   const hasVariations = computed(() => {
+    // Combos sempre abrem modal
+    if (isCombo.value) return false
+    
     // Verifica se tem tamanhos com preços diferentes
     if (props.product.customization?.hasSize && props.product.customization?.sizes?.length > 0) {
       const sizes = props.product.customization.sizes
       const firstPrice = sizes[0]?.price
-      // Verifica se existe algum tamanho com preço diferente do primeiro
       return sizes.some(size => size.price !== firstPrice)
     }
     
@@ -114,6 +130,9 @@
 
   // Verifica se o produto tem opções de personalização
   const hasCustomizations = () => {
+    // Combos SEMPRE abrem modal
+    if (isCombo.value) return true
+    
     // Verifica se tem opções (sabores)
     if (props.product.options && props.product.options.length > 0) return true
     
@@ -149,18 +168,21 @@
       selectedOption: null,
       selectedSize: null,
       selectedFlavors: [],
-      aditionals: []
+      aditionals: [],
+      isCombo: false
     }
   }
 
   const handleClick = () => {
     if (hasCustomizations()) {
-      // Produto com personalizações -> abre modal
+      // Produto com personalizações OU combo -> abre modal
       emit('open', props.product)
     } else {
       // Produto simples -> adiciona direto ao carrinho
       const simpleProduct = prepareSimpleProduct()
       cart.add(simpleProduct)
+      // Opcional: mostrar toast de sucesso
+      // toast.success(`${props.product.name} adicionado ao carrinho!`)
     }
   }
 
@@ -171,6 +193,12 @@
 </script>
 
 <style scoped>
+  .combo {
+    background: #FF8C00 !important;
+    color: white !important;
+    font-weight: 600;
+    font-size: clamp(0.625rem, 0.813vw, 0.813rem);
+  }
   .svg-car{
     width: 18px;
     height: 20px;
@@ -212,7 +240,6 @@
       display: flex !important;
       flex-direction: row !important;
       gap: 12px !important;
-      align-items: flex-start !important;
     }
 
     .list-product .product-card .product-image-wrapper {
@@ -220,8 +247,8 @@
     }
 
     .list-product .product-card img {
-      height: 120px !important;
-      width: 120px !important;
+      height: 110px !important;
+      width: 110px !important;
       object-fit: cover !important;
       border-radius: 8px !important;
     }

@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-5">
+  <div :id="`category-${categoryId}`" class="mb-5">
     <h5 class="mb-4 title-section-product">{{ title }}</h5>
 
     <div class="product-grid">
@@ -19,7 +19,8 @@
 
   defineProps({
     title: String,
-    products: Array
+    products: Array,
+    categoryId: [Number, String]  // Nova prop para o ID da categoria
   })
 
   defineEmits(['add', 'open'])

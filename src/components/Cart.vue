@@ -70,21 +70,19 @@
                                         {{ getDeliveryMethodText() }} 
                                     </small>
                                 </div>
-                                <!-- RIGHT CHECK / EDIT BUTTON - ATUALIZADO -->
+                                <!-- RIGHT CHECK / EDIT BUTTON -->
                                 <div class="d-flex align-items-center justify-content-center gap-0">
                                     <button 
                                         @click="selectedDeliveryMethod?.value === 'delivery' && !selectedAddress ? openAddressModal() : openDeliveryMethodModal()" 
                                         class="btn btn-sm p-0 border-0 bg-transparent"
                                         style="line-height: 0;"
                                     >
-                                        <!-- Mostra ícone de "+" quando: não tem método OU (é delivery E não tem endereço) -->
                                         <svg v-if="!selectedDeliveryMethod || (selectedDeliveryMethod?.value === 'delivery' && !selectedAddress)" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <rect x="0.5" y="0.5" width="27" height="27" rx="13.5" fill="#E9ECEF"/>
                                             <rect x="0.5" y="0.5" width="27" height="27" rx="13.5" stroke="#DEE2E6"/>
                                             <path d="M14.4365 12.9808H17.0573V14.8672H14.4365V17.4016H12.5501V14.8672H9.92925V12.9808H12.5501V10.4032H14.4365V12.9808Z" fill="#6C757D"/>
                                         </svg>
                                     </button>
-                                    <!-- Mostra check apenas quando tem método E (não é delivery OU tem endereço) -->
                                     <svg v-if="selectedDeliveryMethod && !(selectedDeliveryMethod?.value === 'delivery' && !selectedAddress)" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <rect width="28" height="28" rx="14" fill="#FF8C00"/>
                                         <path d="M11.8656 18.775L7.19687 14.1063C6.91563 13.825 6.91563 13.3469 7.19687 13.0656L8.20937 12.0531C8.49062 11.7719 8.94062 11.7719 9.22187 12.0531L12.4 15.2031L19.15 8.45313C19.4312 8.17188 19.8812 8.17188 20.1625 8.45313L21.175 9.46563C21.4562 9.74688 21.4562 10.225 21.175 10.5063L12.9062 18.775C12.625 19.0562 12.1469 19.0562 11.8656 18.775Z" fill="white"/>
@@ -93,7 +91,6 @@
                             </div>
 
                             <div v-if="selectedDeliveryMethod?.value === 'delivery' && selectedAddress" class="d-flex text-muted small mt-2">
-                                <!-- Ícone de endereço -->
                                 <svg width="11" height="16" viewBox="0 0 11 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M3.451 12.0711C3.55472 12.0469 3.61938 11.9425 3.59513 11.8387C3.57021 11.7344 3.46447 11.6697 3.36276 11.6946C2.18408 11.9728 1.50781 12.4537 1.50781 13.0141C1.50781 14.0196 3.56415 14.5625 5.4991 14.5625C7.43422 14.5625 9.49038 14.0197 9.49038 13.0141C9.49038 12.4537 8.81415 11.9728 7.63544 11.6946C7.53239 11.6697 7.42732 11.7344 7.40306 11.8387C7.37882 11.9425 7.4428 12.0469 7.5472 12.0711C8.49284 12.2941 9.10373 12.6645 9.10373 13.0141C9.10373 13.5637 7.62331 14.1759 5.49971 14.1759C3.37544 14.1759 1.89569 13.5637 1.89569 13.0141C1.89434 12.6645 2.50537 12.2947 3.451 12.0711Z" fill="#595959"/>
                                     <path d="M8.17916 11.0271C8.07543 11.0035 7.97104 11.0668 7.94611 11.1705C7.92119 11.2743 7.98585 11.3787 8.08957 11.4036C9.62253 11.768 10.6127 12.4435 10.6127 13.1251C10.6127 14.2129 8.27148 15.1316 5.49993 15.1316C2.72837 15.1316 0.387192 14.213 0.387192 13.1251C0.387192 12.4435 1.37729 11.7673 2.91028 11.4036C3.014 11.3787 3.07866 11.2749 3.05374 11.1705C3.02882 11.0668 2.92375 11.0035 2.82069 11.0271C1.05472 11.4467 0 12.2314 0 13.1251C0 14.4668 2.41601 15.5182 5.5 15.5182C8.58416 15.5182 11 14.4668 11 13.1251C10.9993 12.2314 9.9451 11.4467 8.17916 11.0271Z" fill="#595959"/>
@@ -122,7 +119,7 @@
                             </div>
 
                             <div v-else-if="selectedDeliveryMethod?.value === 'local'" class="d-flex text-muted small mt-2">
-                                <p class="mb-0">Pagamento presencial selecionado</p>
+                                <p class="mb-0">Consumo no local selecionado</p>
                             </div>
 
                             <div v-else class="d-flex text-muted small mt-2">
@@ -133,7 +130,7 @@
                 </div>
             </div>
 
-            <!-- NOVO BOX: Payment info -->
+            <!-- Payment info -->
             <div v-if="userStore.isLogged" class="d-flex align-items-center justify-content-between mb-3 rounded my-2">
                 <div
                     class="contorno p-2 d-flex align-items-start justify-content-between rounded-3 w-100"
@@ -142,7 +139,6 @@
                     <div class="d-flex align-items-start w-100">
                         <div class="icon-address rounded-3 d-flex justify-content-center align-items-center p-3 me-2"
                             :class="{ 'not-address': !selectedPaymentMethod }">
-                            <!-- Ícone de pagamento -->
                             <svg width="23" height="21" viewBox="0 0 23 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M1.63966 10.6922H11.1456C11.4757 10.6922 11.7441 10.9571 11.7441 11.285V11.5851C11.7441 12.3104 11.5047 12.9819 11.0876 13.5201C10.6695 14.0592 10.0756 14.4631 9.36764 14.6502L9.1834 14.6993C9.14505 14.7095 9.11419 14.728 9.09174 14.7502C9.0693 14.7743 9.0534 14.8067 9.04685 14.8438C9.04031 14.8808 9.04405 14.9179 9.05714 14.9494C9.06649 14.9781 9.08987 15.0049 9.12354 15.0281L11.1269 16.4388C11.2456 16.5222 11.371 16.5768 11.5 16.6019C11.6282 16.6269 11.7656 16.6222 11.9097 16.5889L16.3812 15.5496C17.0976 15.3829 17.6784 15.6709 18.045 16.1461C18.1956 16.3425 18.3069 16.5676 18.3723 16.8001C18.4387 17.0354 18.4621 17.2855 18.4359 17.5281C18.3723 18.1247 18.0263 18.6712 17.3248 18.9L11.1848 20.8915C10.9295 20.9739 10.6741 21.0091 10.4169 20.998C10.157 20.986 9.90443 20.9276 9.65845 20.822L4.01878 18.4173H1.63949C1.19057 18.4173 0.780937 18.2348 0.483522 17.9402L0.481652 17.9384C0.184238 17.6429 0 17.2372 0 16.7935V12.3158C0 11.8693 0.184245 11.4618 0.481652 11.1681L0.522805 11.1311C0.816484 10.8588 1.21115 10.6911 1.64044 10.6911L1.63966 10.6922ZM3.54197 11.8778H1.63966C1.5265 11.8778 1.42455 11.9195 1.34692 11.9862L1.32634 12.0066C1.24591 12.0862 1.19634 12.1955 1.19634 12.3159V16.7936C1.19634 16.915 1.24591 17.0252 1.32447 17.103L1.32634 17.1049C1.4049 17.1827 1.5162 17.2318 1.63872 17.2318H3.54103V11.8769L3.54197 11.8778ZM4.7391 11.8778V17.4356L10.131 19.7338C10.2497 19.7847 10.362 19.8116 10.4686 19.8171C10.579 19.8218 10.6949 19.8051 10.8156 19.7662L16.9556 17.7747C17.1399 17.7145 17.2306 17.5663 17.2484 17.4032C17.2587 17.3115 17.2484 17.2143 17.2222 17.1198C17.1951 17.0225 17.153 16.9345 17.0987 16.8641C16.9977 16.7372 16.8425 16.6585 16.6526 16.703L12.1811 17.7423C11.8725 17.8145 11.5666 17.821 11.2711 17.7636C10.9765 17.7071 10.6959 17.5848 10.435 17.4014L8.43166 15.9907C8.21281 15.836 8.04913 15.6294 7.95187 15.3932C7.85461 15.1607 7.82655 14.8995 7.87331 14.6346C7.92195 14.3687 8.04072 14.1335 8.21375 13.9482C8.38771 13.7611 8.61405 13.6231 8.87497 13.5545L9.05922 13.5054C9.50627 13.3869 9.88037 13.1359 10.1385 12.8015C10.3414 12.5393 10.4771 12.2225 10.5266 11.8761H4.73924L4.7391 11.8778ZM17.0032 0C18.6577 0 20.1559 0.665076 21.2408 1.74048C22.3285 2.81496 23 4.29982 23 5.94028C23 7.57981 22.3285 9.06469 21.2427 10.1401L21.2071 10.1725C20.125 11.2285 18.6398 11.8806 17.0023 11.8806C15.3469 11.8806 13.8477 11.2155 12.7619 10.1401C11.677 9.0656 11.0045 7.58074 11.0045 5.94028C11.0045 4.30262 11.6761 2.81776 12.7619 1.74143C13.8458 0.666006 15.345 0.00095331 17.0004 0.00095331L17.0032 0ZM20.3982 2.57688C19.5303 1.71729 18.3295 1.1856 17.0032 1.1856C15.6779 1.1856 14.478 1.71729 13.6091 2.57781C12.7402 3.43555 12.2034 4.6249 12.2034 5.93935C12.2034 7.25191 12.7402 8.44035 13.6091 9.3009C14.4779 10.1614 15.6779 10.6931 17.0032 10.6931C18.3144 10.6931 19.504 10.1725 20.37 9.32961L20.3971 9.3009C21.266 8.44038 21.8028 7.25196 21.8028 5.93935C21.8028 4.62675 21.2662 3.43743 20.3982 2.57688ZM19.0374 4.36275C19.0374 4.68973 18.77 4.95557 18.4389 4.95557C18.1087 4.95557 17.8403 4.69065 17.8403 4.36275C17.8403 4.13396 17.7458 3.92553 17.5953 3.7764C17.4447 3.62727 17.2343 3.53372 17.0033 3.53372C16.7722 3.53372 16.5618 3.62728 16.4112 3.7764C16.2607 3.92553 16.1662 4.13395 16.1662 4.36275C16.1662 4.98429 16.6918 5.18623 17.2174 5.38722C18.1265 5.73552 19.0365 6.08471 19.0365 7.51399C19.0365 8.0679 18.8092 8.57087 18.4407 8.93584L18.4389 8.93769C18.2079 9.16648 17.9217 9.34062 17.6018 9.43881V9.73892C17.6018 10.0659 17.3343 10.3317 17.0033 10.3317C16.6731 10.3317 16.4047 10.0668 16.4047 9.73892V9.43974C16.0839 9.34248 15.7968 9.16742 15.5648 8.93861C15.1963 8.57365 14.9691 8.07067 14.9691 7.51399C14.9691 7.18701 15.2366 6.92116 15.5676 6.92116C15.8978 6.92116 16.1662 7.18609 16.1662 7.51399C16.1662 7.74278 16.2607 7.95121 16.4112 8.10034C16.5618 8.24947 16.7722 8.34302 17.0033 8.34302C17.2361 8.34302 17.4447 8.25039 17.5962 8.10219C17.7468 7.95305 17.8394 7.74464 17.8394 7.51491C17.8394 6.89337 17.3128 6.69143 16.7872 6.48952C15.8781 6.14122 14.9681 5.79203 14.9681 4.36275C14.9681 3.80697 15.1954 3.30307 15.5639 2.93813C15.7949 2.70934 16.083 2.5352 16.4038 2.437V2.13782C16.4038 1.81084 16.6712 1.54499 17.0023 1.54499C17.3325 1.54499 17.6009 1.80992 17.6009 2.13782V2.437C17.9217 2.53519 18.2088 2.70932 18.4407 2.93813C18.8083 3.30217 19.0365 3.80699 19.0365 4.36275L19.0374 4.36275Z" fill="#FFF"/>
                             </svg>
@@ -227,7 +223,7 @@
             <!-- Item -->
             <div 
                 v-for="item in cart.items" 
-                :key="item.id + (item.selectedOption || '')" 
+                :key="item.id" 
                 class="cart-item d-flex mb-3"
                 @click="openProductModal(item)"
             >   
@@ -248,8 +244,43 @@
                         {{ item.description }}
                     </p>
                     
-                    <!-- Mostrar adicionais selecionados -->
-                    <div v-if="getItemAditionalsList(item).length > 0" class="mb-2">
+                    <!-- Mostrar personalizações do combo -->
+                    <div v-if="item.isCombo && item.itemSelections" class="mb-2">
+                        <div class="small fw-semibold mb-1 d-flex align-items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4V20M20 12H4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Itens do Combo
+                        </div>
+                        <div v-for="(selection, itemName) in item.itemSelections" :key="itemName" class="small mb-1">
+                            <span class="text-muted">{{ itemName }}:</span>
+                            <div v-if="Array.isArray(selection)">
+                                <span v-for="(opt, idx) in selection" :key="idx" class="text-success ms-2">
+                                    {{ opt.quantity }}x {{ opt.choice.name }}
+                                </span>
+                            </div>
+                            <div v-else>
+                                <span class="text-success ms-2">{{ selection.choice.name }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mostrar addons do combo -->
+                    <div v-if="item.isCombo && item.selectedAddons?.length" class="mb-2">
+                        <div class="small fw-semibold mb-1 d-flex align-items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4V20M20 12H4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            Adicionais
+                        </div>
+                        <div v-for="addon in item.selectedAddons" :key="addon.id" class="small d-flex justify-content-between align-items-center ms-0">
+                            <span class="text-muted">{{ addon.quantity }}x {{ addon.name }}</span>
+                            <span class="text-success fw-semibold">+{{ formatPrice(addon.price * addon.quantity) }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Mostrar adicionais selecionados (produtos normais) -->
+                    <div v-if="!item.isCombo && getItemAditionalsList(item).length > 0" class="mb-2">
                         <div class="small fw-semibold mb-1 d-flex align-items-center gap-1">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 4V20M20 12H4" stroke="#000" stroke-width="2" stroke-linecap="round"/>
@@ -264,7 +295,7 @@
                     
                     <div class="d-flex justify-content-between align-items-center mt-0">
                         <div class="d-flex flex-column gap-0">
-                            <strong>{{ formatPrice(getItemTotalWithAditionals(item)) }}</strong>
+                            <strong>{{ formatPrice(getItemTotal(item)) }}</strong>
                             <div class="d-flex gap-1" v-if="item.oldPrice">
                                 <div class="text-muted small text-decoration-line-through">
                                     {{ formatPrice(item.oldPrice) }}
@@ -276,13 +307,13 @@
                         </div>
 
                         <div class="qty-control d-flex justify-content-center align-items-center">
-                            <button class="btn-minus" @click.stop="cart.decrease(item.id, item.selectedOption)">-</button>
+                            <button class="btn-minus" @click.stop="cart.decrease(item.id)">-</button>
                             <span class="mx-2">{{ item.quantity }}</span>
-                            <button class="btn-plus" @click.stop="cart.increase(item.id, item.selectedOption)">+</button>
+                            <button class="btn-plus" @click.stop="cart.increase(item.id)">+</button>
                         </div>
                         
                         <button 
-                            @click.stop="cart.remove(item.id, item.selectedOption)" 
+                            @click.stop="cart.remove(item.id)" 
                             type="button" 
                             class="reset-button btn btn-red text-white rounded py-1 px-2"
                         >
@@ -575,43 +606,36 @@
     }
 
     const openProductModal = (product) => {
-        const originalAditionals = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
-        
-        const aditionalsWithQuantity = product.aditionals ? JSON.parse(JSON.stringify(product.aditionals)) : []
-        
-        if (product.customization?.hasToppings && product.customization?.toppings && !aditionalsWithQuantity.length) {
-            aditionalsWithQuantity.push({
-                title: 'Adicionais',
-                items: product.customization.toppings.map(topping => ({
-                    ...topping,
-                    quantity: product.selectedToppings?.find(t => t.id === topping.id)?.quantity || 0
-                }))
-            })
-        }
-        
+        // Prepara o produto para edição, preservando todas as propriedades
         selectedProduct.value = {
-            id: product.id,
+            id: product.productId || product.id,
             name: product.name,
             description: product.description,
-            price: product.price,
+            price: product.basePrice || product.price,
             originalPrice: product.originalPrice || product.price,
             oldPrice: product.oldPrice,
-            image: product.images?.[0] || product.image,
+            image: product.image,
             cashback: product.cashback || 0,
             cuisineType: product.cuisineType,
             customization: product.customization,
+            isCombo: product.isCombo || false,
             
+            // Para edição de produto normal
             selectedOption: product.selectedOption || null,
             originalSelectedOption: product.selectedOption || null,
-            
             selectedSize: product.selectedSize || null,
             originalSelectedSize: product.selectedSize || null,
-            
             selectedFlavors: product.selectedFlavors || [],
             originalSelectedFlavors: product.selectedFlavors || [],
+            aditionals: product.aditionals || [],
+            originalAditionals: product.originalAditionals || [],
             
-            aditionals: aditionalsWithQuantity,
-            originalAditionals: originalAditionals,
+            // Para edição de combo
+            comboItems: product.comboItems,
+            comboAddons: product.comboAddons,
+            selectedAddons: product.selectedAddons || [],
+            itemSelections: product.itemSelections || {},
+            savings: product.savings,
             
             isEditing: true
         }
@@ -629,7 +653,6 @@
     })
 
     const handleIdentify = (data) => {
-        // Salva todos os dados do usuário
         userStore.login({ 
             fullName: data.fullName, 
             whatsapp: data.whatsapp,
@@ -640,31 +663,25 @@
         
         showModal.value = false
         
-        // Salva o método de entrega se selecionado
         if (data.deliveryMethod) {
             selectedDeliveryMethod.value = data.deliveryMethod
             localStorage.setItem('selectedDeliveryMethod', JSON.stringify(data.deliveryMethod))
         }
         
-        // Salva o método de pagamento
         if (data.paymentMethod) {
             selectedPaymentMethod.value = data.paymentMethod
             localStorage.setItem('selectedPaymentMethod', data.paymentMethod)
         }
         
-        // Salva o endereço selecionado
         if (data.selectedAddress) {
             selectedAddress.value = data.selectedAddress
             localStorage.setItem('selectedAddressId', data.selectedAddress.id.toString())
             localStorage.setItem('selectedAddress', JSON.stringify(data.selectedAddress))
         }
         
-        toast.success(`Bem-vindo(a), ${data.fullName}! Pedido realizado com sucesso!`, {
+        toast.success(`Bem-vindo(a), ${data.fullName}!`, {
             timeout: 4000
         })
-        
-        // Limpa o carrinho após finalizar o pedido
-        cart.clear()
         
         setTimeout(() => {
             updateSelectedAddress()
@@ -685,7 +702,6 @@
         }
     }
 
-    // Observa mudanças no localStorage de endereços
     watch(() => userStore.isLogged, async (isLogged) => {
         if (isLogged) {
             await updateSelectedAddress()
@@ -702,7 +718,6 @@
         }
     })
 
-    // Watcher para observar mudanças no selectedAddress via localStorage
     const checkAddressChanges = () => {
         const checkInterval = setInterval(() => {
             if (userStore.isLogged) {
@@ -712,7 +727,6 @@
                 if (savedAddressId && savedAddress) {
                     const parsedAddress = JSON.parse(savedAddress)
                     if (selectedAddress.value?.id !== parsedAddress.id) {
-                        console.log('Endereço atualizado, recarregando...')
                         updateSelectedAddress()
                     }
                 }
@@ -796,7 +810,6 @@
             return
         }
         
-        // Dispara evento com todos os dados do pedido
         const orderData = {
             user: {
                 fullName: userStore.fullName,
@@ -819,12 +832,6 @@
         toast.success('Pedido confirmado com sucesso!', {
             timeout: 4000
         })
-        
-        // Aqui você pode enviar os dados para o backend
-        // emit('order-confirmed', orderData)
-        
-        // Opcional: limpar o carrinho após confirmação
-        // cart.clear()
     }
 
     const formatPrice = (value) => {
@@ -833,6 +840,18 @@
             style: 'currency',
             currency: 'BRL'
         }).format(value)
+    }
+    
+    const getItemTotal = (item) => {
+        if (!item) return 0
+        // Se for combo, usa o finalPrice
+        if (item.isCombo) {
+            return item.finalPrice || item.price
+        }
+        // Para produtos normais
+        const productTotal = (item.price || 0) * (item.quantity || 1)
+        const aditionalsTotal = getItemAditionalsTotal(item)
+        return productTotal + aditionalsTotal
     }
     
     const getItemAditionalsTotal = (item) => {
@@ -866,15 +885,6 @@
             })
         })
         return list
-    }
-    
-    const getItemTotalWithAditionals = (item) => {
-        if (!item) return 0
-        
-        const productTotal = item.price * item.quantity
-        const aditionalsTotal = getItemAditionalsTotal(item) * item.quantity
-        
-        return productTotal + aditionalsTotal
     }
 </script>
 

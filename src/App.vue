@@ -2,6 +2,7 @@
     import { RouterView } from 'vue-router'
     import { ref, watch, computed, onMounted } from 'vue'
     import { useCartStore } from '@/stores/useCartStore'
+    import { useToast } from 'vue-toastification'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -13,8 +14,9 @@
     import Cart from '@/components/Cart.vue'
     import ProductModal from '@/components/ProductModal.vue'
 
-    // Store
+    // Store e Toast
     const cart = useCartStore()
+    const toast = useToast()
 
     // Estados do modal
     const showModal = ref(false)
@@ -26,7 +28,7 @@
       showModal.value = true
     }
 
-    // Dados da aplicação - Estrutura unificada e extensível
+    // Dados da aplicação - Estrutura unificada e extensível com suporte a COMBOS
     const products = ref([
       {
         id: 1,
@@ -40,6 +42,7 @@
         tags: ['promoção', 'bacon', 'mais pedido'],
         productType: 'food',
         cuisineType: 'burger',
+        isCombo: false,
         customization: {
           hasSize: false,
           hasFlavors: false,
@@ -83,6 +86,7 @@
         tags: ['tradicional', 'salgada', 'promoção'],
         productType: 'food',
         cuisineType: 'pizza',
+        isCombo: false,
         customization: {
           hasSize: true,
           sizes: [
@@ -118,6 +122,290 @@
         featured: true,
         order: 2
       },
+      
+      // EXEMPLO: COMBO DE YAKISOBA COM OPÇÕES
+      {
+        id: 6,
+        name: 'Combo Yakisoba Completo',
+        description: 'Yakisoba + Refrigerante + 4 Rolinhos',
+        price: 59.90,
+        oldPrice: 89.90,
+        cashback: 10,
+        image: ['../src/assets/images/prod.png'],
+        category: 'combos',
+        tags: ['promoção', 'combo', 'yakisoba'],
+        productType: 'combo',
+        cuisineType: 'japanese',
+        isCombo: true,
+        
+        // Itens do combo
+        comboItems: [
+          {
+            id: 'yakisoba',
+            name: 'Yakisoba',
+            quantity: 1,
+            required: true,
+            // Sem opções de escolha, fixo
+            options: null
+          },
+          {
+            id: 'refrigerante',
+            name: 'Refrigerante',
+            quantity: 1,
+            required: true,
+            // ✅ COM OPÇÃO DE ESCOLHA (select)
+            options: {
+              type: 'select',  // select, radio, checkbox
+              title: 'Escolha o sabor do refrigerante',
+              required: true,
+              maxSelections: 1,
+              choices: [
+                { id: 1, name: 'Kuat', price: 0, default: true },
+                { id: 2, name: 'Fanta Laranja', price: 0 },
+                { id: 3, name: 'Fanta Uva', price: 0 },
+                { id: 4, name: 'Pepsi', price: 0 },
+                { id: 5, name: 'Guaraná', price: 0 }
+              ]
+            }
+          },
+          {
+            id: 'rolinhos',
+            name: 'Rolinhos Primavera',
+            quantity: 4,
+            required: true,
+            // ✅ COM OPÇÃO DE ESCOLHA MÚLTIPLA (checkbox) com limite
+            options: {
+              type: 'checkbox',
+              title: 'Escolha até 4 rolinhos (pode repetir sabores)',
+              required: true,
+              maxSelections: 4,
+              choices: [
+                { id: 1, name: 'Queijo Misto', price: 0, maxPerOption: 4 },
+                { id: 2, name: 'Romeu e Julieta', price: 0, maxPerOption: 4 },
+                { id: 3, name: 'Carne', price: 0, maxPerOption: 4 },
+                { id: 4, name: 'Frango', price: 0, maxPerOption: 4 },
+                { id: 5, name: 'Legumes', price: 0, maxPerOption: 4 }
+              ]
+            }
+          }
+        ],
+        
+        // Addons extras (opcionais pagos)
+        comboAddons: [
+          {
+            id: 1,
+            name: 'Hashi (par de palitinhos)',
+            price: 1.00,
+            maxQuantity: 2
+          },
+          {
+            id: 2,
+            name: 'Molho Especial',
+            price: 2.00,
+            maxQuantity: 3
+          }
+        ],
+        
+        savings: 30.00,
+        savingsPercent: 33,
+        stock: { available: true, quantity: 20, maxPerOrder: 2 },
+        featured: true,
+        order: 0
+      },
+      
+      // EXEMPLO: COMBO DE PIZZA COM ESCOLHA DE BORDA E SABORES
+      {
+        id: 7,
+        name: 'Combo Pizza Especial',
+        description: 'Pizza Média + Refrigerante 1L + Sobremesa',
+        price: 69.90,
+        oldPrice: 99.90,
+        cashback: 8,
+        image: ['../src/assets/images/prod.png'],
+        category: 'combos',
+        tags: ['promoção', 'combo', 'pizza'],
+        productType: 'combo',
+        cuisineType: 'pizza',
+        isCombo: true,
+        
+        comboItems: [
+          {
+            id: 'pizza',
+            name: 'Pizza Média',
+            quantity: 1,
+            required: true,
+            // ✅ Opção de escolha de sabores (máximo 2 sabores)
+            options: {
+              type: 'multicheckbox',
+              title: 'Escolha os sabores da pizza (máx. 2)',
+              required: true,
+              maxSelections: 2,
+              choices: [
+                { id: 1, name: 'Portuguesa', price: 0, description: 'Presunto, ovo, cebola, azeitona' },
+                { id: 2, name: 'Calabresa', price: 0, description: 'Calabresa, cebola, mussarela' },
+                { id: 3, name: 'Frango com Catupiry', price: 5.00, description: 'Frango desfiado, catupiry' },
+                { id: 4, name: 'Margherita', price: 0, description: 'Molho, mussarela, manjericão' },
+                { id: 5, name: 'Quatro Queijos', price: 5.00, description: 'Mussarela, provolone, parmesão, catupiry' }
+              ]
+            }
+          },
+          {
+            id: 'borda',
+            name: 'Borda da Pizza',
+            quantity: 1,
+            required: false,  // Opcional
+            // ✅ Opção de escolha de borda (select)
+            options: {
+              type: 'select',
+              title: 'Escolha a borda (opcional)',
+              required: false,
+              maxSelections: 1,
+              choices: [
+                { id: 1, name: 'Sem borda', price: 0, default: true },
+                { id: 2, name: 'Borda de Catupiry', price: 5.00 },
+                { id: 3, name: 'Borda de Cheddar', price: 5.00 },
+                { id: 4, name: 'Borda de Chocolate', price: 6.00 }
+              ]
+            }
+          },
+          {
+            id: 'refrigerante',
+            name: 'Refrigerante 1L',
+            quantity: 1,
+            required: true,
+            options: {
+              type: 'radio',
+              title: 'Escolha o refrigerante',
+              required: true,
+              maxSelections: 1,
+              choices: [
+                { id: 1, name: 'Coca-Cola', price: 0 },
+                { id: 2, name: 'Coca-Cola Zero', price: 0 },
+                { id: 3, name: 'Guaraná', price: 0 },
+                { id: 4, name: 'Pepsi', price: 0 }
+              ]
+            }
+          },
+          {
+            id: 'sobremesa',
+            name: 'Sobremesa',
+            quantity: 1,
+            required: true,
+            options: {
+              type: 'radio',
+              title: 'Escolha sua sobremesa',
+              required: true,
+              maxSelections: 1,
+              choices: [
+                { id: 1, name: 'Pudim', price: 0 },
+                { id: 2, name: 'Torta de Limão', price: 0 },
+                { id: 3, name: 'Brownie', price: 3.00 },
+                { id: 4, name: 'Sorvete', price: 2.00 }
+              ]
+            }
+          }
+        ],
+        
+        comboAddons: [
+          {
+            id: 1,
+            name: 'Molho Especial',
+            price: 2.00,
+            maxQuantity: 3
+          }
+        ],
+        
+        savings: 30.00,
+        savingsPercent: 30,
+        stock: { available: true, quantity: 15, maxPerOrder: 3 },
+        featured: true,
+        order: 0
+      },
+      
+      // EXEMPLO: COMBO DE HAMBÚRGUER COM ESCOLHA DE ACOMPANHAMENTO E BEBIDA
+      {
+        id: 8,
+        name: 'Combo Burger',
+        description: 'Hambúrguer + Acompanhamento + Bebida',
+        price: 39.90,
+        oldPrice: 59.90,
+        cashback: 5,
+        image: ['../src/assets/images/prod.png'],
+        category: 'combos',
+        tags: ['promoção', 'combo', 'hamburguer'],
+        productType: 'combo',
+        cuisineType: 'burger',
+        isCombo: true,
+        
+        comboItems: [
+          {
+            id: 'hamburguer',
+            name: 'Hambúrguer Artesanal',
+            quantity: 1,
+            required: true,
+            // Sem opções, fixo
+            options: null
+          },
+          {
+            id: 'acompanhamento',
+            name: 'Acompanhamento',
+            quantity: 1,
+            required: true,
+            options: {
+              type: 'select',
+              title: 'Escolha o acompanhamento',
+              required: true,
+              maxSelections: 1,
+              choices: [
+                { id: 1, name: 'Batata Frita', price: 0, default: true },
+                { id: 2, name: 'Batata Rústica', price: 0 },
+                { id: 3, name: 'Onion Rings', price: 3.00 },
+                { id: 4, name: 'Salada', price: 0 }
+              ]
+            }
+          },
+          {
+            id: 'bebida',
+            name: 'Bebida',
+            quantity: 1,
+            required: true,
+            options: {
+              type: 'select',
+              title: 'Escolha a bebida',
+              required: true,
+              maxSelections: 1,
+              choices: [
+                { id: 1, name: 'Coca-Cola 350ml', price: 0 },
+                { id: 2, name: 'Guaraná 350ml', price: 0 },
+                { id: 3, name: 'Suco Natural', price: 3.00 },
+                { id: 4, name: 'Água', price: 0 }
+              ]
+            }
+          }
+        ],
+        
+        comboAddons: [
+          {
+            id: 1,
+            name: 'Queijo Extra',
+            price: 3.00,
+            maxQuantity: 2
+          },
+          {
+            id: 2,
+            name: 'Bacon Extra',
+            price: 4.00,
+            maxQuantity: 2
+          }
+        ],
+        
+        savings: 20.00,
+        savingsPercent: 33,
+        stock: { available: true, quantity: 30, maxPerOrder: 5 },
+        featured: true,
+        order: 0
+      },
+      
       {
         id: 3,
         name: 'Açaí Tradicional',
@@ -129,6 +417,7 @@
         tags: ['natural', 'saudável', 'vegano'],
         productType: 'dessert',
         cuisineType: 'acai',
+        isCombo: false,
         customization: {
           hasSize: true,
           sizes: [
@@ -168,6 +457,7 @@
         tags: ['refrigerante', 'gelada'],
         productType: 'beverage',
         cuisineType: 'drink',
+        isCombo: false,
         customization: {
           hasSize: true,
           sizes: [
@@ -199,6 +489,7 @@
         tags: ['refrigerante', 'gelada'],
         productType: 'beverage',
         cuisineType: 'drink',
+        isCombo: false,
         customization: {
           hasSize: true,
           sizes: [],
@@ -249,12 +540,84 @@
         'acai': 'Açaí',
         'bebidas': 'Bebidas',
         'entradas': 'Entradas',
-        'sobremesas': 'Sobremesas'
+        'sobremesas': 'Sobremesas',
+        'combos': 'Combos'
       }
       return names[categoryKey] || categoryKey
     }
 
-    // Função para adicionar ao carrinho
+    // ========== FUNÇÕES PARA COMBOS ==========
+    
+    // Verifica se um produto é combo
+    const isCombo = (product) => {
+      return product?.isCombo === true
+    }
+
+    // Calcula o preço total do combo baseado nas escolhas do usuário
+    const calculateComboPrice = (combo, selections = {}) => {
+      let totalPrice = combo.price // Preço base do combo
+      
+      // Adiciona preço dos addons selecionados
+      if (selections.selectedAddons) {
+        selections.selectedAddons.forEach(addon => {
+          totalPrice += addon.price * addon.quantity
+        })
+      }
+      
+      // Adiciona customizações extras dos itens
+      if (selections.itemCustomizations) {
+        Object.values(selections.itemCustomizations).forEach(custom => {
+          if (custom.selectedToppings) {
+            custom.selectedToppings.forEach(topping => {
+              totalPrice += topping.price
+            })
+          }
+          if (custom.selectedSize && custom.selectedSize.price) {
+            const originalItemPrice = combo.comboItems.find(i => i.name === custom.itemName)?.price || 0
+            totalPrice += (custom.selectedSize.price - originalItemPrice)
+          }
+        })
+      }
+      
+      return totalPrice
+    }
+
+    // Prepara o combo para adicionar ao carrinho
+    const prepareComboForCart = (combo, selections = {}) => {
+      return {
+        id: `${combo.id}_${Date.now()}`,
+        productId: combo.id,
+        name: combo.name,
+        description: combo.description,
+        basePrice: combo.price,
+        finalPrice: calculateComboPrice(combo, selections),
+        quantity: 1,
+        isCombo: true,
+        comboItems: combo.comboItems,
+        comboAddons: combo.comboAddons,
+        selections: selections,
+        image: combo.image?.[0] || combo.image,
+        savings: combo.savings
+      }
+    }
+
+    // Função para adicionar combo ao carrinho
+    const addComboToCart = (combo, selections = {}) => {
+      const comboItem = prepareComboForCart(combo, selections)
+      cart.add(comboItem)
+      toast.success(`${combo.name} adicionado ao carrinho! Economia de R$ ${combo.savings?.toFixed(2) || '0,00'}`, {
+        timeout: 3000
+      })
+    }
+
+    // Helper para obter produtos disponíveis para combo
+    const getAvailableProductsForCombo = () => {
+      return products.value.filter(p => !p.isCombo)
+    }
+
+    // ========== FUNÇÕES PARA PRODUTOS NORMAIS ==========
+
+    // Função para adicionar produto normal ao carrinho
     function addToCart(product, customizations = {}) {
       const cartItem = {
         id: `${product.id}_${Date.now()}`,
@@ -264,10 +627,14 @@
         finalPrice: calculateFinalPrice(product, customizations),
         quantity: 1,
         customizations,
-        image: product.images[0]
+        image: product.image?.[0] || product.image,
+        isCombo: false
       }
       
       cart.add(cartItem)
+      toast.success(`${product.name} adicionado ao carrinho!`, {
+        timeout: 2000
+      })
     }
 
     // Calcula preço final baseado nas personalizações
@@ -290,11 +657,16 @@
         })
       }
       
-      if (customizations.selectedSpiciness) {
-        // Preço não altera com picância
-      }
-      
       return finalPrice
+    }
+
+    // Função unificada para adicionar ao carrinho (produto ou combo)
+    const addItemToCart = (item, selections = {}) => {
+      if (isCombo(item)) {
+        addComboToCart(item, selections)
+      } else {
+        addToCart(item, selections)
+      }
     }
 
     // Monitora mudanças no carrinho
@@ -304,7 +676,9 @@
 
     // Inicialização
     onMounted(() => {
-      console.log('App inicializado com estrutura unificada de produtos')
+      console.log('App inicializado com estrutura de produtos e combos')
+      console.log('Produtos disponíveis:', products.value.length)
+      console.log('Combos disponíveis:', products.value.filter(p => p.isCombo).length)
     })
 </script>
 
@@ -326,17 +700,14 @@
         <div class="container py-0">
   
           <div class="d-flex flex-wrap">
-            <Aside class="aside" />
+            <!-- PASSANDO AS CATEGORIAS PARA O ASIDE -->
+            <Aside :categories="categories" class="aside" />
 
             <div class="content w-mobile-100">
               
               <Announcement/>
               
               <div class="carousel-breakout">
-                <!-- 
-                  Adicionar caso queira o click de adc ao carrinho 
-                  @add="addToCart"
-                -->
                 <ProductCarousel
                   :products="highlights"
                   @open="openProductModal"
@@ -362,6 +733,7 @@
       <ProductModal
         v-model:show="showModal"
         :product="selectedProduct"
+        @add-to-cart="addItemToCart"
       />
     </div>
   </div>
