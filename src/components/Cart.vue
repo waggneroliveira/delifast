@@ -223,7 +223,7 @@
             <!-- Item -->
             <div 
                 v-for="item in cart.items" 
-                :key="item.id" 
+                :key="item.id + forceUpdate"
                 class="cart-item d-flex mb-3"
                 @click="openProductModal(item)"
             >   
@@ -614,7 +614,7 @@
 
     // Função corrigida para abrir o modal de produto com todas as informações do combo
     const openProductModal = (item) => {
-    console.log('Abrindo modal para edição:', item)
+    console.log('Abrindo modal para edição - item completo:', JSON.parse(JSON.stringify(item)))
     
     // Busca o produto original no array de produtos para ter todas as configurações
     let originalProduct = null
@@ -668,9 +668,10 @@
     
     // Prepara todas as propriedades do combo para edição
     const productToEdit = {
-        // Propriedades básicas
+        // Propriedades básicas - IMPORTANTE: manter o ID original
         id: item.productId || item.id,
         productId: item.productId,
+        cartItemId: item.id, // ID do item no carrinho para atualização
         name: item.name,
         description: item.description,
         price: item.basePrice || item.finalPrice || item.price,
@@ -700,13 +701,12 @@
         itemSelections: item.itemSelections ? JSON.parse(JSON.stringify(item.itemSelections)) : {},
         
         // Flag para indicar que está em modo de edição
-        isEditing: true,
-        
-        // ID original do item no carrinho para atualização
-        cartItemId: item.id
+        isEditing: true
     }
     
-    console.log('Produto preparado para edição:', productToEdit)
+    console.log('Produto preparado para edição - ID do carrinho:', productToEdit.cartItemId)
+    console.log('Seleções mapeadas:', mappedSelections)
+    console.log('Addons mapeados:', mappedAddons)
     
     selectedProduct.value = productToEdit
     showProductModal.value = true
@@ -786,6 +786,14 @@
             localStorage.removeItem('selectedPaymentMethod')
         }
     })
+
+    const forceUpdate = ref(0)
+
+    watch(() => cart.items, (newItems) => {
+    console.log('Carrinho atualizado:', JSON.parse(JSON.stringify(newItems)))
+    // Força re-renderização
+    forceUpdate.value++
+    }, { deep: true })
 
     const checkAddressChanges = () => {
         const checkInterval = setInterval(() => {

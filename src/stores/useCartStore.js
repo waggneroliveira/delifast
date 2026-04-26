@@ -114,7 +114,7 @@ export const useCartStore = defineStore('cart', {
       // Para combos
       if (product.isCombo) {
         this.items.push({
-          id: product.id,
+          id: product.id || `${product.productId}_${Date.now()}_${Math.random()}`,
           productId: product.productId || product.id,
           name: product.name,
           description: product.description,
@@ -145,7 +145,7 @@ export const useCartStore = defineStore('cart', {
 
       // Adiciona o novo item (produto normal)
       this.items.push({
-        id: product.id,
+        id: product.id || `${product.productId}_${Date.now()}_${Math.random()}`,
         name: product.name,
         description: product.description,
         price: product.price,
@@ -167,8 +167,11 @@ export const useCartStore = defineStore('cart', {
       toast.success(`"${product.name}" adicionado ao carrinho!`, { timeout: 3000 })
     },
 
+    // FUNÇÃO UPDATEITEM CORRIGIDA PARA COMBOS
     updateItem(product) {
       const toast = useToast()
+      
+      console.log('updateItem chamado com:', product)
 
       // Função para gerar chave única do item
       const generateItemKey = (item) => {
@@ -178,18 +181,16 @@ export const useCartStore = defineStore('cart', {
         return `${item.id}_${item.selectedOption || ''}_${item.selectedSize?.id || ''}_${JSON.stringify(item.selectedFlavors?.map(f => f.id) || [])}`
       }
 
-      // Gera chave do item original
-      let originalKey
-      if (product.isCombo) {
-        originalKey = `${product.id}_combo_${JSON.stringify(product.originalItemSelections || {})}_${JSON.stringify(product.originalSelectedAddons || [])}`
-      } else {
-        originalKey = `${product.id}_${product.originalSelectedOption || ''}_${product.originalSelectedSize?.id || ''}_${JSON.stringify(product.originalSelectedFlavors?.map(f => f.id) || [])}`
-      }
+      // Encontra o item pelo ID original do carrinho
+      const originalIndex = this.items.findIndex(item => item.id === product.cartItemId || item.id === product.id)
       
-      // Encontra o item original
-      const originalIndex = this.items.findIndex(item => generateItemKey(item) === originalKey)
-
-      if (originalIndex === -1) return
+      console.log('originalIndex:', originalIndex)
+      console.log('IDs disponíveis:', this.items.map(i => i.id))
+      
+      if (originalIndex === -1) {
+        console.error('Item não encontrado para atualização')
+        return
+      }
 
       const originalItem = this.items[originalIndex]
       const originalQuantity = originalItem.quantity
@@ -197,72 +198,95 @@ export const useCartStore = defineStore('cart', {
       // Remove o original
       this.items.splice(originalIndex, 1)
 
-      // Gera chave do novo item
-      const newKey = generateItemKey(product)
-
-      // Verifica se já existe com as novas opções
-      const existingIndex = this.items.findIndex(item => generateItemKey(item) === newKey)
-
-      if (product.isCombo) {
-        if (existingIndex !== -1) {
-          this.items[existingIndex].quantity += originalQuantity
-        } else {
-          this.items.push({
-            id: product.id,
-            productId: product.productId || product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            finalPrice: product.finalPrice || product.price,
-            basePrice: product.basePrice || product.price,
-            oldPrice: product.oldPrice,
-            image: product.image,
-            cashback: product.cashback || 0,
-            quantity: originalQuantity,
-            isCombo: true,
-            comboItems: product.comboItems || [],
-            comboAddons: product.comboAddons || [],
-            selectedAddons: product.selectedAddons || [],
-            itemSelections: product.itemSelections || {},
-            savings: product.savings,
-            customization: product.customization
-          })
+      // Para combos - CORRIGIDO
+      if (product.isCombo || originalItem.isCombo) {
+        // Prepara o novo item do combo
+        const newComboItem = {
+          id: product.cartItemId || originalItem.id, // Mantém o ID original
+          productId: product.productId || originalItem.productId,
+          name: product.name || originalItem.name,
+          description: product.description || originalItem.description,
+          price: product.price || originalItem.price,
+          finalPrice: product.finalPrice || originalItem.finalPrice || product.price,
+          basePrice: product.basePrice || originalItem.basePrice || product.price,
+          oldPrice: product.oldPrice || originalItem.oldPrice,
+          image: product.image || originalItem.image,
+          cashback: product.cashback || originalItem.cashback || 0,
+          quantity: originalQuantity,
+          isCombo: true,
+          comboItems: product.comboItems || originalItem.comboItems || [],
+          comboAddons: product.comboAddons || originalItem.comboAddons || [],
+          selectedAddons: product.selectedAddons || originalItem.selectedAddons || [],
+          itemSelections: product.itemSelections || originalItem.itemSelections || {},
+          savings: product.savings || originalItem.savings,
+          customization: product.customization || originalItem.customization
         }
-        toast.success(`"${product.name}" atualizado!`, { timeout: 3000 })
+        
+        console.log('Novo combo atualizado:', newComboItem)
+        
+        // Verifica se já existe item igual (mesmas seleções)
+        const existingIndex = this.items.findIndex(item => 
+          item.isCombo && 
+          item.id !== newComboItem.id &&
+          JSON.stringify(item.itemSelections) === JSON.stringify(newComboItem.itemSelections) &&
+          JSON.stringify(item.selectedAddons) === JSON.stringify(newComboItem.selectedAddons)
+        )
+        
+        if (existingIndex !== -1) {
+          // Combina com item existente
+          this.items[existingIndex].quantity += originalQuantity
+          toast.success(`"${newComboItem.name}" atualizado e combinado com item existente!`, { timeout: 3000 })
+        } else {
+          // Adiciona o item atualizado
+          this.items.push(newComboItem)
+          toast.success(`"${newComboItem.name}" atualizado com sucesso!`, { timeout: 3000 })
+        }
         return
       }
 
-      // CRIA UMA CÓPIA DOS ADICIONAIS ATUALIZADOS
+      // Para produtos normais
       let updatedAditionals = []
       if (product.aditionals && product.aditionals.length > 0) {
         updatedAditionals = JSON.parse(JSON.stringify(product.aditionals))
       }
 
-      if (existingIndex !== -1) {
-        this.items[existingIndex].quantity += originalQuantity
-      } else {
-        this.items.push({
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          price: product.price,
-          originalPrice: product.originalPrice || product.price,
-          oldPrice: product.oldPrice,
-          image: product.image,
-          cashback: product.cashback || 0,
-          quantity: originalQuantity,
-          options: product.options || [],
-          selectedOption: product.selectedOption || null,
-          selectedSize: product.selectedSize || null,
-          selectedFlavors: product.selectedFlavors || [],
-          aditionals: updatedAditionals,
-          cuisineType: product.cuisineType,
-          customization: product.customization,
-          isCombo: false
-        })
+      const newNormalItem = {
+        id: product.cartItemId || originalItem.id,
+        name: product.name || originalItem.name,
+        description: product.description || originalItem.description,
+        price: product.price || originalItem.price,
+        originalPrice: product.originalPrice || originalItem.originalPrice || product.price,
+        oldPrice: product.oldPrice || originalItem.oldPrice,
+        image: product.image || originalItem.image,
+        cashback: product.cashback || originalItem.cashback || 0,
+        quantity: originalQuantity,
+        options: product.options || originalItem.options || [],
+        selectedOption: product.selectedOption !== undefined ? product.selectedOption : originalItem.selectedOption,
+        selectedSize: product.selectedSize || originalItem.selectedSize,
+        selectedFlavors: product.selectedFlavors || originalItem.selectedFlavors || [],
+        aditionals: updatedAditionals.length > 0 ? updatedAditionals : originalItem.aditionals || [],
+        cuisineType: product.cuisineType || originalItem.cuisineType,
+        customization: product.customization || originalItem.customization,
+        isCombo: false
       }
 
-      toast.success(`"${product.name}" atualizado!`, { timeout: 3000 })
+      // Verifica se já existe item igual
+      const existingIndex = this.items.findIndex(item => 
+        !item.isCombo && 
+        item.id !== newNormalItem.id &&
+        item.name === newNormalItem.name &&
+        item.selectedOption === newNormalItem.selectedOption &&
+        item.selectedSize?.id === newNormalItem.selectedSize?.id &&
+        JSON.stringify(item.selectedFlavors?.map(f => f.id)) === JSON.stringify(newNormalItem.selectedFlavors?.map(f => f.id))
+      )
+      
+      if (existingIndex !== -1) {
+        this.items[existingIndex].quantity += originalQuantity
+        toast.success(`"${newNormalItem.name}" atualizado e combinado com item existente!`, { timeout: 3000 })
+      } else {
+        this.items.push(newNormalItem)
+        toast.success(`"${newNormalItem.name}" atualizado com sucesso!`, { timeout: 3000 })
+      }
     },
 
     increase(itemId) {

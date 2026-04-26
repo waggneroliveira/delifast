@@ -1084,40 +1084,49 @@ const prepareComboForCart = () => {
     }
   }
 
-function addToCart() {
-  if (!props.product) return
+  function addToCart() {
+    if (!props.product) return
 
-  if (isCombo.value) {
-    const comboItem = prepareComboForCart()
-    console.log('Adicionando combo ao carrinho:', comboItem)
-    
-    if (isEditing.value && props.product.cartItemId) {
-      // Atualiza item existente (edição)
-      cart.updateItem({
-        ...comboItem,
-        id: props.product.cartItemId
-      })
-      toast.success(`${props.product.name} atualizado!`, { timeout: 3000 })
+    if (isCombo.value) {
+      const comboItem = prepareComboForCart()
+      console.log('Adicionando/Atualizando combo:', comboItem)
+      
+      if (isEditing.value && props.product.cartItemId) {
+        // MODO EDIÇÃO - Atualiza o item existente
+        const updatedItem = {
+          ...comboItem,
+          id: props.product.cartItemId, // Mantém o ID original
+          quantity: 1 // A quantidade será mantida pela store
+        }
+        
+        console.log('Atualizando item com ID:', props.product.cartItemId)
+        cart.updateItem(updatedItem)
+        toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 3000 })
+      } else {
+        // MODO ADIÇÃO - Adiciona novo item
+        cart.add(comboItem)
+        toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 3000 })
+      }
     } else {
-      // Adiciona novo item
-      cart.add(comboItem)
-      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 3000 })
-    }
-  } else {
-    const productToAdd = prepareNormalProductForCart()
+      const productToAdd = prepareNormalProductForCart()
 
-    if (isEditing.value) {
-      cart.updateItem(productToAdd)
-      toast.success(`${props.product.name} atualizado!`, { timeout: 2000 })
-    } else {
-      cart.add(productToAdd)
-      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
+      if (isEditing.value && props.product.cartItemId) {
+        // MODO EDIÇÃO - Produto normal
+        const updatedItem = {
+          ...productToAdd,
+          id: props.product.cartItemId,
+          quantity: 1
+        }
+        cart.updateItem(updatedItem)
+        toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 2000 })
+      } else {
+        cart.add(productToAdd)
+        toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
+      }
     }
+
+    close()
   }
-
-  close()
-}
-
   // Reset completo do estado
   const resetState = () => {
     selectedOption.value = null
