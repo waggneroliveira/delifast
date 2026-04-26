@@ -252,15 +252,15 @@
                             </svg>
                             Itens do Combo
                         </div>
-                        <div v-for="(selection, itemName) in item.itemSelections" :key="itemName" class="small mb-1">
-                            <span class="text-muted">{{ itemName }}:</span>
+                        <div v-for="(selection, itemId) in item.itemSelections" :key="itemId" class="small mb-1">
+                            <span class="text-muted">{{ getComboItemName(item, itemId) }}:</span>
                             <div v-if="Array.isArray(selection)">
                                 <span v-for="(opt, idx) in selection" :key="idx" class="text-success ms-2">
                                     {{ opt.quantity }}x {{ opt.choice.name }}
                                 </span>
                             </div>
                             <div v-else>
-                                <span class="text-success ms-2">{{ selection.choice.name }}</span>
+                                <span class="text-success ms-2">{{ selection.choice?.name || selection.selected }}</span>
                             </div>
                         </div>
                     </div>
@@ -414,6 +414,13 @@
     // Product modal
     const showProductModal = ref(false)
     const selectedProduct = ref(null)
+
+    // Função para obter o nome do item do combo
+    const getComboItemName = (item, itemId) => {
+        if (!item.comboItems) return itemId
+        const comboItem = item.comboItems.find(i => i.id === itemId)
+        return comboItem ? comboItem.name : itemId
+    }
 
     // Função para obter o texto do método de entrega
     const getDeliveryMethodText = () => {
@@ -605,42 +612,104 @@
         return parts.join(', ')
     }
 
-    const openProductModal = (product) => {
-        // Prepara o produto para edição, preservando todas as propriedades
-        selectedProduct.value = {
-            id: product.productId || product.id,
-            name: product.name,
-            description: product.description,
-            price: product.basePrice || product.price,
-            originalPrice: product.originalPrice || product.price,
-            oldPrice: product.oldPrice,
-            image: product.image,
-            cashback: product.cashback || 0,
-            cuisineType: product.cuisineType,
-            customization: product.customization,
-            isCombo: product.isCombo || false,
-            
-            // Para edição de produto normal
-            selectedOption: product.selectedOption || null,
-            originalSelectedOption: product.selectedOption || null,
-            selectedSize: product.selectedSize || null,
-            originalSelectedSize: product.selectedSize || null,
-            selectedFlavors: product.selectedFlavors || [],
-            originalSelectedFlavors: product.selectedFlavors || [],
-            aditionals: product.aditionals || [],
-            originalAditionals: product.originalAditionals || [],
-            
-            // Para edição de combo
-            comboItems: product.comboItems,
-            comboAddons: product.comboAddons,
-            selectedAddons: product.selectedAddons || [],
-            itemSelections: product.itemSelections || {},
-            savings: product.savings,
-            
-            isEditing: true
+    // Função corrigida para abrir o modal de produto com todas as informações do combo
+    const openProductModal = (item) => {
+    console.log('Abrindo modal para edição:', item)
+    
+    // Busca o produto original no array de produtos para ter todas as configurações
+    let originalProduct = null
+    
+    // Tenta encontrar o produto original pelo productId
+    if (typeof window !== 'undefined' && window.products) {
+        originalProduct = window.products.find(p => p.id === item.productId)
+    }
+    
+    // Se não encontrou, usa o item do carrinho como base
+    const baseProduct = originalProduct || item
+    
+    // Mapeia as seleções do formato salvo para o formato esperado pelo modal
+    const mappedSelections = {}
+    
+    if (item.itemSelections) {
+        Object.entries(item.itemSelections).forEach(([itemId, selectionData]) => {
+        if (Array.isArray(selectionData)) {
+            // Formato: array de escolhas (checkbox)
+            mappedSelections[itemId] = {
+            type: 'checkbox',
+            selected: selectionData.map(s => s.choice.id),
+            quantities: selectionData.reduce((acc, s) => {
+                acc[s.choice.id] = s.quantity
+                return acc
+            }, {}),
+            choicePrices: selectionData.reduce((acc, s) => {
+                acc[s.choice.id] = s.choice.price
+                return acc
+            }, {})
+            }
+        } else if (selectionData.choice) {
+            // Formato: escolha única (select/radio)
+            mappedSelections[itemId] = {
+            type: 'select',
+            selected: selectionData.choice.id,
+            choiceName: selectionData.choice.name,
+            choicePrice: selectionData.choice.price
+            }
         }
-
-        showProductModal.value = true
+        })
+    }
+    
+    // Mapeia os addons
+    const mappedAddons = {}
+    if (item.selectedAddons) {
+        item.selectedAddons.forEach(addon => {
+        mappedAddons[addon.id] = addon.quantity
+        })
+    }
+    
+    // Prepara todas as propriedades do combo para edição
+    const productToEdit = {
+        // Propriedades básicas
+        id: item.productId || item.id,
+        productId: item.productId,
+        name: item.name,
+        description: item.description,
+        price: item.basePrice || item.finalPrice || item.price,
+        basePrice: item.basePrice,
+        finalPrice: item.finalPrice,
+        originalPrice: item.originalPrice || item.price,
+        oldPrice: item.oldPrice,
+        image: item.image,
+        cashback: item.cashback || 0,
+        cuisineType: item.cuisineType || baseProduct?.cuisineType,
+        customization: baseProduct?.customization,
+        
+        // Propriedades de combo
+        isCombo: true,
+        comboItems: baseProduct?.comboItems || item.comboItems,
+        comboAddons: baseProduct?.comboAddons || item.comboAddons,
+        savings: baseProduct?.savings || item.savings,
+        savingsPercent: baseProduct?.savingsPercent,
+        stock: baseProduct?.stock,
+        
+        // Dados das seleções mapeados para o formato do modal
+        comboItemSelections: mappedSelections,
+        comboAddonsState: mappedAddons,
+        
+        // Para compatibilidade
+        selectedAddons: item.selectedAddons ? [...item.selectedAddons] : [],
+        itemSelections: item.itemSelections ? JSON.parse(JSON.stringify(item.itemSelections)) : {},
+        
+        // Flag para indicar que está em modo de edição
+        isEditing: true,
+        
+        // ID original do item no carrinho para atualização
+        cartItemId: item.id
+    }
+    
+    console.log('Produto preparado para edição:', productToEdit)
+    
+    selectedProduct.value = productToEdit
+    showProductModal.value = true
     }
 
     // Computed para saber se pode confirmar
@@ -739,6 +808,12 @@
     }
 
     onMounted(() => {
+        // Expor products para o window para acesso no Cart
+        if (typeof window !== 'undefined') {
+            // O App.vue expõe os produtos, mas aqui também podemos buscar
+            // Isso é apenas para referência
+        }
+        
         userStore.loadUserFromStorage()
         loadSavedAddress()
         loadSavedDeliveryMethod()
@@ -886,6 +961,16 @@
         })
         return list
     }
+    
+    // Função para debug - ver o que tem no carrinho
+    const debugCart = () => {
+        console.log('Itens no carrinho:', JSON.parse(JSON.stringify(cart.items)))
+    }
+    
+    // Chamar debug quando montar
+    onMounted(() => {
+        setTimeout(debugCart, 1000)
+    })
 </script>
 
 <style scoped>

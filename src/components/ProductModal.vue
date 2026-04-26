@@ -929,39 +929,59 @@
   }
 
   // Prepara as seleções do combo para adicionar ao carrinho
-  const prepareComboSelections = () => {
-    const selections = {}
+const prepareComboSelections = () => {
+  const selections = {}
+  
+  Object.entries(comboItemSelections.value).forEach(([itemId, data]) => {
+    const item = props.product?.comboItems?.find(i => i.id === itemId)
+    if (!item || !data) return
     
-    Object.entries(comboItemSelections.value).forEach(([itemId, data]) => {
-      const item = props.product?.comboItems?.find(i => i.id === itemId)
-      if (!item || !data) return
-      
-      if (data.type === 'select' || data.type === 'radio') {
-        const choice = item.options?.choices?.find(c => c.id === data.selected)
-        if (choice) {
-          selections[itemId] = {
-            choice: choice,
-            quantity: 1,
+    if (data.type === 'select' || data.type === 'radio') {
+      // Busca o choice completo pelo ID
+      const choice = item.options?.choices?.find(c => c.id === data.selected)
+      if (choice) {
+        selections[itemId] = {
+          choice: {
+            id: choice.id,
+            name: choice.name,
             price: choice.price || 0
-          }
+          },
+          quantity: 1,
+          price: choice.price || 0
         }
-      } else if (data.type === 'checkbox' || data.type === 'multicheckbox') {
-        selections[itemId] = []
-        Object.entries(data.quantities || {}).forEach(([choiceId, qty]) => {
-          const choice = item.options?.choices?.find(c => c.id === parseInt(choiceId))
-          if (choice && qty > 0) {
-            selections[itemId].push({
-              choice: choice,
-              quantity: qty,
-              price: (choice.price || 0) * qty
-            })
-          }
-        })
+      } else if (data.choiceName) {
+        // Fallback se não encontrar o choice
+        selections[itemId] = {
+          choice: {
+            id: data.selected,
+            name: data.choiceName,
+            price: data.choicePrice || 0
+          },
+          quantity: 1,
+          price: data.choicePrice || 0
+        }
       }
-    })
-    
-    return selections
-  }
+    } else if (data.type === 'checkbox' || data.type === 'multicheckbox') {
+      selections[itemId] = []
+      Object.entries(data.quantities || {}).forEach(([choiceId, qty]) => {
+        const choice = item.options?.choices?.find(c => c.id === parseInt(choiceId))
+        if (choice && qty > 0) {
+          selections[itemId].push({
+            choice: {
+              id: choice.id,
+              name: choice.name,
+              price: choice.price || 0
+            },
+            quantity: qty,
+            price: (choice.price || 0) * qty
+          })
+        }
+      })
+    }
+  })
+  
+  return selections
+}
 
   // Funções para combo addons
   const getComboAddonQty = (id) => comboAddonsState.value[id] || 0
@@ -985,40 +1005,49 @@
   }
 
   // Prepara combo para adicionar ao carrinho
-  const prepareComboForCart = () => {
-    const selectedAddons = []
-    Object.entries(comboAddonsState.value).forEach(([id, quantity]) => {
-      if (quantity > 0) {
-        const addon = props.product?.comboAddons?.find(a => a.id === parseInt(id))
-        if (addon) {
-          selectedAddons.push({
-            ...addon,
-            quantity
-          })
-        }
+const prepareComboForCart = () => {
+  const selectedAddons = []
+  Object.entries(comboAddonsState.value).forEach(([id, quantity]) => {
+    if (quantity > 0) {
+      const addon = props.product?.comboAddons?.find(a => a.id === parseInt(id))
+      if (addon) {
+        selectedAddons.push({
+          id: addon.id,
+          name: addon.name,
+          price: addon.price || 0,
+          quantity: quantity
+        })
       }
-    })
-
-    const itemSelections = prepareComboSelections()
-
-    return {
-      id: `${props.product.id}_${Date.now()}`,
-      productId: props.product.id,
-      name: props.product.name,
-      description: props.product.description,
-      basePrice: props.product.price,
-      finalPrice: finalPrice.value,
-      quantity: 1,
-      isCombo: true,
-      comboItems: props.product.comboItems,
-      comboAddons: props.product.comboAddons,
-      selectedAddons: selectedAddons,
-      itemSelections: itemSelections,
-      image: props.product.images?.[0] || props.product.image,
-      savings: props.product.savings,
-      cashback: props.product.cashback || 0
     }
+  })
+
+  const itemSelections = prepareComboSelections()
+  
+  // Log para debug
+  console.log('Preparando combo para o carrinho:', {
+    comboName: props.product.name,
+    itemSelections: itemSelections,
+    selectedAddons: selectedAddons
+  })
+
+  return {
+    id: `${props.product.id}_${Date.now()}`,
+    productId: props.product.id,
+    name: props.product.name,
+    description: props.product.description,
+    basePrice: props.product.price,
+    finalPrice: finalPrice.value,
+    quantity: 1,
+    isCombo: true,
+    comboItems: props.product.comboItems,
+    comboAddons: props.product.comboAddons,
+    selectedAddons: selectedAddons,
+    itemSelections: itemSelections,
+    image: props.product.images?.[0] || props.product.image,
+    savings: props.product.savings,
+    cashback: props.product.cashback || 0
   }
+}
 
   // Prepara produto normal
   const prepareNormalProductForCart = () => {
@@ -1055,27 +1084,39 @@
     }
   }
 
-  function addToCart() {
-    if (!props.product) return
+function addToCart() {
+  if (!props.product) return
 
-    if (isCombo.value) {
-      const comboItem = prepareComboForCart()
+  if (isCombo.value) {
+    const comboItem = prepareComboForCart()
+    console.log('Adicionando combo ao carrinho:', comboItem)
+    
+    if (isEditing.value && props.product.cartItemId) {
+      // Atualiza item existente (edição)
+      cart.updateItem({
+        ...comboItem,
+        id: props.product.cartItemId
+      })
+      toast.success(`${props.product.name} atualizado!`, { timeout: 3000 })
+    } else {
+      // Adiciona novo item
       cart.add(comboItem)
       toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 3000 })
-    } else {
-      const productToAdd = prepareNormalProductForCart()
-
-      if (isEditing.value) {
-        cart.updateItem(productToAdd)
-        toast.success(`${props.product.name} atualizado!`, { timeout: 2000 })
-      } else {
-        cart.add(productToAdd)
-        toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
-      }
     }
+  } else {
+    const productToAdd = prepareNormalProductForCart()
 
-    close()
+    if (isEditing.value) {
+      cart.updateItem(productToAdd)
+      toast.success(`${props.product.name} atualizado!`, { timeout: 2000 })
+    } else {
+      cart.add(productToAdd)
+      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
+    }
   }
+
+  close()
+}
 
   // Reset completo do estado
   const resetState = () => {
@@ -1102,7 +1143,22 @@
         await nextTick()
         
         if (props.product.isCombo) {
-          initComboItemSelections()
+          // Se veio com selections preenchidas (modo edição)
+          if (props.product.comboItemSelections && Object.keys(props.product.comboItemSelections).length > 0) {
+            console.log('Carregando seleções existentes:', props.product.comboItemSelections)
+            comboItemSelections.value = JSON.parse(JSON.stringify(props.product.comboItemSelections))
+          }
+          
+          // Se veio com addons preenchidos
+          if (props.product.comboAddonsState && Object.keys(props.product.comboAddonsState).length > 0) {
+            console.log('Carregando addons existentes:', props.product.comboAddonsState)
+            comboAddonsState.value = JSON.parse(JSON.stringify(props.product.comboAddonsState))
+          }
+          
+          // Se não tinha seleções, inicializa com defaults
+          if (Object.keys(comboItemSelections.value).length === 0) {
+            initComboItemSelections()
+          }
         } else {
           // Carrega dados do produto normal
           if (props.product.selectedOption) {

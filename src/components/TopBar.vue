@@ -112,7 +112,9 @@
               <a class="dropdown-item" href="#" @click="showAddressModal = true">
                 Meus Endereços
               </a>
-              <li><a class="dropdown-item" href="#">Meus pedidos</a></li>
+              <a class="dropdown-item" href="#" @click="openOrderHistory">
+                Meus pedidos
+              </a>
 
               <li><hr class="dropdown-divider"></li>
 
@@ -128,7 +130,17 @@
                 </a>
               </li>
             </ul>
+    
             <AddressModal v-model="showAddressModal" />
+            
+            <!-- OrderHistoryModal com verificação de userId -->
+            <OrderHistoryModal 
+              v-if="userStore.isLogged && userStore.userId"
+              v-model="showOrderHistoryModal" 
+              :user-id="userStore.userId"
+              @reorder="handleReorder"
+            />
+            
           </div>
         </div>
 
@@ -145,56 +157,278 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import { useCartStore } from '@/stores/useCartStore'
   import { useUserStore } from '@/stores/useUserStore'
   import { useToast } from 'vue-toastification'
   import IdentifyModal from './IdentifyModal.vue'
   import AddressModal from '@/components/AddressModal.vue'
   import DeliveryLocations from '@/components/DeliveryLocations.vue'
+  import OrderHistoryModal from '@/components/OrderHistoryModal.vue'
 
   const toast = useToast()
   const cartStore = useCartStore()
   const userStore = useUserStore()
 
-  // estado do modal de locais de entrega
+  // estado dos modais
   const showModalLocation = ref(false)
-
-  // função para abrir
-  function openLocationModal() {
-    showModalLocation.value = true
-  }
-
-  // função para fechar
-  function closeLocationModal() {
-    showModalLocation.value = false
-  }
-
-  // estado do modal
   const showModal = ref(false)
   const showAddressModal = ref(false)
+  const showOrderHistoryModal = ref(false)
 
-  // quando recebe dados do modal
+  // Computed para verificar se o usuário está logado e tem ID
+  const isUserReady = computed(() => {
+    return userStore.isLogged && userStore.userId
+  })
+
+  // Função para abrir o histórico de pedidos com verificação robusta
+  const openOrderHistory = () => {
+    console.log('🔍 Verificando login para abrir histórico:', {
+      isLogged: userStore.isLogged,
+      userId: userStore.userId,
+      userData: {
+        id: userStore.id,
+        fullName: userStore.fullName,
+        whatsapp: userStore.whatsapp
+      }
+    })
+    
+    // Verificar se está logado
+    if (!userStore.isLogged) {
+      toast.warning('Faça login para ver seus pedidos!', {
+        timeout: 3000
+      })
+      showModal.value = true
+      return
+    }
+    
+    // Verificar se tem ID
+    if (!userStore.userId) {
+      console.error('❌ Usuário logado mas sem ID:', userStore)
+      toast.error('Erro ao carregar dados do usuário. Por favor, faça login novamente.', {
+        timeout: 4000
+      })
+      userStore.logout()
+      showModal.value = true
+      return
+    }
+    
+    console.log('✅ Abrindo histórico para userId:', userStore.userId)
+    showOrderHistoryModal.value = true
+  }
+
+  // Função para lidar com o re-pedido - VERSÃO CORRIGIDA PARA COMBO
+  const handleReorder = (order) => {
+    console.log('🎯 Reordenando pedido completo:', order.id)
+    
+    if (!order || !order.items || order.items.length === 0) {
+      toast.error('Erro ao reordenar: pedido inválido')
+      return
+    }
+    
+    // Processar cada item do pedido
+    order.items.forEach((originalItem, index) => {
+      console.log(`📦 Processando item ${index + 1}:`, originalItem.name, originalItem.isCombo ? '(COMBO)' : '(NORMAL)')
+      
+      if (originalItem.isCombo) {
+        // 🔥 PARA COMBO: Adicionar com todas as configurações preservadas
+        console.log('🍔 Adicionando combo com configurações completas:', {
+          name: originalItem.name,
+          selections: originalItem.itemSelections,
+          addons: originalItem.selectedAddons,
+          finalPrice: originalItem.finalPrice
+        })
+        
+        // Criar uma cópia profunda do item do combo
+        const comboItem = JSON.parse(JSON.stringify(originalItem))
+        
+        // Garantir que tem todas as propriedades necessárias
+        comboItem.productId = comboItem.productId || comboItem.id
+        comboItem.finalPrice = comboItem.finalPrice || comboItem.price
+        comboItem.basePrice = comboItem.basePrice || comboItem.price
+        comboItem.hasComboSelection = true
+        comboItem.isComboItem = true
+        
+        // Garantir que as seleções do combo existem
+        if (!comboItem.itemSelections && comboItem.comboDetails) {
+          // Tentar reconstruir selections a partir do comboDetails
+          comboItem.itemSelections = rebuildSelectionsFromDetails(comboItem)
+        }
+        
+        // Garantir que os adicionais estão no formato correto
+        if (comboItem.selectedAddons && comboItem.selectedAddons.length) {
+          comboItem.addonsTotalPrice = comboItem.selectedAddons.reduce(
+            (sum, addon) => sum + (addon.price * (addon.quantity || 1)), 0
+          )
+        } else {
+          comboItem.selectedAddons = []
+          comboItem.addonsTotalPrice = 0
+        }
+        
+        // Gerar ID único para este item no carrinho (evita duplicação)
+        comboItem.uniqueId = `${comboItem.productId}_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 6)}`
+        
+        // Remover propriedades que são apenas para exibição no histórico
+        delete comboItem.comboDetails
+        delete comboItem.customization
+        delete comboItem.createdAt
+        delete comboItem.updatedAt
+        
+        // Adicionar ao carrinho
+        // Usar o método add padrão, que deve aceitar a estrutura completa
+        for (let i = 0; i < (comboItem.quantity || 1); i++) {
+          cartStore.add(comboItem)
+        }
+        
+      } else {
+        // 🍔 PARA ITEM NORMAL: Adicionar de forma simples
+        console.log('🍔 Adicionando item normal:', originalItem.name)
+        
+        const simpleItem = {
+          id: originalItem.id,
+          productId: originalItem.productId || originalItem.id,
+          name: originalItem.name,
+          description: originalItem.description,
+          price: originalItem.finalPrice || originalItem.price,
+          finalPrice: originalItem.finalPrice || originalItem.price,
+          oldPrice: originalItem.oldPrice,
+          image: originalItem.image,
+          quantity: originalItem.quantity || 1,
+          isCombo: false,
+          customization: originalItem.customization,
+          selectedSize: originalItem.selectedSize,
+          selectedFlavors: originalItem.selectedFlavors,
+          aditionalsState: originalItem.aditionalsState
+        }
+        
+        // Adicionar ao carrinho (respeitando a quantidade)
+        for (let i = 0; i < simpleItem.quantity; i++) {
+          cartStore.add(simpleItem)
+        }
+      }
+    })
+    
+    const totalItens = order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+    toast.success(`${totalItens} item(ns) adicionado(s) ao carrinho!`, {
+      timeout: 3000
+    })
+    
+    // Fecha o modal de histórico
+    showOrderHistoryModal.value = false
+  }
+
+  // Função auxiliar para reconstruir seleções a partir do comboDetails (fallback)
+  const rebuildSelectionsFromDetails = (item) => {
+    if (!item.comboDetails) return null
+    
+    const selections = {}
+    
+    // Mapear comboDetails para o formato que o carrinho espera
+    if (item.comboDetails.acompanhamento && item.comboItems) {
+      const acompanhamentoItem = item.comboItems.find(ci => ci.id === 'acompanhamento')
+      if (acompanhamentoItem && acompanhamentoItem.options) {
+        const choice = acompanhamentoItem.options.choices.find(
+          c => c.name === item.comboDetails.acompanhamento
+        )
+        if (choice) {
+          selections.acompanhamento = {
+            choice: choice,
+            quantity: 1,
+            price: choice.price || 0
+          }
+        }
+      }
+    }
+    
+    if (item.comboDetails.bebida && item.comboItems) {
+      const bebidaItem = item.comboItems.find(ci => ci.id === 'bebida')
+      if (bebidaItem && bebidaItem.options) {
+        const choice = bebidaItem.options.choices.find(
+          c => c.name === item.comboDetails.bebida
+        )
+        if (choice) {
+          selections.bebida = {
+            choice: choice,
+            quantity: 1,
+            price: choice.price || 0
+          }
+        }
+      }
+    }
+    
+    if (item.comboDetails.refrigerante && item.comboItems) {
+      const refrigeranteItem = item.comboItems.find(ci => ci.id === 'refrigerante')
+      if (refrigeranteItem && refrigeranteItem.options) {
+        const choice = refrigeranteItem.options.choices.find(
+          c => c.name === item.comboDetails.refrigerante
+        )
+        if (choice) {
+          selections.refrigerante = {
+            choice: choice,
+            quantity: 1,
+            price: choice.price || 0
+          }
+        }
+      }
+    }
+    
+    if (item.comboDetails.rolinhos && item.comboDetails.rolinhos.length && item.comboItems) {
+      const rolinhosItem = item.comboItems.find(ci => ci.id === 'rolinhos')
+      if (rolinhosItem && rolinhosItem.options) {
+        selections.rolinhos = item.comboDetails.rolinhos.map(nome => {
+          const choice = rolinhosItem.options.choices.find(c => c.name === nome)
+          return {
+            choice: choice || { name: nome, price: 0 },
+            quantity: 1,
+            price: 0
+          }
+        })
+      }
+    }
+    
+    return Object.keys(selections).length > 0 ? selections : null
+  }
+
+  // quando recebe dados do modal de identificação
   const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
-    userStore.login({ fullName: name, whatsapp: wpp })
+    const userData = {
+      id: Date.now(),
+      fullName: name,
+      whatsapp: wpp,
+      email: ''
+    }
+    
+    console.log('📝 Realizando login com dados:', userData)
+    userStore.login(userData)
     showModal.value = false
     
-    // Toast de sucesso
     toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
       timeout: 4000
     })
   }
 
-  // carregar ao abrir página
+  // Carregar dados do usuário ao iniciar a página
   onMounted(() => {
     userStore.loadUserFromStorage()
+    console.log('📦 TopBar montada - Status do usuário:', {
+      isLogged: userStore.isLogged,
+      userId: userStore.userId,
+      fullName: userStore.fullName
+    })
   })
 
+  // Logout
   const logout = () => {
-    const userName = userStore.fullName
+    const userName = userStore.fullName || 'Usuário'
+    const userId = userStore.userId
+    
+    console.log(`👋 Usuário ${userName} (ID: ${userId}) está fazendo logout`)
     userStore.logout()
     
-    // Toast de sucesso
+    if (showOrderHistoryModal.value) {
+      showOrderHistoryModal.value = false
+    }
+    
     toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, {
       timeout: 4000
     })
@@ -229,44 +463,37 @@
       background: #28a745;
       border-radius: 50%;
   }
-  /* RESET */
   .btn-reset {
     all: unset;
     cursor: pointer;
   }
 
-  /* CORES */
   .location-delivery,
   .bi-search,
   .number-car {
     background: #A4268E;
   }
 
-  /* INPUT */
   .input-search {
     border-color: #A4268E;
     width: 100%;
   }
 
-  /* TAMANHOS */
   .height-35 {
     height: 35px;
   }
 
-  /* RESPONSIVIDADE DO INPUT */
   .search-wrapper {
     min-width: 180px;
     max-width: 360px;
     width: 100%;
   }
 
-  /* ÍCONE BUSCA */
   .search-icon {
     border-radius: 0 5px 5px 0;
     width: 45px;
   }
 
-  /* TEXTO */
   .horous-day {
     font-size: clamp(0.9rem, 0.85vw, 0.9rem);
   }
@@ -276,7 +503,6 @@
     font-size: 0.75rem;
   }
 
-  /* CARRINHO */
   .number-car {
     height: 16px;
     width: 16px;
@@ -284,12 +510,10 @@
     top: 6px;
   }
 
-  /* ÍCONES */
   .svg-car {
     width: 22px;
   }
 
-  /* PONTOS */
   .points {
     height: 6px;
     width: 6px;
@@ -299,36 +523,30 @@
     z-index: 12;
   }
 
-  /* AJUSTE FINO DESKTOP GRANDE */
   @media (min-width: 1400px) {
     .search-wrapper {
       max-width: 420px;
     }
-
     .top-bar {
       gap: 20px;
     }
   }
 
-  /* TABLET */
   @media (max-width: 992px) {
     .search-wrapper {
       max-width: 100%;
     }
   }
 
-  /* MOBILE */
   @media (max-width: 768px) {
     .top-bar {
       gap: 10px;
     }
-
     .right-container {
       border-left: none !important;
       padding-left: 0 !important;
       justify-content: space-between;
     }
-
     .search-wrapper {
       min-width: 100%;
       order: 3;

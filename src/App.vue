@@ -680,6 +680,11 @@
       console.log('Produtos disponíveis:', products.value.length)
       console.log('Combos disponíveis:', products.value.filter(p => p.isCombo).length)
     })
+
+    // Expor produtos globalmente para acesso do Cart
+    if (typeof window !== 'undefined') {
+      window.products = products.value
+    }
 </script>
 
 
