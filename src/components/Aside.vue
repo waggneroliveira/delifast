@@ -25,6 +25,9 @@
         :slides-per-view="'auto'"
         space-between="8"
         navigation
+        :auto-height="false"
+        :resize-observer="true"
+        @swiper="onSwiperInit"
       >
         <SwiperSlide v-for="category in categories" :key="category.id">
           <a 
@@ -71,6 +74,12 @@ const props = defineProps({
 const activeCategory = ref(null)
 const isSticky = ref(false)
 const initialOffsetTop = ref(0)
+let swiperInstance = null
+
+// Função para capturar instância do Swiper
+const onSwiperInit = (swiper) => {
+  swiperInstance = swiper
+}
 
 // Função para verificar scroll e ativar/desativar sticky
 const checkSticky = () => {
@@ -84,9 +93,25 @@ const checkSticky = () => {
   
   // Ativa sticky quando o scroll passa da posição do componente
   if (scrollY >= initialOffsetTop.value) {
-    isSticky.value = true
+    if (!isSticky.value) {
+      isSticky.value = true
+      // Quando ficar sticky, reseta a posição do Swiper
+      nextTick(() => {
+        if (swiperInstance) {
+          swiperInstance.update()
+        }
+      })
+    }
   } else {
-    isSticky.value = false
+    if (isSticky.value) {
+      isSticky.value = false
+      // Quando sair do sticky, reseta também
+      nextTick(() => {
+        if (swiperInstance) {
+          swiperInstance.update()
+        }
+      })
+    }
   }
 }
 
@@ -121,6 +146,16 @@ const scrollToCategory = (categoryId) => {
       behavior: 'smooth'
     })
   }
+  
+  // No mobile, scrolla o Swiper para mostrar a categoria ativa
+  if (window.innerWidth <= 680 && swiperInstance) {
+    nextTick(() => {
+      const activeIndex = props.categories.findIndex(cat => cat.id === categoryId)
+      if (activeIndex !== -1) {
+        swiperInstance.slideTo(activeIndex, 300)
+      }
+    })
+  }
 }
 
 // Função para atualizar a categoria ativa baseado no scroll
@@ -150,6 +185,25 @@ const updateActiveCategoryOnScroll = () => {
   // Se encontrou uma categoria, atualiza o active
   if (currentCategory && activeCategory.value !== currentCategory) {
     activeCategory.value = currentCategory
+    
+    // No mobile, atualiza a posição do Swiper para o slide ativo
+    if (window.innerWidth <= 680 && swiperInstance && !isSticky.value) {
+      const activeIndex = props.categories.findIndex(cat => cat.id === currentCategory)
+      if (activeIndex !== -1) {
+        const activeSlide = swiperInstance.slides[activeIndex]
+        if (activeSlide) {
+          // Só centraliza se o slide não estiver visível
+          const slideLeft = activeSlide.offsetLeft
+          const containerWidth = swiperInstance.width
+          const slideWidth = activeSlide.offsetWidth
+          
+          if (slideLeft < swiperInstance.translate * -1 || 
+              slideLeft + slideWidth > (swiperInstance.translate * -1) + containerWidth) {
+            swiperInstance.slideTo(activeIndex, 300)
+          }
+        }
+      }
+    }
   }
   
   // Se não encontrou nenhuma categoria e tem pelo menos uma, marca a primeira
@@ -195,6 +249,11 @@ watch(() => props.categories, () => {
 // Observa quando a tela é redimensionada
 const handleResize = () => {
   saveInitialPosition()
+  if (swiperInstance) {
+    setTimeout(() => {
+      swiperInstance.update()
+    }, 100)
+  }
 }
 
 // Adiciona evento de scroll
@@ -211,6 +270,7 @@ onUnmounted(() => {
   }
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('resize', handleResize)
+  swiperInstance = null
 })
 </script>
 
@@ -246,6 +306,7 @@ onUnmounted(() => {
 /* Mobile Swiper styling */
 .mobile-swiper-container {
   transition: all 0.3s ease;
+  overflow: visible;
 }
 
 /* Quando o sticky está ativo no mobile */
@@ -287,6 +348,7 @@ onUnmounted(() => {
 
 .menu-swiper {
   padding: 10px 0;
+  overflow: visible !important;
 }
 
 .menu-swiper .swiper-slide {
