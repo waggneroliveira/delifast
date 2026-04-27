@@ -1,5 +1,5 @@
 <template>
-    <div class="image">
+    <div class="image my-4 mt-0 my-md-0">
         <img 
               src="@/assets/images/anun.png" 
               alt="Oxente Açaiteria"

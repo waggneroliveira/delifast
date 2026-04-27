@@ -18,6 +18,6 @@ p, .horous-day{
     font-size: 0.813rem !important;
 }
 .title-section-product{
-    font-size: clamp(1.25rem, 2vw, 2rem);
+    font-size: clamp(1.125rem, 2vw, 2rem);
     color: #A4268E;
 }

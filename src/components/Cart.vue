@@ -235,11 +235,22 @@
                 </div>
                 
                 <div class="flex-grow-1 ms-2">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex justify-content-between align-items-center mb-0">
                         <div class="fw-bold">{{ item.name }}</div>
                         <span class="me-2 bi bi-pencil-square"></span>
                     </div>
-                    
+                    <div v-if="item.isReorder" class="mb-2">
+                        <span class="badge is-reorder d-inline-flex align-items-center gap-1 px-2 py-1"
+                            :title="`Repetido do pedido #${item.originalOrderId || 'anterior'} em ${formatReorderDate(item.reorderDate)}`">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 2L21 6L17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M3 12V10C3 7.2 5 5 8 5H21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7 22L3 18L7 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M21 12V14C21 16.8 19 19 16 19H3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Recompra
+                        </span>
+                    </div>
                     <p class="text-muted small mb-2">
                         {{ item.description }}
                     </p>
@@ -613,116 +624,84 @@
     }
 
     // Função corrigida para abrir o modal de produto com todas as informações do combo
-// Função corrigida para abrir o modal de produto com todas as informações
-const openProductModal = (item) => {
-  console.log('Abrindo modal para edição - item completo:', JSON.parse(JSON.stringify(item)))
-  
-  // Busca o produto original no array de produtos para ter todas as configurações
-  let originalProduct = null
-  
-  // Tenta encontrar o produto original pelo productId
-  if (typeof window !== 'undefined' && window.products) {
-    originalProduct = window.products.find(p => p.id === item.productId)
-  }
-  
-  // Se não encontrou, usa o item do carrinho como base
-  const baseProduct = originalProduct || item
-  
-  // ⭐ VERIFICA SE É COMBO ANTES DE MAPEAR AS SELEÇÕES
-  const isComboItem = item.isCombo === true || baseProduct?.isCombo === true
-  
-  let mappedSelections = {}
-  let mappedAddons = {}
-  
-  // ⭐ SÓ MAPEIA SE FOR COMBO
-  if (isComboItem && item.itemSelections) {
-    Object.entries(item.itemSelections).forEach(([itemId, selectionData]) => {
-      if (Array.isArray(selectionData)) {
-        mappedSelections[itemId] = {
-          type: 'checkbox',
-          selected: selectionData.map(s => s.choice.id),
-          quantities: selectionData.reduce((acc, s) => {
-            acc[s.choice.id] = s.quantity
-            return acc
-          }, {}),
-          choicePrices: selectionData.reduce((acc, s) => {
-            acc[s.choice.id] = s.choice.price
-            return acc
-          }, {})
-        }
-      } else if (selectionData.choice) {
-        mappedSelections[itemId] = {
-          type: 'select',
-          selected: selectionData.choice.id,
-          choiceName: selectionData.choice.name,
-          choicePrice: selectionData.choice.price
-        }
-      }
-    })
-  }
-  
-  // ⭐ SÓ MAPEIA ADDONS SE FOR COMBO
-  if (isComboItem && item.selectedAddons) {
-    item.selectedAddons.forEach(addon => {
-      mappedAddons[addon.id] = addon.quantity
-    })
-  }
-  
-  // Prepara o produto para edição - ⭐ NÃO FORÇA isCombo: true para todos
-  const productToEdit = {
-    // Propriedades básicas
-    id: item.productId || item.id,
-    productId: item.productId,
-    cartItemId: item.id,
-    name: item.name,
-    description: item.description,
-    price: item.basePrice || item.finalPrice || item.price,
-    basePrice: item.basePrice,
-    finalPrice: item.finalPrice,
-    originalPrice: item.originalPrice || item.price,
-    oldPrice: item.oldPrice,
-    image: item.image,
-    cashback: item.cashback || 0,
-    cuisineType: item.cuisineType || baseProduct?.cuisineType,
-    quantity: item.quantity || 1,  // ⭐ ADICIONAR QUANTIDADE
+    const openProductModal = (item) => {
+    console.log('Abrindo modal para edição - item completo:', JSON.parse(JSON.stringify(item)))
     
-    // ⭐ USAR O VALOR REAL DE isCombo
-    isCombo: isComboItem,
+    // ⭐ IMPORTANTE: O cartItemId DEVE ser o ID do item no carrinho
+    const cartItemId = item.id // O id do item no carrinho (ID único gerado pela store)
     
-    // Propriedades de personalização (para produtos normais)
-    customization: baseProduct?.customization,
+    // Busca o produto original
+    let originalProduct = null
+    if (typeof window !== 'undefined' && window.products) {
+        originalProduct = window.products.find(p => p.id === item.productId || p.id === item.originalProductId)
+    }
     
-    // Propriedades de combo (só se for combo)
-    comboItems: isComboItem ? (baseProduct?.comboItems || item.comboItems) : null,
-    comboAddons: isComboItem ? (baseProduct?.comboAddons || item.comboAddons) : null,
-    savings: isComboItem ? (baseProduct?.savings || item.savings) : null,
-    savingsPercent: isComboItem ? baseProduct?.savingsPercent : null,
-    stock: baseProduct?.stock,
+    const baseProduct = originalProduct || item
+    const isComboItem = item.isCombo === true || baseProduct?.isCombo === true
     
-    // Dados das seleções (só se for combo)
-    comboItemSelections: isComboItem ? mappedSelections : {},
-    comboAddonsState: isComboItem ? mappedAddons : {},
+    let mappedSelections = {}
+    let mappedAddons = {}
     
-    // Para compatibilidade (só se for combo)
-    selectedAddons: isComboItem ? (item.selectedAddons ? [...item.selectedAddons] : []) : [],
-    itemSelections: isComboItem ? (item.itemSelections ? JSON.parse(JSON.stringify(item.itemSelections)) : {}) : {},
+    if (isComboItem && item.itemSelections) {
+        // ... mapeamento das seleções (igual ao que você já tem)
+    }
     
-    // ⭐ PROPRIEDADES PARA PRODUTOS NORMAIS COM ADICIONAIS
-    aditionals: item.aditionals ? JSON.parse(JSON.stringify(item.aditionals)) : [],
-    aditionalsState: item.aditionalsState ? { ...item.aditionalsState } : {},
-    selectedSize: item.selectedSize,
-    selectedFlavors: item.selectedFlavors ? [...item.selectedFlavors] : [],
+    if (isComboItem && item.selectedAddons) {
+        item.selectedAddons.forEach(addon => {
+        mappedAddons[addon.id] = addon.quantity
+        })
+    }
     
-    // Flag para indicar que está em modo de edição
-    isEditing: true
-  }
-  
-  console.log('Produto preparado para edição - isCombo:', productToEdit.isCombo)
-  console.log('Produto preparado para edição - ID do carrinho:', productToEdit.cartItemId)
-  
-  selectedProduct.value = productToEdit
-  showProductModal.value = true
-}
+    const productToEdit = {
+        // ⭐ ID DO ITEM NO CARRINHO (para edição)
+        cartItemId: cartItemId,
+        
+        // Propriedades básicas
+        id: item.productId || item.id,
+        productId: item.productId || item.originalProductId || item.id,
+        name: item.name,
+        description: item.description,
+        price: item.basePrice || item.finalPrice || item.price,
+        basePrice: item.basePrice,
+        finalPrice: item.finalPrice,
+        originalPrice: item.originalPrice || item.price,
+        oldPrice: item.oldPrice,
+        image: item.image,
+        cashback: item.cashback || 0,
+        cuisineType: item.cuisineType || baseProduct?.cuisineType,
+        quantity: item.quantity || 1,
+        
+        isCombo: isComboItem,
+        customization: baseProduct?.customization,
+        
+        // Propriedades de combo
+        comboItems: isComboItem ? (baseProduct?.comboItems || item.comboItems) : null,
+        comboAddons: isComboItem ? (baseProduct?.comboAddons || item.comboAddons) : null,
+        savings: isComboItem ? (baseProduct?.savings || item.savings) : null,
+        savingsPercent: isComboItem ? baseProduct?.savingsPercent : null,
+        stock: baseProduct?.stock,
+        
+        // Dados das seleções
+        comboItemSelections: isComboItem ? mappedSelections : {},
+        comboAddonsState: isComboItem ? mappedAddons : {},
+        selectedAddons: isComboItem ? (item.selectedAddons ? [...item.selectedAddons] : []) : [],
+        itemSelections: isComboItem ? (item.itemSelections ? JSON.parse(JSON.stringify(item.itemSelections)) : {}) : {},
+        
+        // Propriedades para produtos normais
+        aditionals: item.aditionals ? JSON.parse(JSON.stringify(item.aditionals)) : [],
+        aditionalsState: item.aditionalsState ? { ...item.aditionalsState } : {},
+        selectedSize: item.selectedSize,
+        selectedFlavors: item.selectedFlavors ? [...item.selectedFlavors] : [],
+        
+        // Flag para indicar que está em modo de edição
+        isEditing: true
+    }
+    
+    console.log('Produto preparado para edição - cartItemId:', productToEdit.cartItemId)
+    
+    selectedProduct.value = productToEdit
+    showProductModal.value = true
+    }
 
     // Computed para saber se pode confirmar
     const canConfirm = computed(() => {
@@ -982,6 +961,18 @@ const openProductModal = (item) => {
         return list
     }
     
+    const formatReorderDate = (date) => {
+        if (!date) return 'agora mesmo'
+        const now = new Date()
+        const reorderDate = new Date(date)
+        const diffMinutes = Math.floor((now - reorderDate) / 60000)
+        
+        if (diffMinutes < 1) return 'agora mesmo'
+        if (diffMinutes < 60) return `${diffMinutes} minuto(s) atrás`
+        if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)} hora(s) atrás`
+        return reorderDate.toLocaleDateString('pt-BR')
+    }
+
     // Função para debug - ver o que tem no carrinho
     const debugCart = () => {
         console.log('Itens no carrinho:', JSON.parse(JSON.stringify(cart.items)))
@@ -994,6 +985,10 @@ const openProductModal = (item) => {
 </script>
 
 <style scoped>
+.is-reorder{
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    font-size: 0.65rem;
+}
 .pointer{
     cursor: pointer;
     display: flex;

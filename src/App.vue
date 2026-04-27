@@ -771,4 +771,15 @@
   .carousel-breakout .swiper {
     padding-right: 2rem;
   }
+  @media (max-width: 680px) {
+    .carousel-breakout{
+      margin-top: 0;
+    }
+    .carousel-breakout{
+      padding-bottom: 35px;
+    }
+    .swiper-button-prev, .swiper-button-next{
+      top: 25px !important;
+    }
+  }
 </style>

@@ -44,15 +44,15 @@
 
             <div v-if="expandedOrder === order.id" class="order-details">
               <div class="order-summary">
-                <div class="summary-item">
+                <div class="summary-item mb-1 text-dark">
                   <strong>Total:</strong> 
-                  <span class="order-total">{{ formatCurrency(order.total) }}</span>
+                  <span class="ms-2 order-total">{{ formatCurrency(order.total) }}</span>
                 </div>
-                <div class="summary-item">
+                <div class="summary-item mb-1 text-dark">
                   <strong>Forma de pagamento:</strong> 
                   {{ getPaymentMethodText(order.paymentMethod) }}
                 </div>
-                <div class="summary-item" v-if="order.deliveryAddress">
+                <div class="summary-item mb-1 text-dark" v-if="order.deliveryAddress">
                   <strong>Endereço de entrega:</strong> 
                   {{ formatAddress(order.deliveryAddress) }}
                 </div>
@@ -679,14 +679,13 @@ watch(() => props.modelValue, (newValue) => {
 }
 
 .summary-item {
-  margin-bottom: 8px;
   font-size: 0.9rem;
 }
 
 .order-total {
-  color: #dc2626;
+  color: #A4268E;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .items-title {

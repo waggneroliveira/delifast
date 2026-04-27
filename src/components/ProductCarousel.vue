@@ -1,6 +1,6 @@
 <template>
   <div class="mb-4">
-    <h5 class="mb-4 title-section-product">Destaques</h5>
+    <h5 class="mb-2 mb-md-4 title-section-product">Destaques</h5>
       
     <Swiper
       :modules="[]"
@@ -53,5 +53,4 @@ const breakpoints = {
 </script>
 
 <style scoped>
-
 </style>

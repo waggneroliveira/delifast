@@ -711,44 +711,44 @@
   }
 
   // Inicializa as seleções dos itens do combo
-const initComboItemSelections = () => {
-  // ⭐ REMOVA ESTA LINHA QUE ESTÁ CAUSANDO O ERRO
-  // if (!props.product?.isCombo) 
-  //   console.log('Produto não é combo, pulando inicialização de seleções')
-  //   return
-  
-  // ⭐ SUBSTITUA POR ESTA VERIFICAÇÃO CORRETA:
-  if (!props.product?.isCombo) {
-    console.log('Produto não é combo, pulando inicialização de seleções')
-    return
-  }
-  
-  const selections = {}
-  
-  props.product.comboItems.forEach(item => {
-    if (item.options) {
-      if (item.options.type === 'select' || item.options.type === 'radio') {
-        const defaultChoice = item.options.choices.find(c => c.default) || item.options.choices[0]
-        selections[item.id] = {
-          type: item.options.type,
-          selected: defaultChoice?.id || null,
-          choicePrice: defaultChoice?.price || 0,
-          choiceName: defaultChoice?.name || ''
-        }
-      } else if (item.options.type === 'checkbox' || item.options.type === 'multicheckbox') {
-        selections[item.id] = {
-          type: item.options.type,
-          selected: [],
-          quantities: {},
-          choicePrices: {},
-          maxSelections: item.options.maxSelections || 99
+  const initComboItemSelections = () => {
+    // REMOVA ESTA LINHA QUE ESTÁ CAUSANDO O ERRO
+    // if (!props.product?.isCombo) 
+    //   console.log('Produto não é combo, pulando inicialização de seleções')
+    //   return
+    
+    // SUBSTITUA POR ESTA VERIFICAÇÃO CORRETA:
+    if (!props.product?.isCombo) {
+      console.log('Produto não é combo, pulando inicialização de seleções')
+      return
+    }
+    
+    const selections = {}
+    
+    props.product.comboItems.forEach(item => {
+      if (item.options) {
+        if (item.options.type === 'select' || item.options.type === 'radio') {
+          const defaultChoice = item.options.choices.find(c => c.default) || item.options.choices[0]
+          selections[item.id] = {
+            type: item.options.type,
+            selected: defaultChoice?.id || null,
+            choicePrice: defaultChoice?.price || 0,
+            choiceName: defaultChoice?.name || ''
+          }
+        } else if (item.options.type === 'checkbox' || item.options.type === 'multicheckbox') {
+          selections[item.id] = {
+            type: item.options.type,
+            selected: [],
+            quantities: {},
+            choicePrices: {},
+            maxSelections: item.options.maxSelections || 99
+          }
         }
       }
-    }
-  })
-  
-  comboItemSelections.value = selections
-}
+    })
+    
+    comboItemSelections.value = selections
+  }
 
   // Verifica se um checkbox está desabilitado (limite atingido e não está selecionado)
   const isCheckboxDisabled = (itemId, choiceId) => {
@@ -1093,49 +1093,166 @@ const prepareComboForCart = () => {
     }
   }
 
-  function addToCart() {
-    if (!props.product) return
+// No ProductModal.vue - Substitua a função addToCart e o watch
 
-    if (isCombo.value) {
-      const comboItem = prepareComboForCart()
-      console.log('Adicionando/Atualizando combo:', comboItem)
+function addToCart() {
+  if (!props.product) return
+
+  if (isCombo.value) {
+    const comboItem = prepareComboForCart()
+    console.log('Adicionando/Atualizando combo:', comboItem)
+    
+    if (isEditing.value && props.product.cartItemId) {
+      // MODO EDIÇÃO - Atualiza o item existente
+      // ⭐ IMPORTANTE: Mantém o ID original do item do carrinho
+      const updatedItem = {
+        ...comboItem,
+        id: props.product.cartItemId, // Mantém o ID original do carrinho
+        cartItemId: props.product.cartItemId,
+        quantity: 1
+      }
       
-      if (isEditing.value && props.product.cartItemId) {
-        // MODO EDIÇÃO - Atualiza o item existente
-        const updatedItem = {
-          ...comboItem,
-          id: props.product.cartItemId, // Mantém o ID original
-          quantity: 1 // A quantidade será mantida pela store
+      console.log('Atualizando item com ID:', props.product.cartItemId)
+      cart.updateItem(updatedItem)
+      toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 3000 })
+    } else {
+      // MODO ADIÇÃO - Adiciona novo item (o cartStore gera o ID)
+      cart.add(comboItem)
+      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 3000 })
+    }
+  } else {
+    const productToAdd = prepareNormalProductForCart()
+
+    if (isEditing.value && props.product.cartItemId) {
+      // MODO EDIÇÃO - Produto normal
+      // ⭐ IMPORTANTE: Mantém o ID original do item do carrinho
+      const updatedItem = {
+        ...productToAdd,
+        id: props.product.cartItemId, // Mantém o ID original do carrinho
+        cartItemId: props.product.cartItemId,
+        quantity: 1
+      }
+      cart.updateItem(updatedItem)
+      toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 2000 })
+    } else {
+      cart.add(productToAdd)
+      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
+    }
+  }
+
+  close()
+}
+
+// ⭐ CORRIGIR O WATCH PARA CARREGAR OS DADOS CORRETAMENTE
+watch(
+  () => props.show,
+  async (newShow) => {
+    if (newShow && props.product) {
+      // Reset antes de inicializar
+      resetState()
+      await nextTick()
+      
+      if (props.product.isCombo) {
+        console.log('🔄 Inicializando combo para edição:', props.product.name)
+        
+        // Se veio com selections preenchidas (modo edição)
+        if (props.product.comboItemSelections && Object.keys(props.product.comboItemSelections).length > 0) {
+          console.log('📦 Carregando seleções existentes:', props.product.comboItemSelections)
+          comboItemSelections.value = JSON.parse(JSON.stringify(props.product.comboItemSelections))
         }
         
-        console.log('Atualizando item com ID:', props.product.cartItemId)
-        cart.updateItem(updatedItem)
-        toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 3000 })
-      } else {
-        // MODO ADIÇÃO - Adiciona novo item
-        cart.add(comboItem)
-        toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 3000 })
-      }
-    } else {
-      const productToAdd = prepareNormalProductForCart()
-
-      if (isEditing.value && props.product.cartItemId) {
-        // MODO EDIÇÃO - Produto normal
-        const updatedItem = {
-          ...productToAdd,
-          id: props.product.cartItemId,
-          quantity: 1
+        // Se veio com addons preenchidos
+        if (props.product.comboAddonsState && Object.keys(props.product.comboAddonsState).length > 0) {
+          console.log('➕ Carregando addons existentes:', props.product.comboAddonsState)
+          comboAddonsState.value = JSON.parse(JSON.stringify(props.product.comboAddonsState))
         }
-        cart.updateItem(updatedItem)
-        toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 2000 })
+        
+        // Se não tinha seleções, inicializa com defaults
+        if (Object.keys(comboItemSelections.value).length === 0) {
+          console.log('🆕 Inicializando seleções padrão')
+          initComboItemSelections()
+        }
+        
+        // ⭐ CARREGAR SELEÇÕES EXISTENTES DO ITEM (para edição)
+        if (props.product.itemSelections && Object.keys(props.product.itemSelections).length > 0) {
+          console.log('🔄 Carregando itemSelections existentes do produto:', props.product.itemSelections)
+          // Converter itemSelections para o formato do modal
+          Object.entries(props.product.itemSelections).forEach(([itemId, selectionData]) => {
+            if (comboItemSelections.value[itemId]) {
+              if (Array.isArray(selectionData)) {
+                // Formato checkbox
+                comboItemSelections.value[itemId].selected = selectionData.map(s => s.choice.id)
+                comboItemSelections.value[itemId].quantities = selectionData.reduce((acc, s) => {
+                  acc[s.choice.id] = s.quantity
+                  return acc
+                }, {})
+                comboItemSelections.value[itemId].choicePrices = selectionData.reduce((acc, s) => {
+                  acc[s.choice.id] = s.choice.price
+                  return acc
+                }, {})
+              } else if (selectionData.choice) {
+                // Formato select/radio
+                comboItemSelections.value[itemId].selected = selectionData.choice.id
+                comboItemSelections.value[itemId].choicePrice = selectionData.choice.price || 0
+                comboItemSelections.value[itemId].choiceName = selectionData.choice.name
+              }
+            }
+          })
+        }
+        
+        // ⭐ CARREGAR ADDONS EXISTENTES
+        if (props.product.selectedAddons && props.product.selectedAddons.length > 0) {
+          console.log('➕ Carregando selectedAddons existentes:', props.product.selectedAddons)
+          props.product.selectedAddons.forEach(addon => {
+            comboAddonsState.value[addon.id] = addon.quantity
+          })
+        }
+        
       } else {
-        cart.add(productToAdd)
-        toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
+        // Carrega dados do produto normal
+        console.log('🍔 Inicializando produto normal para edição:', props.product.name)
+        
+        if (props.product.selectedOption) {
+          selectedOption.value = props.product.selectedOption
+          originalSelectedOption.value = props.product.selectedOption
+        }
+        if (props.product.selectedSize) {
+          selectedSize.value = props.product.selectedSize
+          originalSelectedSize.value = props.product.selectedSize
+        }
+        if (props.product.selectedFlavors && props.product.selectedFlavors.length) {
+          selectedFlavors.value = [...props.product.selectedFlavors]
+          originalSelectedFlavors.value = [...props.product.selectedFlavors]
+        }
+
+        // ⭐ CARREGAR ADICIONAIS EXISTENTES
+        const state = {}
+        const originalState = {}
+        
+        if (props.product.aditionals && props.product.aditionals.length > 0) {
+          props.product.aditionals.forEach(group => {
+            group.items.forEach(item => {
+              const quantity = item.quantity || 0
+              state[item.id] = quantity
+              originalState[item.id] = quantity
+            })
+          })
+        }
+        
+        // ⭐ SE VEIO COM aditionalsState, USA ELE
+        if (props.product.aditionalsState && Object.keys(props.product.aditionalsState).length > 0) {
+          console.log('📦 Carregando aditionalsState existentes:', props.product.aditionalsState)
+          Object.entries(props.product.aditionalsState).forEach(([id, quantity]) => {
+            state[parseInt(id)] = quantity
+          })
+        }
+        
+        aditionalState.value = state
+        originalAditionalsState.value = originalState
       }
     }
-
-    close()
   }
+)
   // Reset completo do estado
   const resetState = () => {
     selectedOption.value = null

@@ -232,24 +232,15 @@
       
       if (originalItem.isCombo) {
         // 🔥 PARA COMBO: Adicionar com todas as configurações preservadas
-        console.log('🍔 Adicionando combo com configurações completas:', {
-          name: originalItem.name,
-          selections: originalItem.itemSelections,
-          addons: originalItem.selectedAddons,
-          finalPrice: originalItem.finalPrice
-        })
-        
-        // Criar uma cópia profunda do item do combo
         const comboItem = JSON.parse(JSON.stringify(originalItem))
         
-        // Garantir que tem todas as propriedades necessárias
         comboItem.productId = comboItem.productId || comboItem.id
         comboItem.finalPrice = comboItem.finalPrice || comboItem.price
         comboItem.basePrice = comboItem.basePrice || comboItem.price
         comboItem.hasComboSelection = true
         comboItem.isComboItem = true
         
-        // ADICIONAR FLAG DE REORDER
+        // ⭐ ADICIONAR FLAG DE REORDER COM FORÇA
         comboItem.isReorder = true
         comboItem.reorderDate = new Date().toISOString()
         comboItem.originalOrderId = order.id
@@ -269,27 +260,27 @@
           comboItem.addonsTotalPrice = 0
         }
         
-        // Gerar ID único para este item no carrinho
+        // Gerar ID único
         comboItem.uniqueId = `${comboItem.productId}_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 6)}`
         
-        // Remover propriedades que são apenas para exibição no histórico
+        // Remover propriedades de exibição
         delete comboItem.comboDetails
         delete comboItem.customization
         delete comboItem.createdAt
         delete comboItem.updatedAt
         
-        // Adicionar ao carrinho (respeitando a quantidade)
+        // ⭐ LOG PARA VERIFICAR SE A FLAG ESTÁ SENDO ADICIONADA
+        console.log('✅ Adicionando combo com isReorder:', comboItem.isReorder, comboItem.name)
+        
+        // Adicionar ao carrinho
         for (let i = 0; i < (comboItem.quantity || 1); i++) {
           const comboCopy = JSON.parse(JSON.stringify(comboItem))
           cartStore.add(comboCopy)
         }
         
       } else {
-        // 🍔 PARA ITEM NORMAL: Adicionar com todas as configurações, incluindo adicionais
-        console.log('🍔 Adicionando item normal com adicionais:', originalItem.name)
-        
+        // 🍔 PARA ITEM NORMAL
         const simpleItem = {
-          // Propriedades básicas
           id: originalItem.id,
           productId: originalItem.productId || originalItem.id,
           name: originalItem.name,
@@ -302,31 +293,22 @@
           quantity: originalItem.quantity || 1,
           isCombo: false,
           cashback: originalItem.cashback || 0,
-          
-          // Incluir dados de personalização e adicionais
           customization: originalItem.customization,
           selectedSize: originalItem.selectedSize,
           selectedFlavors: originalItem.selectedFlavors,
-          
-          // Propriedades dos adicionais
           aditionals: originalItem.aditionals ? JSON.parse(JSON.stringify(originalItem.aditionals)) : [],
           aditionalsState: originalItem.aditionalsState ? { ...originalItem.aditionalsState } : {},
-          
-          // Flag de reorder
-          isReorder: true,
+          // ⭐ ADICIONAR FLAG DE REORDER COM FORÇA
+          isReorder: true,  // FORÇAR A FLAG
           reorderDate: new Date().toISOString(),
           originalOrderId: order.id
         }
         
-        // Log para debug dos adicionais
-        if (simpleItem.aditionals && simpleItem.aditionals.length) {
-          console.log(`📋 Adicionais para ${simpleItem.name}:`, simpleItem.aditionals)
-        }
-        if (simpleItem.aditionalsState && Object.keys(simpleItem.aditionalsState).length) {
-          console.log(`🔧 aditionalsState para ${simpleItem.name}:`, simpleItem.aditionalsState)
-        }
+        // ⭐ LOG PARA VERIFICAR SE A FLAG ESTÁ SENDO ADICIONADA
+        console.log('✅ Adicionando item normal com isReorder:', simpleItem.isReorder, simpleItem.name)
+        console.log('📦 Item completo:', simpleItem)
         
-        // Adicionar ao carrinho (respeitando a quantidade)
+        // Adicionar ao carrinho
         for (let i = 0; i < simpleItem.quantity; i++) {
           const itemCopy = JSON.parse(JSON.stringify(simpleItem))
           cartStore.add(itemCopy)

@@ -42,15 +42,12 @@ export const useCartStore = defineStore('cart', {
       
       state.items.forEach(item => {
         if (item.isCombo) {
-          // Para combos, usa o finalPrice diretamente
           total += (item.finalPrice || item.price) * item.quantity
         } else {
-          // Para produtos normais, calcula com adicionais
           total += getItemBaseTotal(item)
         }
       })
       
-      // Aplica descontos
       const discount = state.items.reduce((total, item) => {
         if (item.oldPrice && item.oldPrice > getItemBasePrice(item)) {
           return total + (item.oldPrice - getItemBasePrice(item)) * item.quantity
@@ -62,7 +59,7 @@ export const useCartStore = defineStore('cart', {
     },
     
     getItemDetails: (state) => (itemId) => {
-      const item = state.items.find(i => i.id === itemId)
+      const item = state.items.find(i => i.cartUniqueId === itemId || i.id === itemId)
       if (!item) return null
       
       if (item.isCombo) {
@@ -87,34 +84,85 @@ export const useCartStore = defineStore('cart', {
 
   actions: {
 
+    // ⭐ FUNÇÃO PARA GERAR ID ÚNICO
+    generateUniqueId() {
+      return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    },
+
     add(product) {
       const toast = useToast()
 
-      // Gera um ID único para o item baseado nas personalizações
+      // ⭐ FUNÇÃO PARA GERAR ASSINATURA DOS ADICIONAIS
+      const getItemAditionalsSignature = (item) => {
+        if (!item.aditionals || item.aditionals.length === 0) return {}
+        
+        const signature = {}
+        item.aditionals.forEach(group => {
+          if (group.items && group.items.length) {
+            group.items.forEach(ad => {
+              if (ad.quantity && ad.quantity > 0) {
+                signature[ad.id] = ad.quantity
+              }
+            })
+          }
+        })
+        return signature
+      }
+
+      // ⭐ FUNÇÃO CORRIGIDA PARA GERAR CHAVE ÚNICA
       const generateItemKey = (item) => {
         if (item.isCombo) {
-          // Para combos, usa as seleções dos itens e addons
-          return `${item.id}_combo_${JSON.stringify(item.itemSelections || {})}_${JSON.stringify(item.selectedAddons || [])}`
+          // Para combos: usa productId + seleções dos itens + addons
+          return `${item.productId || item.id}_combo_${JSON.stringify(item.itemSelections || {})}_${JSON.stringify(item.selectedAddons || [])}`
         }
-        // Para produtos normais
-        return `${item.id}_${item.selectedOption || ''}_${item.selectedSize?.id || ''}_${JSON.stringify(item.selectedFlavors?.map(f => f.id) || [])}`
+        
+        // Para produtos normais: considera TODAS as personalizações
+        const parts = [
+          item.productId || item.id,
+          'normal',
+          item.selectedOption || 'no_option',
+          item.selectedSize?.id || 'no_size',
+          JSON.stringify((item.selectedFlavors || []).map(f => f.id).sort()),
+          JSON.stringify(getItemAditionalsSignature(item))
+        ]
+        
+        return parts.join('_')
       }
 
       const newItemKey = generateItemKey(product)
       
-      // Verifica se já existe
+      console.log('🔑 Gerando chave para:', product.name)
+      console.log('Chave gerada:', newItemKey)
+      
+      // Verifica se já existe item com a MESMA chave
       const existingIndex = this.items.findIndex(item => generateItemKey(item) === newItemKey)
 
       if (existingIndex !== -1) {
+        // Item idêntico encontrado - apenas aumenta quantidade
         this.items[existingIndex].quantity++
+        
+        // ⭐ PRESERVAR FLAG DE REORDER SE EXISTIR
+        if (product.isReorder && !this.items[existingIndex].isReorder) {
+          this.items[existingIndex].isReorder = product.isReorder
+          this.items[existingIndex].reorderDate = product.reorderDate
+          this.items[existingIndex].originalOrderId = product.originalOrderId
+        }
+        
         toast.info(`Mais 1 unidade de "${product.name}" adicionada!`, { timeout: 3000 })
         return
       }
 
+      // Se chegou aqui, é um item novo (personalizações diferentes)
+      console.log('🆕 Novo item detectado, adicionando ao carrinho')
+      
+      // ⭐ GERA UM ID ÚNICO PARA O ITEM
+      const uniqueId = this.generateUniqueId()
+
       // Para combos
       if (product.isCombo) {
-        this.items.push({
-          id: product.id || `${product.productId}_${Date.now()}_${Math.random()}`,
+        const comboItem = {
+          id: uniqueId, // ⭐ USA ID ÚNICO
+          originalProductId: product.productId || product.id,
           productId: product.productId || product.id,
           name: product.name,
           description: product.description,
@@ -131,9 +179,16 @@ export const useCartStore = defineStore('cart', {
           selectedAddons: product.selectedAddons || [],
           itemSelections: product.itemSelections || {},
           savings: product.savings,
-          customization: product.customization
-        })
-        toast.success(`"${product.name}" adicionado ao carrinho! Economia de R$ ${(product.savings || 0).toFixed(2)}`, { timeout: 3000 })
+          customization: product.customization,
+          isReorder: product.isReorder || false,
+          reorderDate: product.reorderDate || null,
+          originalOrderId: product.originalOrderId || null
+        }
+        
+        console.log('📦 Item combo adicionado à store - ID:', comboItem.id)
+        
+        this.items.push(comboItem)
+        toast.success(`"${product.name}" adicionado ao carrinho!`, { timeout: 3000 })
         return
       }
 
@@ -143,9 +198,11 @@ export const useCartStore = defineStore('cart', {
         aditionalsCopy = JSON.parse(JSON.stringify(product.aditionals))
       }
 
-      // Adiciona o novo item (produto normal)
-      this.items.push({
-        id: product.id || `${product.productId}_${Date.now()}_${Math.random()}`,
+      // ⭐ ADICIONA O NOVO ITEM (PRODUTO NORMAL) COM ID ÚNICO
+      const normalItem = {
+        id: uniqueId, // ⭐ USA ID ÚNICO
+        originalProductId: product.productId || product.id,
+        productId: product.productId || product.id,
         name: product.name,
         description: product.description,
         price: product.price,
@@ -161,31 +218,60 @@ export const useCartStore = defineStore('cart', {
         aditionals: aditionalsCopy,
         cuisineType: product.cuisineType,
         customization: product.customization,
-        isCombo: false
-      })
+        isCombo: false,
+        isReorder: product.isReorder || false,
+        reorderDate: product.reorderDate || null,
+        originalOrderId: product.originalOrderId || null
+      }
 
+      console.log('📦 Item normal adicionado à store - ID:', normalItem.id)
+
+      this.items.push(normalItem)
       toast.success(`"${product.name}" adicionado ao carrinho!`, { timeout: 3000 })
     },
 
-    // FUNÇÃO UPDATEITEM CORRIGIDA PARA COMBOS
     updateItem(product) {
       const toast = useToast()
       
       console.log('updateItem chamado com:', product)
 
-      // Função para gerar chave única do item
-      const generateItemKey = (item) => {
-        if (item.isCombo) {
-          return `${item.id}_combo_${JSON.stringify(item.itemSelections || {})}_${JSON.stringify(item.selectedAddons || [])}`
-        }
-        return `${item.id}_${item.selectedOption || ''}_${item.selectedSize?.id || ''}_${JSON.stringify(item.selectedFlavors?.map(f => f.id) || [])}`
+      // ⭐ FUNÇÃO PARA GERAR ASSINATURA DOS ADICIONAIS
+      const getItemAditionalsSignature = (item) => {
+        if (!item.aditionals || item.aditionals.length === 0) return {}
+        
+        const signature = {}
+        item.aditionals.forEach(group => {
+          if (group.items && group.items.length) {
+            group.items.forEach(ad => {
+              if (ad.quantity && ad.quantity > 0) {
+                signature[ad.id] = ad.quantity
+              }
+            })
+          }
+        })
+        return signature
       }
 
-      // Encontra o item pelo ID original do carrinho
-      const originalIndex = this.items.findIndex(item => item.id === product.cartItemId || item.id === product.id)
-      
-      console.log('originalIndex:', originalIndex)
-      console.log('IDs disponíveis:', this.items.map(i => i.id))
+      // ⭐ FUNÇÃO PARA GERAR CHAVE ÚNICA
+      const generateItemKey = (item) => {
+        if (item.isCombo) {
+          return `${item.productId || item.id}_combo_${JSON.stringify(item.itemSelections || {})}_${JSON.stringify(item.selectedAddons || [])}`
+        }
+        
+        const parts = [
+          item.productId || item.id,
+          'normal',
+          item.selectedOption || 'no_option',
+          item.selectedSize?.id || 'no_size',
+          JSON.stringify((item.selectedFlavors || []).map(f => f.id).sort()),
+          JSON.stringify(getItemAditionalsSignature(item))
+        ]
+        
+        return parts.join('_')
+      }
+
+      // ⭐ ENCONTRA O ITEM PELO ID ÚNICO
+      const originalIndex = this.items.findIndex(item => item.id === product.cartItemId)
       
       if (originalIndex === -1) {
         console.error('Item não encontrado para atualização')
@@ -198,11 +284,14 @@ export const useCartStore = defineStore('cart', {
       // Remove o original
       this.items.splice(originalIndex, 1)
 
-      // Para combos - CORRIGIDO
+      // ⭐ GERA UM NOVO ID ÚNICO PARA O ITEM ATUALIZADO
+      const newUniqueId = this.generateUniqueId()
+
+      // Para combos
       if (product.isCombo || originalItem.isCombo) {
-        // Prepara o novo item do combo
         const newComboItem = {
-          id: product.cartItemId || originalItem.id, // Mantém o ID original
+          id: newUniqueId, // ⭐ NOVO ID ÚNICO
+          originalProductId: product.productId || originalItem.productId,
           productId: product.productId || originalItem.productId,
           name: product.name || originalItem.name,
           description: product.description || originalItem.description,
@@ -219,25 +308,22 @@ export const useCartStore = defineStore('cart', {
           selectedAddons: product.selectedAddons || originalItem.selectedAddons || [],
           itemSelections: product.itemSelections || originalItem.itemSelections || {},
           savings: product.savings || originalItem.savings,
-          customization: product.customization || originalItem.customization
+          customization: product.customization || originalItem.customization,
+          isReorder: originalItem.isReorder || product.isReorder || false,
+          reorderDate: originalItem.reorderDate || product.reorderDate || null,
+          originalOrderId: originalItem.originalOrderId || product.originalOrderId || null
         }
-        
-        console.log('Novo combo atualizado:', newComboItem)
         
         // Verifica se já existe item igual (mesmas seleções)
         const existingIndex = this.items.findIndex(item => 
           item.isCombo && 
-          item.id !== newComboItem.id &&
-          JSON.stringify(item.itemSelections) === JSON.stringify(newComboItem.itemSelections) &&
-          JSON.stringify(item.selectedAddons) === JSON.stringify(newComboItem.selectedAddons)
+          generateItemKey(item) === generateItemKey(newComboItem)
         )
         
         if (existingIndex !== -1) {
-          // Combina com item existente
           this.items[existingIndex].quantity += originalQuantity
           toast.success(`"${newComboItem.name}" atualizado e combinado com item existente!`, { timeout: 3000 })
         } else {
-          // Adiciona o item atualizado
           this.items.push(newComboItem)
           toast.success(`"${newComboItem.name}" atualizado com sucesso!`, { timeout: 3000 })
         }
@@ -251,7 +337,9 @@ export const useCartStore = defineStore('cart', {
       }
 
       const newNormalItem = {
-        id: product.cartItemId || originalItem.id,
+        id: newUniqueId, // ⭐ NOVO ID ÚNICO
+        originalProductId: product.productId || originalItem.productId,
+        productId: product.productId || originalItem.productId,
         name: product.name || originalItem.name,
         description: product.description || originalItem.description,
         price: product.price || originalItem.price,
@@ -267,17 +355,16 @@ export const useCartStore = defineStore('cart', {
         aditionals: updatedAditionals.length > 0 ? updatedAditionals : originalItem.aditionals || [],
         cuisineType: product.cuisineType || originalItem.cuisineType,
         customization: product.customization || originalItem.customization,
-        isCombo: false
+        isCombo: false,
+        isReorder: originalItem.isReorder || product.isReorder || false,
+        reorderDate: originalItem.reorderDate || product.reorderDate || null,
+        originalOrderId: originalItem.originalOrderId || product.originalOrderId || null
       }
 
       // Verifica se já existe item igual
       const existingIndex = this.items.findIndex(item => 
         !item.isCombo && 
-        item.id !== newNormalItem.id &&
-        item.name === newNormalItem.name &&
-        item.selectedOption === newNormalItem.selectedOption &&
-        item.selectedSize?.id === newNormalItem.selectedSize?.id &&
-        JSON.stringify(item.selectedFlavors?.map(f => f.id)) === JSON.stringify(newNormalItem.selectedFlavors?.map(f => f.id))
+        generateItemKey(item) === generateItemKey(newNormalItem)
       )
       
       if (existingIndex !== -1) {
@@ -292,6 +379,7 @@ export const useCartStore = defineStore('cart', {
     increase(itemId) {
       const toast = useToast()
       
+      // ⭐ BUSCA PELO ID ÚNICO
       const item = this.items.find(i => i.id === itemId)
       
       if (item) {
@@ -303,6 +391,7 @@ export const useCartStore = defineStore('cart', {
     decrease(itemId) {
       const toast = useToast()
       
+      // ⭐ BUSCA PELO ID ÚNICO
       const item = this.items.find(i => i.id === itemId)
       
       if (item) {
@@ -318,6 +407,7 @@ export const useCartStore = defineStore('cart', {
     remove(itemId) {
       const toast = useToast()
       
+      // ⭐ BUSCA PELO ID ÚNICO
       const item = this.items.find(i => i.id === itemId)
       
       if (item) {
@@ -359,7 +449,6 @@ function getItemBaseTotal(item) {
   const basePrice = getItemBasePrice(item)
   let total = basePrice * item.quantity
   
-  // Adiciona valor dos adicionais
   total += getItemAditionalsTotal(item) * item.quantity
   
   return total

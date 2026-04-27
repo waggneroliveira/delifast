@@ -1,5 +1,5 @@
 <template>
-  <aside class="aside position-relative">
+  <aside class="aside position-relative" :class="{ 'has-sticky': isSticky }">
 
     <!-- Menu Desktop -->
     <div class="menu w-100 d-none d-md-flex flex-column">
@@ -16,25 +16,28 @@
     </div>
 
     <!-- Mobile Swiper -->
-    <Swiper
-      v-if="categories.length"
-      :modules="[Navigation]"
-      class="d-md-none menu-swiper"
-      :slides-per-view="'auto'"
-      space-between="8"
-      navigation
-    >
-      <SwiperSlide v-for="category in categories" :key="category.id">
-        <a 
-          href="#" 
-          class="menu-link" 
-          :class="{ 'active': activeCategory === category.id }"
-          @click.prevent="scrollToCategory(category.id)"
-        >
-          {{ category.name }}
-        </a>
-      </SwiperSlide>
-    </Swiper>
+    <div class="mobile-swiper-container" :class="{ 'sticky-mobile': isSticky }">
+      <Swiper
+        v-if="categories.length"
+        :modules="[Navigation]"
+        class="d-md-none menu-swiper"
+        :class="{ 'sticky-active': isSticky }"
+        :slides-per-view="'auto'"
+        space-between="8"
+        navigation
+      >
+        <SwiperSlide v-for="category in categories" :key="category.id">
+          <a 
+            href="#" 
+            class="menu-link" 
+            :class="{ 'active': activeCategory === category.id }"
+            @click.prevent="scrollToCategory(category.id)"
+          >
+            {{ category.name }}
+          </a>
+        </SwiperSlide>
+      </Swiper>
+    </div>
 
     <!-- Banner -->
     <div class="mt-5 text-start d-none d-md-block">
@@ -66,6 +69,39 @@ const props = defineProps({
 })
 
 const activeCategory = ref(null)
+const isSticky = ref(false)
+const initialOffsetTop = ref(0)
+
+// Função para verificar scroll e ativar/desativar sticky
+const checkSticky = () => {
+  // Só aplica sticky no mobile
+  if (window.innerWidth > 680) {
+    isSticky.value = false
+    return
+  }
+
+  const scrollY = window.scrollY
+  
+  // Ativa sticky quando o scroll passa da posição do componente
+  if (scrollY >= initialOffsetTop.value) {
+    isSticky.value = true
+  } else {
+    isSticky.value = false
+  }
+}
+
+// Função para salvar a posição inicial do container
+const saveInitialPosition = () => {
+  const aside = document.querySelector('.aside')
+  
+  if (aside) {
+    // Salva a posição original do elemento
+    initialOffsetTop.value = aside.offsetTop
+    
+    // Após salvar, verifica o estado atual do scroll
+    checkSticky()
+  }
+}
 
 // Função para rolar até a categoria
 const scrollToCategory = (categoryId) => {
@@ -76,7 +112,7 @@ const scrollToCategory = (categoryId) => {
   
   if (element) {
     // Calcula a posição com offset para não ficar colado no topo
-    const offset = 100 // Altura do header + um pouco mais
+    const offset = 80 // Altura do header + um pouco mais
     const elementPosition = element.getBoundingClientRect().top
     const offsetPosition = elementPosition + window.pageYOffset - offset
     
@@ -89,7 +125,7 @@ const scrollToCategory = (categoryId) => {
 
 // Função para atualizar a categoria ativa baseado no scroll
 const updateActiveCategoryOnScroll = () => {
-  const scrollPosition = window.scrollY + 120 // Offset para considerar o header fixo
+  const scrollPosition = window.scrollY + 100 // Offset para considerar o header fixo
   
   // Variável para armazenar a categoria atual
   let currentCategory = null
@@ -120,6 +156,9 @@ const updateActiveCategoryOnScroll = () => {
   if (!currentCategory && props.categories.length > 0 && scrollPosition < 200) {
     activeCategory.value = props.categories[0].id
   }
+  
+  // Verifica sticky
+  checkSticky()
 }
 
 // Função throttle para melhor performance
@@ -134,29 +173,35 @@ const handleScroll = () => {
 }
 
 // Verifica se as seções existem e atualiza o active inicial
-const initializeActiveCategory = () => {
+const initialize = () => {
   nextTick(() => {
     if (props.categories.length > 0) {
-      // Verifica qual categoria está visível no momento
-      updateActiveCategoryOnScroll()
+      // Salva a posição inicial do container
+      saveInitialPosition()
       
-      // Se ainda não definiu, marca a primeira
-      if (!activeCategory.value && props.categories.length > 0) {
-        activeCategory.value = props.categories[0].id
-      }
+      // Força uma verificação do scroll atual
+      setTimeout(() => {
+        updateActiveCategoryOnScroll()
+      }, 100)
     }
   })
 }
 
 // Observa mudanças nas categorias
 watch(() => props.categories, () => {
-  initializeActiveCategory()
-}, { immediate: true, deep: true })
+  initialize()
+}, { immediate: true })
+
+// Observa quando a tela é redimensionada
+const handleResize = () => {
+  saveInitialPosition()
+}
 
 // Adiciona evento de scroll
 onMounted(() => {
-  initializeActiveCategory()
+  initialize()
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('resize', handleResize)
 })
 
 // Limpa evento ao desmontar
@@ -165,6 +210,7 @@ onUnmounted(() => {
     cancelAnimationFrame(scrollTimeout)
   }
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -198,6 +244,47 @@ onUnmounted(() => {
 }
 
 /* Mobile Swiper styling */
+.mobile-swiper-container {
+  transition: all 0.3s ease;
+}
+
+/* Quando o sticky está ativo no mobile */
+@media (max-width: 680px) {
+  .mobile-swiper-container.sticky-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #A4268E;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 0 16px;
+  }
+  
+  /* Adiciona um espaçamento no aside para não "pular" o conteúdo */
+  .aside.has-sticky {
+    padding-top: 60px;
+  }
+  
+  /* Estilos para quando o carrossel está fixo/sticky */
+  .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link {
+    color: white;
+  }
+  
+  .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link.active {
+    color: white;
+    border-bottom: 2px solid white;
+  }
+  
+  .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active :deep(.swiper-button-prev) {
+    filter: brightness(0) invert(1);
+  }
+  
+  .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active :deep(.swiper-button-next) {
+    filter: brightness(0) invert(1);
+  }
+}
+
 .menu-swiper {
   padding: 10px 0;
 }
@@ -216,5 +303,62 @@ onUnmounted(() => {
 
 .menu-swiper .menu-link.active {
   border-bottom: 2px solid #A4268E;
+}
+
+@media (max-width: 680px) {
+  .menu-swiper {
+    padding-bottom: 50px;
+  }
+  
+  /* Cores originais no mobile normal (sem sticky) */
+  .menu-swiper .menu-link {
+    color: #666;
+  }
+  
+  .menu-swiper .menu-link.active {
+    color: #A4268E;
+    border-bottom: 2px solid #A4268E;
+  }
+  
+  :deep(.swiper-button-prev svg),
+  :deep(.swiper-button-next svg) {
+    display: none;
+  }
+  
+  :deep(.swiper-button-prev) {
+    left: 40%;
+  }
+  
+  :deep(.swiper-button-next) {
+    right: 40%;
+  }
+  
+  :deep(.swiper-button-prev),
+  :deep(.swiper-button-next) {
+    top: 80px;
+    transform: translateX(-50%);
+  }
+  
+  :deep(.swiper-button-prev::after),
+  :deep(.swiper-button-next::after) {
+    content: '';
+  }
+  
+  :deep(.swiper-button-prev),
+  :deep(.swiper-button-next) {
+    width: 32px;
+    height: 32px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  :deep(.swiper-button-prev) {
+    background-image: url('@/assets/images/left.svg');
+  }
+
+  :deep(.swiper-button-next) {
+    background-image: url('@/assets/images/right.svg');
+  }
 }
 </style>
