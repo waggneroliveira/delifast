@@ -711,35 +711,44 @@
   }
 
   // Inicializa as seleções dos itens do combo
-  const initComboItemSelections = () => {
-    if (!props.product?.isCombo) return
-    
-    const selections = {}
-    
-    props.product.comboItems.forEach(item => {
-      if (item.options) {
-        if (item.options.type === 'select' || item.options.type === 'radio') {
-          const defaultChoice = item.options.choices.find(c => c.default) || item.options.choices[0]
-          selections[item.id] = {
-            type: item.options.type,
-            selected: defaultChoice?.id || null,
-            choicePrice: defaultChoice?.price || 0,
-            choiceName: defaultChoice?.name || ''
-          }
-        } else if (item.options.type === 'checkbox' || item.options.type === 'multicheckbox') {
-          selections[item.id] = {
-            type: item.options.type,
-            selected: [],
-            quantities: {},
-            choicePrices: {},
-            maxSelections: item.options.maxSelections || 99
-          }
+const initComboItemSelections = () => {
+  // ⭐ REMOVA ESTA LINHA QUE ESTÁ CAUSANDO O ERRO
+  // if (!props.product?.isCombo) 
+  //   console.log('Produto não é combo, pulando inicialização de seleções')
+  //   return
+  
+  // ⭐ SUBSTITUA POR ESTA VERIFICAÇÃO CORRETA:
+  if (!props.product?.isCombo) {
+    console.log('Produto não é combo, pulando inicialização de seleções')
+    return
+  }
+  
+  const selections = {}
+  
+  props.product.comboItems.forEach(item => {
+    if (item.options) {
+      if (item.options.type === 'select' || item.options.type === 'radio') {
+        const defaultChoice = item.options.choices.find(c => c.default) || item.options.choices[0]
+        selections[item.id] = {
+          type: item.options.type,
+          selected: defaultChoice?.id || null,
+          choicePrice: defaultChoice?.price || 0,
+          choiceName: defaultChoice?.name || ''
+        }
+      } else if (item.options.type === 'checkbox' || item.options.type === 'multicheckbox') {
+        selections[item.id] = {
+          type: item.options.type,
+          selected: [],
+          quantities: {},
+          choicePrices: {},
+          maxSelections: item.options.maxSelections || 99
         }
       }
-    })
-    
-    comboItemSelections.value = selections
-  }
+    }
+  })
+  
+  comboItemSelections.value = selections
+}
 
   // Verifica se um checkbox está desabilitado (limite atingido e não está selecionado)
   const isCheckboxDisabled = (itemId, choiceId) => {
