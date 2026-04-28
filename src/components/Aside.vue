@@ -306,7 +306,7 @@ onUnmounted(() => {
 /* Mobile Swiper styling */
 .mobile-swiper-container {
   transition: all 0.3s ease;
-  overflow: visible;
+  overflow: clip;
 }
 
 /* Quando o sticky está ativo no mobile */

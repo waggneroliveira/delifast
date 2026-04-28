@@ -6,10 +6,15 @@
     background: #A4268E !important;
     border-color: #A4268E !important;
 }
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+}
+
 body {
     font-family: var(--font-primary);
     background: #F5F5F5;
-    overflow-x: clip;
 }
 p, .horous-day{
     color: var(--color-grey);

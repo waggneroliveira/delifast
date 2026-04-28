@@ -10,7 +10,7 @@
       <div class="modal-content p-0 rounded-0 h-100">
 
         <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-3 position-relative">
+        <div class="d-flex justify-content-between align-items-center mb-2 position-relative">
           <div class="my-3 d-flex justify-content-end align-items-center w-100 px-4 z-in">
             <button class="btn-close" @click="close"></button>
           </div>
@@ -338,7 +338,7 @@
                   :class="{ active: selectedSize?.id === size.id }"
                   @click="selectedSize = size"
                 >
-                  <div class="flex-grow-1 p-3">
+                  <div class="flex-grow-1 p-2 p-md-3">
                     <div class="fw-semibold">
                       {{ size.name }}
                     </div>
@@ -376,7 +376,7 @@
                   :class="{ active: isFlavorSelected(flavor) }"
                   @click="toggleFlavor(flavor)"
                 >
-                  <div class="flex-grow-1 p-3">
+                  <div class="flex-grow-1 p-2 p-md-3">
                     <div class="fw-semibold">
                       {{ flavor.name }}
                       <span v-if="flavor.isRecommended" class="badge bg-primary ms-2">
@@ -417,7 +417,7 @@
                   :key="item.id"
                   class="d-flex align-items-center justify-content-between border rounded px-3 py-2 mb-2"
                 >
-                  <div class="fw-medium">
+                  <div class="fw-medium font-15">
                     {{ item.name }}
                     <small class="text-muted ms-1" v-if="item.price > 0">
                       (+R$ {{ formatPrice(item.price) }})
@@ -1383,7 +1383,7 @@ watch(
 }
 
 .image {
-  max-width: 380px;
+  max-width: 320px;
 }
 
 .z-in {
@@ -1391,14 +1391,16 @@ watch(
 }
 
 .modal-dialog {
+  width: 100%;
+  margin: 0 auto;
   max-width: 980px;
   height: auto;
-  max-height: 90vh;
+  /* max-height: 90vh; */
 }
 
 .modal-content {
-  max-height: 90vh;
-  overflow: hidden;
+  height: 600px;
+  overflowY: auto;
 }
 
 .cover {
@@ -1435,5 +1437,10 @@ watch(
 
 .min-width-30 {
   min-width: 30px;
+}
+@media (max-width: 680px) {
+  .scroll{
+    height: 290px;
+  }
 }
 </style>

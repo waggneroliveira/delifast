@@ -21,4 +21,10 @@
         background: rgba(0, 0, 0, 0.5);
         z-index: 11;
     }
+    @media (max-width: 680px) {
+        .banner-inner {
+            height: 150px;
+        }
+    
+    }
 </style>

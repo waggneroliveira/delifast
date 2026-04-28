@@ -13,7 +13,7 @@
       <!-- Nome + status -->
       <div class="text-center text-md-start mb-3 mb-md-4 w-100">
         <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
-        <small class="d-block">Praticidade que alimenta.</small>
+        <small class="d-block font-12">Praticidade que alimenta.</small>
         
         <div class="d-flex justify-content-center justify-content-md-start align-items-center mt-2">
           <span class="status-dot me-1"></span>
@@ -503,7 +503,7 @@
   }
 
   .horous-day {
-    font-size: clamp(0.9rem, 0.85vw, 0.9rem);
+    font-size: clamp(0.75rem, 0.85vw, 0.9rem);
   }
 
   .horous-day i {
@@ -558,6 +558,23 @@
     .search-wrapper {
       min-width: 100%;
       order: 3;
+    }
+  }
+  @media (max-width: 680px) {
+    .font-12{
+      font-size: 0.75rem;
+    }
+    .banner-inner {
+        height: 140px;
+    }
+    .image {
+        width: 160px;
+        height: 160px;
+        margin-top: -113px;
+        border: 5px solid rgba(0, 0, 0, 0.10);
+    }
+    .logo {
+        width: 137px;
     }
   }
 </style>
