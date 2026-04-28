@@ -1,11 +1,21 @@
 <template>
-    <div class="banner-inner container-fluid p-0 position-relative">
+    <div class="banner-inner container-fluid p-0 position-relative text-end">
         <img src="@/assets/images/banner-inner.png" 
         alt="Banner interno" 
         class="w-100 h-100 position-relative z-10 cover">
 
-        <div class="overlay"></div>
+        <div class="overlay">
+            <!-- Botão menu mobile -->
+            <button 
+            class="btn d-md-none"
+            data-bs-toggle="offcanvas" 
+            data-bs-target="#mobileMenu"
+            >
+            <i class="bi bi-list fs-1 text-white"></i>
+            </button>
+        </div>
     </div>
+
 </template>
 
 <style scoped>

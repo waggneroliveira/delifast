@@ -776,7 +776,7 @@
       margin-top: 0;
     }
     .carousel-breakout{
-      padding-bottom: 35px;
+      padding-bottom: 10px;
     }
     .swiper-button-prev, .swiper-button-next{
       top: 25px !important;

@@ -1,5 +1,5 @@
 <template>
-  <div class="top-bar d-flex justify-content-center justify-content-md-between align-items-center align-items-md-start gap-2 gap-md-3 flex-wrap position-relative">
+  <div class="top-bar flex-column flex-md-row d-flex justify-content-center justify-content-md-between align-items-center align-items-md-start gap-2 gap-md-3 flex-wrap position-relative">
     <div class="content-logo">
       <!-- Logo -->
       <div class="image text-center mb-3 position-relative rounded-circle">
@@ -11,7 +11,7 @@
       </div>
 
       <!-- Nome + status -->
-      <div class="text-center text-md-start mb-3 mb-md-4 w-100">
+      <div class="text-center text-md-start mb-0 mb-md-4 w-100">
         <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
         <small class="d-block font-12">Praticidade que alimenta.</small>
         
@@ -23,7 +23,7 @@
     </div>
     
     <!-- Horários e contato -->
-    <div class="d-flex flex-row flex-wrap align-items-start gap-2 text-secondary small mt-0 mt-md-5">
+    <div class="d-none d-md-flex flex-row flex-wrap align-items-start gap-2 text-secondary small mt-0 mt-md-5">
       
       <div class="horous">
         <div class="d-flex align-items-start gap-2 mb-1 pe-2 border-end">
@@ -57,15 +57,15 @@
     </div>
 
     <!-- Busca e ações -->
-    <div class="border-start ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-between justify-content-md-end flex-wrap flex-grow-1 right-container mt-3 mt-md-5 mb-3 mb-md-0">
+    <div class="border-start col-12 col-md-auto ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-between justify-content-md-end flex-wrap flex-grow-1 right-container mt-3 mt-md-5 mb-3 mb-md-0">
 
       <!-- Botão -->
-      <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" @click="showModalLocation = true">
+      <button class="rounded-2 d-none d-md-block height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" @click="showModalLocation = true">
         Locais de entrega
       </button>
 
       <!-- Campo de busca -->
-      <div class="position-relative flex-grow-1 search-wrapper mt-2 mt-md-0">
+      <div class="position-relative flex-grow-1 search-wrapper mt-0">
         <input
           type="text"
           placeholder="Buscar produto..."
@@ -75,7 +75,7 @@
       </div>
 
       <!-- Ícones -->
-      <div class="d-flex align-items-center gap-3 gap-md-4 fs-5 text-primary flex-shrink-0">
+      <div class="d-none d-md-flex align-items-center gap-3 gap-md-4 fs-5 text-primary flex-shrink-0">
 
         <div class="position-relative">
           <button class="reset-button" data-bs-toggle="offcanvas" data-bs-target="#cartCanvas">
@@ -147,6 +147,92 @@
       </div>
     </div>
   </div>
+
+    <!-- ================= MENU MOBILE ================= -->
+  <div 
+    class="offcanvas offcanvas-start d-md-none" 
+    tabindex="-1" 
+    id="mobileMenu"
+  >
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Menu</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body d-flex flex-column gap-4">
+
+      <!-- HORÁRIOS -->
+      <div class="d-flex flex-column gap-2 text-secondary small">
+
+        <div class="d-flex align-items-start gap-2">
+          <svg class="mt-1" width="17" height="17">...</svg>
+          <span class="d-flex flex-column">
+            Segunda à sexta-feira <i>14:00 às 18:00</i>
+          </span>
+        </div>
+
+        <div class="d-flex align-items-start gap-2">
+          <svg class="mt-1" width="17" height="17">...</svg>
+          <span class="d-flex flex-column">
+            Sábado e Domingo <i>14:00 às 18:00</i>
+          </span>
+        </div>
+
+      </div>
+
+      <!-- FALE CONOSCO -->
+      <div class="d-flex align-items-center gap-2">
+        <svg width="15" height="15">...</svg>
+        <span>Fale Conosco</span>
+      </div>
+
+      <!-- LOCAIS -->
+      <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" 
+      @click="showModalLocation = true"
+      data-bs-dismiss="offcanvas">
+        Locais de entrega
+      </button>
+
+      <!-- ENDEREÇOS -->
+      <button 
+        class="btn btn-light text-start"
+        @click="showAddressModal = true"
+        data-bs-dismiss="offcanvas"
+      >
+        Meus Endereços
+      </button>
+
+      <!-- PEDIDOS -->
+      <button 
+        class="btn btn-light text-start"
+        @click="openOrderHistory"
+        data-bs-dismiss="offcanvas"
+      >
+        Meus pedidos
+      </button>
+
+      <!-- LOGIN -->
+      <div>
+        <button 
+          v-if="userStore.isLogged"
+          class="btn btn-outline-danger w-100"
+          @click="logout"
+        >
+          Sair
+        </button>
+
+        <button 
+          v-else
+          class="btn btn-primary w-100"
+          @click="showModal = true"
+        >
+          Entrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Modal -->
   <IdentifyModal
       v-model="showModal"
@@ -155,6 +241,7 @@
   <!-- Modal -->
   <DeliveryLocations v-model:modelValue="showModalLocation"/>
 </template>
+
 
 <script setup>
   import { ref, onMounted, computed } from 'vue'
@@ -561,7 +648,7 @@
     }
   }
   @media (max-width: 680px) {
-    .font-12{
+    .font-12, .form-control.p-0.ps-3.height-35.input-search{
       font-size: 0.75rem;
     }
     .banner-inner {
