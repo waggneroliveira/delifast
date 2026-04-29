@@ -1,7 +1,7 @@
 <template>
     <div class="image my-4 mt-0 my-md-0">
         <img 
-              src="@/assets/images/anun.png" 
+              src="@/assets/images/anuncio-horizontal.png" 
               alt="Oxente Açaiteria"
               class="logo"
           />
@@ -23,8 +23,8 @@
     .image img{
         width: 100%;
         max-width: 500px;
-        height: 100px;
-        object-fit: contain;
+        height: 120px;
+        object-fit: cover;
         aspect-ratio: 1 / 1.92;
     }
 </style>

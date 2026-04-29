@@ -3,6 +3,7 @@
     import { ref, watch, computed, onMounted } from 'vue'
     import { useCartStore } from '@/stores/useCartStore'
     import { useToast } from 'vue-toastification'
+    import { useUserStore } from '@/stores/useUserStore'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -13,19 +14,170 @@
     import Announcement from '@/components/Announcement.vue'
     import Cart from '@/components/Cart.vue'
     import ProductModal from '@/components/ProductModal.vue'
+    import MobileBottomMenu from '@/components/MobileBottomMenu.vue'
+    import OrderHistoryModal from '@/components/OrderHistoryModal.vue'
+    import IdentifyModal from '@/components/IdentifyModal.vue'
 
     // Store e Toast
     const cart = useCartStore()
     const toast = useToast()
+    const userStore = useUserStore()
 
     // Estados do modal
     const showModal = ref(false)
     const selectedProduct = ref(null)
+    const showOrderHistoryModal = ref(false)
 
     // Abrir modal do produto
     const openProductModal = (product) => {
       selectedProduct.value = product
       showModal.value = true
+    }
+
+    // Função para lidar com o re-pedido - VERSÃO COMPLETA CORRIGIDA
+    const handleReorder = (order) => {
+      console.log('🎯 Reordenando pedido completo:', order.id)
+      
+      if (!order || !order.items || order.items.length === 0) {
+        toast.error('Erro ao reordenar: pedido inválido')
+        return
+      }
+      
+      // Processar cada item do pedido
+      order.items.forEach((originalItem, index) => {
+        console.log(`📦 Processando item ${index + 1}:`, originalItem.name, originalItem.isCombo ? '(COMBO)' : '(NORMAL)')
+        
+        if (originalItem.isCombo) {
+          // 🔥 PARA COMBO: Adicionar com todas as configurações preservadas
+          const comboItem = JSON.parse(JSON.stringify(originalItem))
+          
+          comboItem.productId = comboItem.productId || comboItem.id
+          comboItem.finalPrice = comboItem.finalPrice || comboItem.price
+          comboItem.basePrice = comboItem.basePrice || comboItem.price
+          comboItem.hasComboSelection = true
+          comboItem.isComboItem = true
+          
+          comboItem.isReorder = true
+          comboItem.reorderDate = new Date().toISOString()
+          comboItem.originalOrderId = order.id
+          
+          if (!comboItem.itemSelections && comboItem.comboDetails) {
+            comboItem.itemSelections = rebuildSelectionsFromDetails(comboItem)
+          }
+          
+          if (comboItem.selectedAddons && comboItem.selectedAddons.length) {
+            comboItem.addonsTotalPrice = comboItem.selectedAddons.reduce(
+              (sum, addon) => sum + (addon.price * (addon.quantity || 1)), 0
+            )
+          } else {
+            comboItem.selectedAddons = []
+            comboItem.addonsTotalPrice = 0
+          }
+          
+          comboItem.uniqueId = `${comboItem.productId}_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 6)}`
+          
+          delete comboItem.comboDetails
+          delete comboItem.customization
+          delete comboItem.createdAt
+          delete comboItem.updatedAt
+          
+          console.log('✅ Adicionando combo com isReorder:', comboItem.isReorder, comboItem.name)
+          
+          for (let i = 0; i < (comboItem.quantity || 1); i++) {
+            const comboCopy = JSON.parse(JSON.stringify(comboItem))
+            cart.add(comboCopy)  // ← CORRIGIDO: cart ao invés de cartStore
+          }
+          
+        } else {
+          // 🍔 PARA ITEM NORMAL
+          const simpleItem = {
+            id: originalItem.id,
+            productId: originalItem.productId || originalItem.id,
+            name: originalItem.name,
+            description: originalItem.description,
+            price: originalItem.finalPrice || originalItem.price,
+            finalPrice: originalItem.finalPrice || originalItem.price,
+            oldPrice: originalItem.oldPrice,
+            originalPrice: originalItem.originalPrice || originalItem.price,
+            image: originalItem.image,
+            quantity: originalItem.quantity || 1,
+            isCombo: false,
+            cashback: originalItem.cashback || 0,
+            customization: originalItem.customization,
+            selectedSize: originalItem.selectedSize,
+            selectedFlavors: originalItem.selectedFlavors,
+            aditionals: originalItem.aditionals ? JSON.parse(JSON.stringify(originalItem.aditionals)) : [],
+            aditionalsState: originalItem.aditionalsState ? { ...originalItem.aditionalsState } : {},
+            isReorder: true,
+            reorderDate: new Date().toISOString(),
+            originalOrderId: order.id
+          }
+          
+          console.log('✅ Adicionando item normal com isReorder:', simpleItem.isReorder, simpleItem.name)
+          
+          for (let i = 0; i < simpleItem.quantity; i++) {
+            const itemCopy = JSON.parse(JSON.stringify(simpleItem))
+            cart.add(itemCopy)  // ← CORRIGIDO: cart ao invés de cartStore
+          }
+        }
+      })
+      
+      const totalItens = order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+      toast.success(`${totalItens} item(ns) adicionado(s) ao carrinho!`, {
+        timeout: 3000
+      })
+      
+      showOrderHistoryModal.value = false
+    }
+    const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
+      const userData = {
+        id: Date.now(),
+        fullName: name,
+        whatsapp: wpp,
+        email: ''
+      }
+      
+      console.log('📝 Realizando login com dados:', userData)
+      userStore.login(userData)
+      showModal.value = false
+      
+      toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
+        timeout: 4000
+      })
+    }
+    const openOrderHistory = () => {
+      console.log('🔍 Verificando login para abrir histórico:', {
+        isLogged: userStore.isLogged,
+        userId: userStore.userId,
+      })
+      
+      // Verificar se está logado
+      if (!userStore.isLogged) {
+        toast.warning('Faça login para ver seus pedidos!', {
+          timeout: 3000
+        })
+        showModal.value = true
+        return
+      }
+      
+      // Verificar se tem ID
+      if (!userStore.userId) {
+        console.error('❌ Usuário logado mas sem ID:', userStore)
+        toast.error('Erro ao carregar dados do usuário. Por favor, faça login novamente.', {
+          timeout: 4000
+        })
+        userStore.logout()
+        showModal.value = true
+        return
+      }
+      
+      console.log('✅ Abrindo histórico para userId:', userStore.userId)
+      showOrderHistoryModal.value = true
+    }
+
+    const handleMenuChange = (key) => {
+      // Lógica para outros itens do menu (home, search, delivery, profile)
+      console.log('Menu alterado:', key)
     }
 
     // Dados da aplicação - Estrutura unificada e extensível com suporte a COMBOS
@@ -687,10 +839,13 @@
     }
 </script>
 
-
 <template>
   <div class="container-fluid p-0">
     <Header class="header" />
+    
+    <MobileBottomMenu 
+    @change="handleMenuChange" 
+    @open-orders="openOrderHistory"/>
     
     <Cart />
 
@@ -741,6 +896,19 @@
         @add-to-cart="addItemToCart"
       />
     </div>
+
+    <OrderHistoryModal 
+      v-if="showOrderHistoryModal"
+      v-model="showOrderHistoryModal"
+      :user-id="userStore.userId"
+      @reorder="handleReorder"
+    />
+    
+    <!-- IdentifyModal para login -->
+    <IdentifyModal
+      v-model="showModal"
+      @submit="handleIdentify"
+    />
   </div>
 </template>
 

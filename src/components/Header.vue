@@ -11,7 +11,7 @@
             data-bs-toggle="offcanvas" 
             data-bs-target="#mobileMenu"
             >
-            <i class="bi bi-list fs-1 text-white"></i>
+            <i class="bi bi-list display-2 text-white"></i>
             </button>
         </div>
     </div>
@@ -33,7 +33,7 @@
     }
     @media (max-width: 680px) {
         .banner-inner {
-            height: 150px;
+            height: 130px;
         }
     
     }

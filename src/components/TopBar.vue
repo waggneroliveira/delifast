@@ -1,8 +1,9 @@
 <template>
   <div class="top-bar flex-column flex-md-row d-flex justify-content-center justify-content-md-between align-items-center align-items-md-start gap-2 gap-md-3 flex-wrap position-relative">
+
     <div class="content-logo">
       <!-- Logo -->
-      <div class="image text-center mb-3 position-relative rounded-circle">
+      <div class="image text-center mb-2 mb-md-3 position-relative rounded-circle">
           <img 
               src="@/assets/images/logo.png" 
               alt="Oxente Açaiteria"
@@ -12,12 +13,12 @@
 
       <!-- Nome + status -->
       <div class="text-center text-md-start mb-0 mb-md-4 w-100">
-        <h5 class="fw-bold text-purple mb-1">Oxente Açaiteria</h5>
+        <h5 class="fw-medium text-purple mb-1">Oxente Açaiteria</h5>
         <small class="d-block font-12">Praticidade que alimenta.</small>
         
-        <div class="d-flex justify-content-center justify-content-md-start align-items-center mt-2">
+        <div class="d-flex justify-content-center justify-content-md-start align-items-center mt-0 mt-md-2">
           <span class="status-dot me-1"></span>
-          <small>Aberto</small>
+          <small>Aberto <i class="fst-normal"> • 14h às 18h</i></small>
         </div>
       </div>
     </div>
@@ -57,7 +58,7 @@
     </div>
 
     <!-- Busca e ações -->
-    <div class="border-start col-12 col-md-auto ps-2 d-flex align-items-center gap-2 gap-md-3 justify-content-between justify-content-md-end flex-wrap flex-grow-1 right-container mt-3 mt-md-5 mb-3 mb-md-0">
+    <div class="border-start col-12 col-md-auto ps-2 d-none d-md-flex align-items-center gap-2 gap-md-3 justify-content-between justify-content-md-end flex-wrap flex-grow-1 right-container mt-3 mt-md-5 mb-3 mb-md-0">
 
       <!-- Botão -->
       <button class="rounded-2 d-none d-md-block height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" @click="showModalLocation = true">
@@ -65,7 +66,7 @@
       </button>
 
       <!-- Campo de busca -->
-      <div class="position-relative flex-grow-1 search-wrapper mt-0">
+      <div class=" d-none d-md-block position-relative flex-grow-1 search-wrapper mt-0">
         <input
           type="text"
           placeholder="Buscar produto..."
@@ -648,20 +649,21 @@
     }
   }
   @media (max-width: 680px) {
+    .d-flex.justify-content-center.justify-content-md-start.align-items-center.mt-0.mt-md-2 small{
+      font-size: 0.75rem !important;
+    }
     .font-12, .form-control.p-0.ps-3.height-35.input-search{
       font-size: 0.75rem;
     }
-    .banner-inner {
-        height: 140px;
-    }
     .image {
-        width: 160px;
-        height: 160px;
-        margin-top: -113px;
+        width: 140px;
+        height: 140px;
+        margin-top: -100px;
         border: 5px solid rgba(0, 0, 0, 0.10);
     }
     .logo {
-        width: 137px;
+        width: 120px;
     }
   }
+
 </style>

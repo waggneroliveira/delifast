@@ -308,7 +308,26 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   overflow: clip;
 }
+.menu-swiper {
+  padding: 10px 0;
+  overflow: visible !important;
+}
 
+.menu-swiper .swiper-slide {
+  width: auto;
+}
+
+.menu-swiper .menu-link {
+  white-space: nowrap;
+  padding: 8px 0;
+  width: auto;
+  border-bottom: 2px solid transparent;
+  margin-right: 16px;
+}
+
+.menu-swiper .menu-link.active {
+  border-bottom: 2px solid #A4268E;
+}
 /* Quando o sticky está ativo no mobile */
 @media (max-width: 680px) {
   .mobile-swiper-container.sticky-mobile {
@@ -335,6 +354,7 @@ onUnmounted(() => {
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link.active {
     color: white;
     border-bottom: 2px solid white;
+    padding-bottom: 2px;
   }
   
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active :deep(.swiper-button-prev) {
@@ -344,32 +364,8 @@ onUnmounted(() => {
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active :deep(.swiper-button-next) {
     filter: brightness(0) invert(1);
   }
-}
-
-.menu-swiper {
-  padding: 10px 0;
-  overflow: visible !important;
-}
-
-.menu-swiper .swiper-slide {
-  width: auto;
-}
-
-.menu-swiper .menu-link {
-  white-space: nowrap;
-  padding: 8px 0;
-  width: auto;
-  border-bottom: none;
-  margin-right: 16px;
-}
-
-.menu-swiper .menu-link.active {
-  border-bottom: 2px solid #A4268E;
-}
-
-@media (max-width: 680px) {
   .menu-swiper {
-    padding-bottom: 50px;
+    padding-bottom: 30px;
   }
   
   /* Cores originais no mobile normal (sem sticky) */
@@ -380,6 +376,7 @@ onUnmounted(() => {
   .menu-swiper .menu-link.active {
     color: #A4268E;
     border-bottom: 2px solid #A4268E;
+    padding-bottom: 2px;
   }
   
   :deep(.swiper-button-prev svg),
@@ -397,7 +394,7 @@ onUnmounted(() => {
   
   :deep(.swiper-button-prev),
   :deep(.swiper-button-next) {
-    top: 80px;
+    top: 70px;
     transform: translateX(-50%);
   }
   
@@ -417,10 +414,15 @@ onUnmounted(() => {
 
   :deep(.swiper-button-prev) {
     background-image: url('@/assets/images/left.svg');
+    width: 25px;
+    height: 25px;
   }
 
   :deep(.swiper-button-next) {
     background-image: url('@/assets/images/right.svg');
+    width: 25px;
+    height: 25px;
   }
 }
+
 </style>

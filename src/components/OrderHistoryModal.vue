@@ -163,31 +163,7 @@ const hasCustomizations = (order) => {
   return order.items.some(item => item.customization || item.comboDetails || item.itemSelections)
 }
 
-// Fetch orders
-const fetchOrders = async () => {
-  if (!props.userId) {
-    console.warn('UserId não fornecido para buscar pedidos')
-    orders.value = []
-    loading.value = false
-    return
-  }
-  
-  loading.value = true
-  try {
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Usando dados mock com estrutura completa para combo
-    console.log(`📦 Buscando pedidos para o usuário ${props.userId}`)
-    orders.value = getMockOrders()
-    
-  } catch (error) {
-    console.error('Error fetching orders:', error)
-    orders.value = getMockOrders()
-  } finally {
-    loading.value = false
-  }
-}
+// ========== PRIMEIRO: Declare as funções ==========
 
 // Mock data com estrutura completa e corrigida para combo
 const getMockOrders = () => {
@@ -269,7 +245,6 @@ const getMockOrders = () => {
           description: 'Hambúrguer + Acompanhamento + Bebida',
           savings: 20.00,
           
-          // Estrutura do combo (definições)
           comboItems: [
             {
               id: 'hamburguer',
@@ -317,13 +292,11 @@ const getMockOrders = () => {
             }
           ],
           
-          // Adicionais disponíveis para o combo
           comboAddons: [
             { id: 1, name: 'Queijo Extra', price: 3.00, maxQuantity: 2 },
             { id: 2, name: 'Bacon Extra', price: 4.00, maxQuantity: 2 }
           ],
           
-          // Seleções salvas do combo
           itemSelections: {
             acompanhamento: { 
               choice: { id: 1, name: 'Batata Frita', price: 0 }, 
@@ -337,7 +310,6 @@ const getMockOrders = () => {
             }
           },
           
-          // Adicionais selecionados
           selectedAddons: [
             { id: 1, name: 'Queijo Extra', price: 3.00, quantity: 1 }
           ],
@@ -346,7 +318,6 @@ const getMockOrders = () => {
           hasComboSelection: true,
           isComboItem: true,
           
-          // Para exibição no histórico
           comboDetails: {
             hamburguer: 'Hambúrguer Artesanal',
             acompanhamento: 'Batata Frita',
@@ -406,6 +377,53 @@ const getMockOrders = () => {
   ]
 }
 
+// ========== DEPOIS: Declare a função fetchOrders ==========
+const fetchOrders = async () => {
+  console.log('🔍🔍🔍 fetchOrders FOI CHAMADO! 🔍🔍🔍')
+  console.log('🔍 userId recebido no fetchOrders:', props.userId)
+  
+  if (!props.userId) {
+    console.warn('⚠️ UserId não fornecido para buscar pedidos')
+    orders.value = []
+    loading.value = false
+    return
+  }
+  
+  loading.value = true
+  console.log('📦 Buscando pedidos para o usuário:', props.userId)
+  
+  try {
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Usando dados mock
+    orders.value = getMockOrders()
+    console.log('✅ Pedidos carregados com sucesso!')
+    console.log('📦 Quantidade de pedidos:', orders.value.length)
+    
+  } catch (error) {
+    console.error('❌ Error fetching orders:', error)
+    orders.value = getMockOrders()
+  } finally {
+    loading.value = false
+    console.log('🏁 fetchOrders finalizado')
+  }
+}
+
+// ========== POR ÚLTIMO: Watch que chama fetchOrders ==========
+watch(() => props.modelValue, (newValue) => {
+  console.log('📱 Watch - Modal mudou para:', newValue)
+  console.log('📱 Watch - userId atual:', props.userId)
+  
+  if (newValue) {
+    console.log('📱 Modal ABERTO - chamando fetchOrders...')
+    fetchOrders()
+  } else {
+    console.log('📱 Modal FECHADO')
+  }
+}, { immediate: true })
+
+// ========== Funções auxiliares ==========
 const closeModal = () => {
   emit('update:modelValue', false)
   expandedOrder.value = null
@@ -482,14 +500,11 @@ const reorder = (order) => {
   closeModal()
 }
 
-// Fetch orders when modal opens
-watch(() => props.modelValue, (newValue) => {
-  if (newValue && props.userId) {
-    fetchOrders()
-  }
+console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
+  modelValue: props.modelValue,
+  userId: props.userId
 })
 </script>
-
 <style scoped>
 /* Seu CSS existente permanece o mesmo */
 .modal-overlay {
