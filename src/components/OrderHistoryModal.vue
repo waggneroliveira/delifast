@@ -554,7 +554,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 
 .modal-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: clamp(1.125rem, 1.5vw, 1.5rem);
   font-weight: 600;
   color: #1f2937;
 }

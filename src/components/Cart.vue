@@ -1126,4 +1126,9 @@
   height: 30px;
   font-size: 0.875rem;
 }
+@media (max-width: 475px) { 
+    .badge.bg-warning.p-2.text-dark{
+        font-size: 0.625rem;
+    }
+}
 </style>
