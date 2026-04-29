@@ -24,14 +24,15 @@
     const userStore = useUserStore()
 
     // Estados do modal
-    const showModal = ref(false)
+    const showProductModal = ref(false)
     const selectedProduct = ref(null)
     const showOrderHistoryModal = ref(false)
+    const showLoginModal = ref(false)
 
     // Abrir modal do produto
     const openProductModal = (product) => {
       selectedProduct.value = product
-      showModal.value = true
+      showProductModal.value = true
     }
 
     // Função para lidar com o re-pedido - VERSÃO COMPLETA CORRIGIDA
@@ -139,7 +140,7 @@
       
       console.log('📝 Realizando login com dados:', userData)
       userStore.login(userData)
-      showModal.value = false
+      showLoginModal.value = false
       
       toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
         timeout: 4000
@@ -156,7 +157,7 @@
         toast.warning('Faça login para ver seus pedidos!', {
           timeout: 3000
         })
-        showModal.value = true
+        showLoginModal.value = true
         return
       }
       
@@ -167,7 +168,7 @@
           timeout: 4000
         })
         userStore.logout()
-        showModal.value = true
+        showLoginModal.value = true
         return
       }
       
@@ -891,7 +892,7 @@
       </main>
 
       <ProductModal
-        v-model:show="showModal"
+        v-model:show="showProductModal"
         :product="selectedProduct"
         @add-to-cart="addItemToCart"
       />
@@ -906,7 +907,7 @@
     
     <!-- IdentifyModal para login -->
     <IdentifyModal
-      v-model="showModal"
+      v-model="showLoginModal"
       @submit="handleIdentify"
     />
   </div>
