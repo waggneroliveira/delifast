@@ -5,8 +5,8 @@
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content p-0">
             
-            <div class="bg-header py-2 px-4 mb-4 d-flex gap-2 justify-content-between">
-                <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div class="bg-header py-2 px-2 mb-4 d-flex gap-2 justify-content-between">
+                <svg class="icon-location" width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M17 0C7.62838 0 0 7.27149 0 16.2047C0 20.62 1.6795 24.8739 4.71769 28.1973L17 41.5667L29.2823 28.1973C32.3205 24.8758 34 20.6219 34 16.2047C34 7.27149 26.3716 0 17 0ZM17 22.2836C13.4717 22.2836 10.6247 19.5699 10.6247 16.2066C10.6247 12.8434 13.4717 10.1296 17 10.1296C20.5283 10.1296 23.3753 12.8434 23.3753 16.2066C23.3753 19.5699 20.5283 22.2836 17 22.2836Z" fill="#595959"/>
                 </svg>
 
@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            <div class="px-4">
+            <div class="px-2">
 
                 <!-- Endereço -->
                 <div class="border p-3 rounded mb-3 d-flex gap-2 align-items-start">
@@ -141,5 +141,27 @@
 }
 .modal-content {
   z-index: 1050;
+}
+@media (max-width: 476px) {
+    .min-height{
+        min-height: 70px;
+    }
+    .name{
+        font-size: 0.625rem;
+        margin-bottom: 3px;
+    }
+    .border.rounded.p-2.flex-fill.d-flex.align-items-center.gap-2{
+        font-size: 0.844rem;
+    }
+    .location-title{
+        font-size: 1rem;
+    }
+    .small.text-muted.mb-0{
+        font-size: 0.75rem !important;
+    }
+    .icon-location{
+        width: 15px;
+        height: 25px;
+    }
 }
 </style>

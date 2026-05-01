@@ -113,8 +113,11 @@
               <a class="dropdown-item" href="#" @click="showAddressModal = true">
                 Meus Endereços
               </a>
+              <a class="dropdown-item" href="#" @click="showProfileModal = true">
+                Meu Perfil
+              </a>
               <a class="dropdown-item" href="#" @click="openOrderHistory">
-                Meus pedidos
+                Meus Pedidos
               </a>
 
               <li><hr class="dropdown-divider"></li>
@@ -130,18 +133,7 @@
                   Entrar
                 </a>
               </li>
-            </ul>
-    
-            <AddressModal v-model="showAddressModal" />
-            
-            <!-- OrderHistoryModal com verificação de userId -->
-            <OrderHistoryModal 
-              v-if="userStore.isLogged && userStore.userId"
-              v-model="showOrderHistoryModal" 
-              :user-id="userStore.userId"
-              @reorder="handleReorder"
-            />
-            
+            </ul>            
           </div>
         </div>
 
@@ -149,90 +141,198 @@
     </div>
   </div>
 
-    <!-- ================= MENU MOBILE ================= -->
-  <div 
-    class="offcanvas offcanvas-start d-md-none" 
-    tabindex="-1" 
-    id="mobileMenu"
-  >
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title">Menu</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-
-    <div class="offcanvas-body d-flex flex-column gap-4">
-
-      <!-- HORÁRIOS -->
-      <div class="d-flex flex-column gap-2 text-secondary small">
-
-        <div class="d-flex align-items-start gap-2">
-          <svg class="mt-1" width="17" height="17">...</svg>
-          <span class="d-flex flex-column">
-            Segunda à sexta-feira <i>14:00 às 18:00</i>
-          </span>
-        </div>
-
-        <div class="d-flex align-items-start gap-2">
-          <svg class="mt-1" width="17" height="17">...</svg>
-          <span class="d-flex flex-column">
-            Sábado e Domingo <i>14:00 às 18:00</i>
-          </span>
-        </div>
-
-      </div>
-
-      <!-- FALE CONOSCO -->
-      <div class="d-flex align-items-center gap-2">
-        <svg width="15" height="15">...</svg>
-        <span>Fale Conosco</span>
-      </div>
-
-      <!-- LOCAIS -->
-      <button class="rounded-2 height-35 px-3 btn-reset location-delivery text-white flex-shrink-0" 
-      @click="showModalLocation = true"
-      data-bs-dismiss="offcanvas">
-        Locais de entrega
-      </button>
-
-      <!-- ENDEREÇOS -->
-      <button 
-        class="btn btn-light text-start"
-        @click="showAddressModal = true"
-        data-bs-dismiss="offcanvas"
-      >
-        Meus Endereços
-      </button>
-
-      <!-- PEDIDOS -->
-      <button 
-        class="btn btn-light text-start"
-        @click="openOrderHistory"
-        data-bs-dismiss="offcanvas"
-      >
-        Meus pedidos
-      </button>
-
-      <!-- LOGIN -->
-      <div>
-        <button 
-          v-if="userStore.isLogged"
-          class="btn btn-outline-danger w-100"
-          @click="logout"
-        >
-          Sair
-        </button>
-
-        <button 
-          v-else
-          class="btn btn-primary w-100"
-          @click="showModal = true"
-        >
-          Entrar
-        </button>
-      </div>
-
-    </div>
+ <!-- ================= MENU MOBILE MELHORADO ================= -->
+<div 
+  class="offcanvas offcanvas-start d-md-none" 
+  tabindex="-1" 
+  id="mobileMenu"
+>
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">
+      <i class="bi bi-grid-3x3-gap-fill me-2"></i>Menu
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
   </div>
+
+  <div class="offcanvas-body d-flex flex-column gap-3">
+
+    <!-- INFORMAÇÕES DO USUÁRIO (se logado) -->
+    <div v-if="userStore.isLogged" class="user-info-mobile p-3 rounded-3 text-center mb-2">
+      <div class="avatar-mobile mb-2">
+        <i class="bi bi-person-circle fs-1"></i>
+      </div>
+      <h6 class="mb-1">{{ userStore.fullName || 'Usuário' }}</h6>
+      <small class="text-muted">{{ userStore.whatsapp || 'Telefone não informado' }}</small>
+    </div>
+
+    <!-- HORÁRIOS -->
+    <div class="menu-section">
+      <div class="section-title mb-2">
+        <i class="bi bi-clock-history me-2"></i>
+        <span>Horário de Funcionamento</span>
+      </div>
+      <div class="d-flex flex-column gap-2 text-secondary small ps-3">
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-calendar-day mt-1 text-purple"></i>
+          <span class="d-flex flex-column">
+            Segunda à sexta-feira <i class="fw-normal">14:00 às 18:00</i>
+          </span>
+        </div>
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-calendar-weekend mt-1 text-purple"></i>
+          <span class="d-flex flex-column">
+            Sábado e Domingo <i class="fw-normal">14:00 às 18:00</i>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINKS PRINCIPAIS -->
+    <div class="menu-section">
+      <div class="section-title mb-2">
+        <i class="bi bi-compass me-2"></i>
+        <span>Navegação</span>
+      </div>
+      <div class="menu-links d-flex flex-column gap-2">
+        <button 
+          class="menu-link-btn"
+          @click="closeOffcanvasAndNavigate('home')"
+        >
+          <i class="bi bi-house-door me-3"></i>
+          <span>Início</span>
+        </button>
+
+        <button 
+          class="menu-link-btn"
+          @click="closeOffcanvasAndNavigate('search')"
+        >
+          <i class="bi bi-search me-3 bg-transparent"></i>
+          <span>Buscar produtos</span>
+        </button>
+
+        <button 
+          class="menu-link-btn"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#cartCanvas"
+          @click="closeOffcanvas"
+        >
+          <i class="bi bi-cart3 me-3"></i>
+          <span>Carrinho</span>
+          <span v-if="cartStore.totalItems > 0" class="cart-badge-mobile ms-auto">
+            {{ cartStore.totalItems }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ÁREA DO CLIENTE -->
+    <div class="menu-section">
+      <div class="section-title mb-2">
+        <i class="bi bi-person-badge me-2"></i>
+        <span>Área do Cliente</span>
+      </div>
+      <div class="menu-links d-flex flex-column gap-2">
+        <button 
+          class="menu-link-btn"
+          @click.stop="openAddressModal"
+        >
+          <i class="bi bi-geo-alt me-3"></i>
+          <span>Meus Endereços</span>
+        </button>
+
+        <button 
+          class="menu-link-btn"
+          @click.stop="openProfileModal"
+        >
+          <i class="bi bi-person-circle me-3"></i>
+          <span>Meu Perfil</span>
+        </button>
+
+        <button 
+          class="menu-link-btn"
+          @click.stop="openOrderHistoryMobile"
+        >
+          <i class="bi bi-bag-check me-3"></i>
+          <span>Meus Pedidos</span>
+        </button>
+
+        <button 
+          class="menu-link-btn"
+          @click.stop="openLocationModal"
+        >
+          <i class="bi bi-truck me-3"></i>
+          <span>Locais de entrega</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTATO -->
+    <div class="menu-section">
+      <div class="section-title mb-2">
+        <i class="bi bi-headset me-2"></i>
+        <span>Atendimento</span>
+      </div>
+      <div class="menu-links d-flex flex-column gap-2">
+        <a href="tel:+5585999999999" class="menu-link-btn">
+          <i class="bi bi-telephone me-3"></i>
+          <span>(85) 99999-9999</span>
+        </a>
+        <a href="https://wa.me/5585999999999" target="_blank" class="menu-link-btn">
+          <i class="bi bi-whatsapp me-3"></i>
+          <span>WhatsApp</span>
+        </a>
+        <a href="mailto:contato@oxenteacai.com.br" class="menu-link-btn">
+          <i class="bi bi-envelope me-3"></i>
+          <span>contato@oxenteacai.com.br</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- REDES SOCIAIS -->
+    <div class="menu-section">
+      <div class="section-title mb-2">
+        <i class="bi bi-share me-2"></i>
+        <span>Redes Sociais</span>
+      </div>
+      <div class="social-icons d-flex gap-3 justify-content-center">
+        <a href="#" target="_blank" class="social-icon">
+          <i class="bi bi-instagram fs-4"></i>
+        </a>
+        <a href="#" target="_blank" class="social-icon">
+          <i class="bi bi-facebook fs-4"></i>
+        </a>
+        <a href="#" target="_blank" class="social-icon">
+          <i class="bi bi-tiktok fs-4"></i>
+        </a>
+        <a href="#" target="_blank" class="social-icon">
+          <i class="bi bi-youtube fs-4"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- LOGIN/LOGOUT -->
+    <div class="mt-2">
+      <button 
+        v-if="userStore.isLogged"
+        class="btn-logout-mobile w-100"
+        @click.stop="logoutMobile"
+      >
+        <i class="bi bi-box-arrow-right me-2"></i>
+        Sair da conta
+      </button>
+
+      <button 
+        v-else
+        class="btn-login-mobile w-100"
+        @click.stop="openLoginModal"
+      >
+        <i class="bi bi-box-arrow-in-right me-2"></i>
+        Entrar na minha conta
+      </button>
+    </div>
+
+  </div>
+</div>
 
   <!-- Modal -->
   <IdentifyModal
@@ -241,11 +341,22 @@
   />
   <!-- Modal -->
   <DeliveryLocations v-model:modelValue="showModalLocation"/>
+
+  <!-- Componente do perfil -->
+  <ProfileModal v-model="showProfileModal" @profile-updated="handleProfileUpdate" />
+
+  <!-- OrderHistoryModal com verificação de userId -->
+  <OrderHistoryModal
+    v-model="showOrderHistoryModal" 
+    :user-id="userStore.userId"
+    @reorder="handleReorder"
+  />
+
+  <AddressModal v-model="showAddressModal" />
 </template>
 
-
 <script setup>
-  import { ref, onMounted, computed } from 'vue'
+  import { ref, onMounted, computed, nextTick } from 'vue'
   import { useCartStore } from '@/stores/useCartStore'
   import { useUserStore } from '@/stores/useUserStore'
   import { useToast } from 'vue-toastification'
@@ -253,12 +364,14 @@
   import AddressModal from '@/components/AddressModal.vue'
   import DeliveryLocations from '@/components/DeliveryLocations.vue'
   import OrderHistoryModal from '@/components/OrderHistoryModal.vue'
+  import ProfileModal from '@/components/Profile.vue'
 
   const toast = useToast()
   const cartStore = useCartStore()
   const userStore = useUserStore()
 
   // estado dos modais
+  const showProfileModal = ref(false)
   const showModalLocation = ref(false)
   const showModal = ref(false)
   const showAddressModal = ref(false)
@@ -269,43 +382,7 @@
     return userStore.isLogged && userStore.userId
   })
 
-  // Função para abrir o histórico de pedidos com verificação robusta
-  const openOrderHistory = () => {
-    console.log('🔍 Verificando login para abrir histórico:', {
-      isLogged: userStore.isLogged,
-      userId: userStore.userId,
-      userData: {
-        id: userStore.id,
-        fullName: userStore.fullName,
-        whatsapp: userStore.whatsapp
-      }
-    })
-    
-    // Verificar se está logado
-    if (!userStore.isLogged) {
-      toast.warning('Faça login para ver seus pedidos!', {
-        timeout: 3000
-      })
-      showModal.value = true
-      return
-    }
-    
-    // Verificar se tem ID
-    if (!userStore.userId) {
-      console.error('❌ Usuário logado mas sem ID:', userStore)
-      toast.error('Erro ao carregar dados do usuário. Por favor, faça login novamente.', {
-        timeout: 4000
-      })
-      userStore.logout()
-      showModal.value = true
-      return
-    }
-    
-    console.log('✅ Abrindo histórico para userId:', userStore.userId)
-    showOrderHistoryModal.value = true
-  }
-
-  // Função para lidar com o re-pedido - VERSÃO COMPLETA CORRIGIDA
+  // ========== FUNÇÃO HANDLE REORDER ==========
   const handleReorder = (order) => {
     console.log('🎯 Reordenando pedido completo:', order.id)
     
@@ -314,31 +391,22 @@
       return
     }
     
-    // Processar cada item do pedido
     order.items.forEach((originalItem, index) => {
-      console.log(`📦 Processando item ${index + 1}:`, originalItem.name, originalItem.isCombo ? '(COMBO)' : '(NORMAL)')
-      
       if (originalItem.isCombo) {
-        // 🔥 PARA COMBO: Adicionar com todas as configurações preservadas
         const comboItem = JSON.parse(JSON.stringify(originalItem))
-        
         comboItem.productId = comboItem.productId || comboItem.id
         comboItem.finalPrice = comboItem.finalPrice || comboItem.price
         comboItem.basePrice = comboItem.basePrice || comboItem.price
         comboItem.hasComboSelection = true
         comboItem.isComboItem = true
-        
-        // ⭐ ADICIONAR FLAG DE REORDER COM FORÇA
         comboItem.isReorder = true
         comboItem.reorderDate = new Date().toISOString()
         comboItem.originalOrderId = order.id
         
-        // Garantir que as seleções do combo existem
         if (!comboItem.itemSelections && comboItem.comboDetails) {
           comboItem.itemSelections = rebuildSelectionsFromDetails(comboItem)
         }
         
-        // Garantir que os adicionais estão no formato correto
         if (comboItem.selectedAddons && comboItem.selectedAddons.length) {
           comboItem.addonsTotalPrice = comboItem.selectedAddons.reduce(
             (sum, addon) => sum + (addon.price * (addon.quantity || 1)), 0
@@ -348,26 +416,18 @@
           comboItem.addonsTotalPrice = 0
         }
         
-        // Gerar ID único
         comboItem.uniqueId = `${comboItem.productId}_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 6)}`
         
-        // Remover propriedades de exibição
         delete comboItem.comboDetails
         delete comboItem.customization
         delete comboItem.createdAt
         delete comboItem.updatedAt
         
-        // ⭐ LOG PARA VERIFICAR SE A FLAG ESTÁ SENDO ADICIONADA
-        console.log('✅ Adicionando combo com isReorder:', comboItem.isReorder, comboItem.name)
-        
-        // Adicionar ao carrinho
         for (let i = 0; i < (comboItem.quantity || 1); i++) {
           const comboCopy = JSON.parse(JSON.stringify(comboItem))
           cartStore.add(comboCopy)
         }
-        
       } else {
-        // 🍔 PARA ITEM NORMAL
         const simpleItem = {
           id: originalItem.id,
           productId: originalItem.productId || originalItem.id,
@@ -386,17 +446,11 @@
           selectedFlavors: originalItem.selectedFlavors,
           aditionals: originalItem.aditionals ? JSON.parse(JSON.stringify(originalItem.aditionals)) : [],
           aditionalsState: originalItem.aditionalsState ? { ...originalItem.aditionalsState } : {},
-          // ⭐ ADICIONAR FLAG DE REORDER COM FORÇA
-          isReorder: true,  // FORÇAR A FLAG
+          isReorder: true,
           reorderDate: new Date().toISOString(),
           originalOrderId: order.id
         }
         
-        // ⭐ LOG PARA VERIFICAR SE A FLAG ESTÁ SENDO ADICIONADA
-        console.log('✅ Adicionando item normal com isReorder:', simpleItem.isReorder, simpleItem.name)
-        console.log('📦 Item completo:', simpleItem)
-        
-        // Adicionar ao carrinho
         for (let i = 0; i < simpleItem.quantity; i++) {
           const itemCopy = JSON.parse(JSON.stringify(simpleItem))
           cartStore.add(itemCopy)
@@ -409,29 +463,19 @@
       timeout: 3000
     })
     
-    // Fecha o modal de histórico
     showOrderHistoryModal.value = false
   }
 
-  // Função auxiliar para reconstruir seleções a partir do comboDetails (fallback)
   const rebuildSelectionsFromDetails = (item) => {
     if (!item.comboDetails) return null
-    
     const selections = {}
     
-    // Mapear comboDetails para o formato que o carrinho espera
     if (item.comboDetails.acompanhamento && item.comboItems) {
       const acompanhamentoItem = item.comboItems.find(ci => ci.id === 'acompanhamento')
       if (acompanhamentoItem && acompanhamentoItem.options) {
-        const choice = acompanhamentoItem.options.choices.find(
-          c => c.name === item.comboDetails.acompanhamento
-        )
+        const choice = acompanhamentoItem.options.choices.find(c => c.name === item.comboDetails.acompanhamento)
         if (choice) {
-          selections.acompanhamento = {
-            choice: choice,
-            quantity: 1,
-            price: choice.price || 0
-          }
+          selections.acompanhamento = { choice, quantity: 1, price: choice.price || 0 }
         }
       }
     }
@@ -439,53 +483,135 @@
     if (item.comboDetails.bebida && item.comboItems) {
       const bebidaItem = item.comboItems.find(ci => ci.id === 'bebida')
       if (bebidaItem && bebidaItem.options) {
-        const choice = bebidaItem.options.choices.find(
-          c => c.name === item.comboDetails.bebida
-        )
+        const choice = bebidaItem.options.choices.find(c => c.name === item.comboDetails.bebida)
         if (choice) {
-          selections.bebida = {
-            choice: choice,
-            quantity: 1,
-            price: choice.price || 0
-          }
+          selections.bebida = { choice, quantity: 1, price: choice.price || 0 }
         }
-      }
-    }
-    
-    if (item.comboDetails.refrigerante && item.comboItems) {
-      const refrigeranteItem = item.comboItems.find(ci => ci.id === 'refrigerante')
-      if (refrigeranteItem && refrigeranteItem.options) {
-        const choice = refrigeranteItem.options.choices.find(
-          c => c.name === item.comboDetails.refrigerante
-        )
-        if (choice) {
-          selections.refrigerante = {
-            choice: choice,
-            quantity: 1,
-            price: choice.price || 0
-          }
-        }
-      }
-    }
-    
-    if (item.comboDetails.rolinhos && item.comboDetails.rolinhos.length && item.comboItems) {
-      const rolinhosItem = item.comboItems.find(ci => ci.id === 'rolinhos')
-      if (rolinhosItem && rolinhosItem.options) {
-        selections.rolinhos = item.comboDetails.rolinhos.map(nome => {
-          const choice = rolinhosItem.options.choices.find(c => c.name === nome)
-          return {
-            choice: choice || { name: nome, price: 0 },
-            quantity: 1,
-            price: 0
-          }
-        })
       }
     }
     
     return Object.keys(selections).length > 0 ? selections : null
   }
 
-  // quando recebe dados do modal de identificação
+  // Função para fechar o offcanvas CORRETAMENTE
+  const closeOffcanvas = () => {
+    const offcanvasElement = document.getElementById('mobileMenu')
+    if (!offcanvasElement) return
+    
+    // Verifica se tem uma instância do Bootstrap
+    if (window.bootstrap && window.bootstrap.Offcanvas) {
+      const offcanvas = window.bootstrap.Offcanvas.getInstance(offcanvasElement)
+      if (offcanvas) {
+        offcanvas.hide()
+      }
+    }
+    
+    // Remove qualquer backdrop remanescente
+    const backdrop = document.querySelector('.offcanvas-backdrop')
+    if (backdrop) {
+      backdrop.remove()
+    }
+    
+    // Restaura o body
+    document.body.classList.remove('offcanvas-open')
+    document.body.style.overflow = ''
+    document.body.style.paddingRight = ''
+  }
+
+  // Abrir modal de endereços - VERSÃO CORRIGIDA
+  const openAddressModal = () => {
+    // Fecha o offcanvas primeiro
+    closeOffcanvas()
+    // Pequeno delay para garantir que fechou
+    setTimeout(() => {
+      showAddressModal.value = true
+    }, 150)
+  }
+
+  // Abrir modal de perfil
+  const openProfileModal = () => {
+    closeOffcanvas()
+    setTimeout(() => {
+      showProfileModal.value = true
+    }, 150)
+  }
+
+  // Abrir modal de locais de entrega
+  const openLocationModal = () => {
+    closeOffcanvas()
+    setTimeout(() => {
+      showModalLocation.value = true
+    }, 150)
+  }
+
+  // Abrir modal de login
+  const openLoginModal = () => {
+    closeOffcanvas()
+    setTimeout(() => {
+      showModal.value = true
+    }, 150)
+  }
+
+  // Abrir histórico de pedidos
+  const openOrderHistoryMobile = () => {
+    closeOffcanvas()
+    
+    setTimeout(() => {
+      if (!userStore.isLogged) {
+        toast.warning('Faça login para ver seus pedidos!', { timeout: 3000 })
+        showModal.value = true
+        return
+      }
+      
+      if (!userStore.userId) {
+        toast.error('Erro ao carregar dados do usuário. Por favor, faça login novamente.', { timeout: 4000 })
+        userStore.logout()
+        showModal.value = true
+        return
+      }
+      
+      showOrderHistoryModal.value = true
+    }, 150)
+  }
+
+  // Navegação
+  const closeOffcanvasAndNavigate = (page) => {
+    closeOffcanvas()
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('mobile-navigation', { detail: { page } }))
+    }, 200)
+  }
+
+  // Logout mobile
+  const logoutMobile = () => {
+    closeOffcanvas()
+    setTimeout(() => {
+      logout()
+    }, 150)
+  }
+
+  const handleProfileUpdate = (updatedProfile) => {
+    console.log('Perfil atualizado:', updatedProfile)
+    toast.success('Perfil atualizado com sucesso!', { timeout: 3000 })
+  }
+
+  const openOrderHistory = () => {
+    if (!userStore.isLogged) {
+      toast.warning('Faça login para ver seus pedidos!', { timeout: 3000 })
+      showModal.value = true
+      return
+    }
+    
+    if (!userStore.userId) {
+      toast.error('Erro ao carregar dados do usuário. Por favor, faça login novamente.', { timeout: 4000 })
+      userStore.logout()
+      showModal.value = true
+      return
+    }
+    
+    showOrderHistoryModal.value = true
+  }
+
   const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
     const userData = {
       id: Date.now(),
@@ -494,40 +620,25 @@
       email: ''
     }
     
-    console.log('📝 Realizando login com dados:', userData)
     userStore.login(userData)
     showModal.value = false
     
-    toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
-      timeout: 4000
-    })
+    toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, { timeout: 4000 })
   }
 
-  // Carregar dados do usuário ao iniciar a página
   onMounted(() => {
     userStore.loadUserFromStorage()
-    console.log('📦 TopBar montada - Status do usuário:', {
-      isLogged: userStore.isLogged,
-      userId: userStore.userId,
-      fullName: userStore.fullName
-    })
   })
 
-  // Logout
   const logout = () => {
     const userName = userStore.fullName || 'Usuário'
-    const userId = userStore.userId
-    
-    console.log(`👋 Usuário ${userName} (ID: ${userId}) está fazendo logout`)
     userStore.logout()
     
     if (showOrderHistoryModal.value) {
       showOrderHistoryModal.value = false
     }
     
-    toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, {
-      timeout: 4000
-    })
+    toast.info(`Até mais, ${userName}! Você saiu da sua conta.`, { timeout: 4000 })
   }
 </script>
 
@@ -617,6 +728,125 @@
   }
   .top-bar{
     z-index: 12;
+  }
+
+  /* ================= ESTILOS DO MENU MOBILE ================= */
+  .offcanvas-header {
+    background: #FFF1C3;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .offcanvas-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .user-info-mobile {
+    background: linear-gradient(135deg, #FFF1C3 0%, #FFE8A0 100%);
+    border: 1px solid #FFC400;
+  }
+
+  .user-info-mobile i {
+    color: #A4268E;
+  }
+
+  .section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #A4268E;
+    border-left: 3px solid #FFC400;
+    padding-left: 8px;
+  }
+
+  .menu-link-btn {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    color: #1f2937;
+  }
+
+  .menu-link-btn:hover {
+    background: #FFF1C3;
+    transform: translateX(5px);
+  }
+
+  .menu-link-btn i {
+    color: #A4268E;
+    font-size: 1.1rem;
+    width: 24px;
+  }
+
+  .cart-badge-mobile {
+    background: #FFC400;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .social-icons {
+    margin-top: 8px;
+  }
+
+  .social-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    color: #A4268E;
+    text-decoration: none;
+  }
+
+  .social-icon:hover {
+    background: #FFC400;
+    color: #000;
+    transform: translateY(-3px);
+  }
+
+  .btn-login-mobile {
+    background: #A4268E;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-login-mobile:hover {
+    background: #8a1f74;
+    transform: translateY(-2px);
+  }
+
+  .btn-logout-mobile {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-logout-mobile:hover {
+    background: #b91c1c;
+    transform: translateY(-2px);
+  }
+
+  .menu-section {
+    margin-bottom: 8px;
   }
 
   @media (min-width: 1400px) {

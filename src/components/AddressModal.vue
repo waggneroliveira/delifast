@@ -6,7 +6,7 @@
     style="display: block; background: rgba(0,0,0,.5)"
     @click.self="close"
   >
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
 
         <!-- HEADER -->
@@ -22,7 +22,7 @@
           <!-- LISTA -->
           <div v-if="view === 'list'" class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6>Endereços cadastrados</h6>
+                <h6 class="address-title">Endereços cadastrados</h6>
                 <!-- No lugar do botão Novo Endereço existente -->
                 <button
                     v-if="addresses.length < 2"
@@ -478,5 +478,9 @@
         border-color: #0d6efd;
         background-color: rgba(13,110,253,.05);
     }
-
+    @media (max-width: 476px) {
+      .address-title, .btn.btn-outline-primary.btn-sm{
+        font-size: 0.844rem;  
+      }
+    }
 </style>

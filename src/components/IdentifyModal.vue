@@ -7,7 +7,7 @@
     @click.self="close"
   >
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content p-0">
+      <div class="modal-content p-0 identify-modal">
 
         <!-- HEADER -->
         <div class="header-modal d-flex justify-content-between align-items-center mb-3 py-2 px-4">
@@ -26,7 +26,7 @@
               <label class="form-label">Digite seu número de WhatsApp</label>
               <div class="input-group gap-2">
                 <span class="input-group-text rounded">
-                    <svg class="me-2" width="27" height="20" viewBox="0 0 27 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="brasil-icon me-2" width="27" height="20" viewBox="0 0 27 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_16_469)">
                     <path d="M27 0H0V20H27V0Z" fill="#00923F"/>
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M13.5009 2.42859L2.2959 10L13.5009 17.5714L24.7059 10L13.5009 2.42859Z" fill="#F8C300"/>
@@ -50,7 +50,7 @@
                   placeholder="(99) 99999-9999"
                   @input="formatWhatsapp"
                   maxlength="15"
-                  :disabled="isLoading || isLoggedIn"
+                  :disabled="isLoading"
                 >
               </div>
             </div>
@@ -62,7 +62,7 @@
                 type="text"
                 class="form-control"
                 placeholder="Nome completo"
-                :disabled="isLoading || isLoggedIn"
+                :disabled="isLoading"
               >
             </div>
 
@@ -341,7 +341,7 @@ const checkUserExists = async (whatsappNumber, name) => {
         const exists = data.whatsapp === whatsappNumber && data.fullName === name
         resolve(exists)
       } else {
-        resolve(false)
+        resolve(true)
       }
     }, 500)
   })
@@ -677,9 +677,32 @@ watch(() => props.modelValue, async (open) => {
     }
   }
 })
+
+watch(() => props.modelValue, async (open) => {
+  if (open) {
+    await nextTick()
+    // Força o foco no primeiro input
+    const firstInput = document.querySelector('.identify-modal input')
+    if (firstInput) {
+      firstInput.focus()
+    }
+    // Garante que o modal está visível
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
 </script>
 
 <style scoped>
+    .identify-modal {
+      position: relative;
+      z-index: 1060;
+    }
+
+    .modal-overlay {
+      z-index: 1055;
+    }
     .cep-box {
       width: 45px;
       height: 45px;
@@ -794,5 +817,14 @@ watch(() => props.modelValue, async (open) => {
   position: relative;
   opacity: 0.6;
   pointer-events: none;
+}
+@media (max-width: 475px) {
+  .brasil-icon{
+    width: 20px;
+  }
+  .input-group-text.rounded, .modal-body input{
+    font-size: 0.983rem;
+    height: 40px;
+  }
 }
 </style>

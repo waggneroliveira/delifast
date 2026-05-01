@@ -27,19 +27,33 @@
         </span>
       </button>
     </div>
+
+    <!-- Modal de Perfil -->
+    <ProfileModal v-model="showProfileModal" @profile-updated="handleProfileUpdated" />
+
+    <!-- Modal de Login (IdentifyModal) -->
+    <IdentifyModal v-model="showLoginModal" @submit="handleLoginSuccess" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useCartStore } from '@/stores/useCartStore'
+import { useUserStore } from '@/stores/useUserStore'
+import { useToast } from 'vue-toastification'
+import ProfileModal from '@/components/Profile.vue'
+import IdentifyModal from './IdentifyModal.vue'
 
-const emit = defineEmits(['change', 'open-orders'])
+const emit = defineEmits(['change', 'open-orders', 'profile-updated'])
 
+const toast = useToast()
 const cart = useCartStore()
+const userStore = useUserStore()
 
 const active = ref('orders')
 const isOpeningCart = ref(false)
+const showProfileModal = ref(false)
+const showLoginModal = ref(false)
 
 const items = [
   { key: 'home', icon: 'bi bi-house', label: 'Início' },
@@ -68,6 +82,11 @@ const scrollToTop = () => {
 const handleClick = (item) => {
   if (item.key === 'delivery') {
     openCart()
+    return
+  }
+
+  if (item.key === 'profile') {
+    openProfile()
     return
   }
 
@@ -107,6 +126,39 @@ const openCart = () => {
   }, 300)
 }
 
+// abrir modal de perfil com verificação de login
+const openProfile = () => {
+  // vibração (mobile)
+  if (navigator.vibrate) {
+    navigator.vibrate(30)
+  }
+
+  // Verifica se o usuário está logado
+  if (!userStore.isLogged) {
+    toast.warning('Faça login para acessar seu perfil!', {
+      timeout: 3000
+    })
+    showLoginModal.value = true
+    return
+  }
+
+  // Verifica se tem ID do usuário
+  if (!userStore.userId) {
+    toast.error('Erro ao carregar dados do usuário. Por favor, faça login novamente.', {
+      timeout: 4000
+    })
+    userStore.logout()
+    showLoginModal.value = true
+    return
+  }
+
+  // ativa o menu
+  active.value = 'profile'
+
+  // abre o modal de perfil
+  showProfileModal.value = true
+}
+
 // navegação padrão
 const select = (item) => {
   active.value = item.key
@@ -116,6 +168,26 @@ const select = (item) => {
   } else {
     emit('change', item.key)
   }
+}
+
+// Quando o perfil for atualizado
+const handleProfileUpdated = (updatedProfile) => {
+  console.log('Perfil atualizado:', updatedProfile)
+  emit('profile-updated', updatedProfile)
+}
+
+// Quando o login for bem-sucedido
+const handleLoginSuccess = (userData) => {
+  console.log('Login realizado com sucesso:', userData)
+  toast.success(`Bem-vindo(a), ${userData.fullName}!`, {
+    timeout: 3000
+  })
+  
+  // Após login, abre o perfil automaticamente
+  setTimeout(() => {
+    active.value = 'profile'
+    showProfileModal.value = true
+  }, 500)
 }
 </script>
 
@@ -132,6 +204,7 @@ const select = (item) => {
   border-radius: 50px;
   line-height: 1;
 }
+
 .mobile-bottom-menu {
   position: fixed;
   bottom: 10px;
@@ -151,25 +224,25 @@ const select = (item) => {
 }
 
 .menu-item {
-    all: unset;
-    cursor: pointer;
-    color: #fff;
-    width: 47px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
+  all: unset;
+  cursor: pointer;
+  color: #fff;
+  width: 47px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .menu-item.active {
-    background: #fff;
-    color: #000;
-    padding: 0 30px;
-    border-radius: 30px;
-    gap: 6px;
-    transition: all 0.3s ease;
+  background: #fff;
+  color: #000;
+  padding: 0 30px;
+  border-radius: 30px;
+  gap: 6px;
+  transition: all 0.3s ease;
 }
 
 .menu-item span {

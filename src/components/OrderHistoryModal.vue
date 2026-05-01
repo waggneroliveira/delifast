@@ -3,8 +3,10 @@
   <div v-if="modelValue" class="modal-overlay" @click.self="closeModal">
     <div class="modal-container">
       <div class="modal-header">
-        <h3 class="modal-title">📦 Meus Pedidos</h3>
-        <button class="close-btn" @click="closeModal">×</button>
+        <h5 class="modal-title">
+          <i class="bi bi-bag me-2"></i>Meus Pedidos
+        </h5>
+        <button type="button" class="btn-close" @click="closeModal"></button>
       </div>
 
       <div class="modal-body">
@@ -44,15 +46,15 @@
 
             <div v-if="expandedOrder === order.id" class="order-details">
               <div class="order-summary">
-                <div class="summary-item mb-1 text-dark">
+                <div class="summary-item 1">
                   <strong>Total:</strong> 
                   <span class="ms-2 order-total">{{ formatCurrency(order.total) }}</span>
                 </div>
-                <div class="summary-item mb-1 text-dark">
+                <div class="summary-item mb-1">
                   <strong>Forma de pagamento:</strong> 
                   {{ getPaymentMethodText(order.paymentMethod) }}
                 </div>
-                <div class="summary-item mb-1 text-dark" v-if="order.deliveryAddress">
+                <div class="summary-item mb-1" v-if="order.deliveryAddress">
                   <strong>Endereço de entrega:</strong> 
                   {{ formatAddress(order.deliveryAddress) }}
                 </div>
@@ -484,12 +486,12 @@ const getStatusClass = (status) => {
 
 const getPaymentMethodText = (method) => {
   const methodMap = {
-    credit_card: '💳 Cartão de Crédito',
-    debit_card: '💳 Cartão de Débito',
-    pix: '📱 PIX',
-    cash: '💵 Dinheiro',
-    meal_voucher: '🍽️ Vale Refeição',
-    gift_card: '🎁 Vale Presente'
+    credit_card: 'Cartão de Crédito',
+    debit_card: 'Cartão de Débito',
+    pix: 'PIX',
+    cash: 'Dinheiro',
+    meal_voucher: 'Vale Refeição',
+    gift_card: 'Vale Presente'
   }
   return methodMap[method] || method
 }
@@ -505,8 +507,9 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   userId: props.userId
 })
 </script>
+
 <style scoped>
-/* Seu CSS existente permanece o mesmo */
+/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -521,6 +524,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   backdrop-filter: blur(4px);
 }
 
+/* Modal Container */
 .modal-container {
   background: white;
   border-radius: 16px;
@@ -531,6 +535,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   flex-direction: column;
   box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease-out;
+  overflow: hidden;
 }
 
 @keyframes slideIn {
@@ -544,8 +549,10 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   }
 }
 
+/* Header - Identidade visual do perfil */
 .modal-header {
-  padding: 20px 24px;
+  background: #FFF1C3;
+  padding: 12px 20px;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
@@ -553,31 +560,34 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 }
 
 .modal-title {
+  font-size: clamp(1rem, 1.125vw, 1.125rem);
   margin: 0;
-  font-size: clamp(1.125rem, 1.5vw, 1.5rem);
   font-weight: 600;
   color: #1f2937;
 }
 
-.close-btn {
+.btn-close {
   background: none;
   border: none;
-  font-size: 2rem;
+  font-size: 1.5rem;
   cursor: pointer;
   color: #6b7280;
   transition: color 0.2s;
+  line-height: 1;
 }
 
-.close-btn:hover {
+.btn-close:hover {
   color: #1f2937;
 }
 
+/* Modal Body */
 .modal-body {
   flex: 1;
   overflow-y: auto;
   padding: 20px 24px;
 }
 
+/* Loading e Empty states */
 .loading-state, .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -587,7 +597,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   width: 40px;
   height: 40px;
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #dc2626;
+  border-top: 3px solid #FFC400;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -614,6 +624,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   color: #9ca3af;
 }
 
+/* Orders List */
 .orders-list {
   display: flex;
   flex-direction: column;
@@ -624,10 +635,11 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .order-card:hover {
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -638,6 +650,11 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   justify-content: space-between;
   align-items: center;
   background: #f9fafb;
+  transition: background 0.3s ease;
+}
+
+.order-header:hover {
+  background: #f1f3f5;
 }
 
 .order-info {
@@ -668,6 +685,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   font-weight: 500;
 }
 
+/* Status colors */
 .status-pending { background: #fef3c7; color: #92400e; }
 .status-confirmed { background: #dbeafe; color: #1e40af; }
 .status-preparing { background: #fed7aa; color: #9a3412; }
@@ -680,6 +698,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   color: #6b7280;
 }
 
+/* Order Details */
 .order-details {
   padding: 16px;
   border-top: 1px solid #e5e7eb;
@@ -687,14 +706,15 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 }
 
 .order-summary {
-  background: #f9fafb;
+  background: #FFF1C3;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 16px;
 }
 
 .summary-item {
   font-size: 0.9rem;
+  color: #1f2937;
 }
 
 .order-total {
@@ -703,6 +723,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   font-size: 1rem;
 }
 
+/* Items */
 .items-title {
   font-weight: 600;
   margin-bottom: 12px;
@@ -721,9 +742,16 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 .order-item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px;
   border-bottom: 1px solid #f3f4f6;
+  transition: background 0.3s ease;
+}
+
+.order-item:hover {
+  background: #f9fafb;
+  border-radius: 8px;
 }
 
 .item-image {
@@ -750,9 +778,10 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 
 .item-price {
   font-weight: 500;
-  color: #1f2937;
+  color: #A4268E;
 }
 
+/* Customizations */
 .order-customizations {
   margin-top: 16px;
   padding-top: 16px;
@@ -776,6 +805,12 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   background: #f9fafb;
   padding: 12px;
   border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.customization-item:hover {
+  background: #f1f3f5;
+  transform: translateX(5px);
 }
 
 .customization-item-name {
@@ -790,7 +825,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 .combo-details {
   margin-top: 8px;
   padding-left: 12px;
-  border-left: 3px solid #dc2626;
+  border-left: 3px solid #FFC400;
   font-size: 0.85rem;
   color: #4b5563;
 }
@@ -804,29 +839,33 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
   font-weight: 600;
   margin-bottom: 8px;
   font-size: 0.85rem;
-  color: #dc2626;
+  color: #A4268E;
 }
 
+/* Reorder Button */
 .order-actions {
   margin-top: 16px;
   text-align: center;
 }
 
 .btn-reorder {
-  background: #dc2626;
-  color: white;
+  background: #FFC400;
+  color: #000;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
 }
 
 .btn-reorder:hover {
-  background: #b91c1c;
+  background: #e6b000;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Modal Footer */
 .modal-footer {
   padding: 16px 24px;
   border-top: 1px solid #e5e7eb;
@@ -835,16 +874,69 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 }
 
 .btn-close-modal {
-  background: #6b7280;
+  background: #6c757d;
   color: white;
   border: none;
   padding: 8px 20px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .btn-close-modal:hover {
-  background: #4b5563;
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  .order-header {
+    padding: 12px;
+  }
+  
+  .order-id {
+    font-size: 0.9rem;
+  }
+  
+  .order-date {
+    font-size: 0.75rem;
+  }
+  
+  .item-name {
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 476px) {
+  .item-image{
+    width: 42px;
+    height: 42px;
+  }
+  .btn-reorder{
+    padding: 6px 12px;
+    font-size: 0.938rem;
+  }
+  .order-item{
+    gap: 10px
+  }
+  .summary-item{
+    font-size: 0.813rem;
+  }
+
+  .order-total, .item-price{
+    font-size: 0.844rem;
+  }
+  .item-name, .customization-details, .combo-details{
+    font-size: 0.75rem;
+  }
 }
 </style>

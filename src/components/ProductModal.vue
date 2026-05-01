@@ -456,9 +456,6 @@
             >
               <span class="me-2 bi" :class="product?.isCombo ? 'bi-gift' : 'bi-cart-plus'"></span> 
               {{ isEditing ? 'Atualizar' : (product?.isCombo ? 'Adicionar Combo' : 'Adicionar ao Carrinho') }}
-              <span v-if="product?.isCombo && product?.savings" class="ms-2">
-                (Economia de R$ {{ formatPrice(product.savings) }})
-              </span>
             </button>
           </div>
         </div>
