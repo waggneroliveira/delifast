@@ -157,12 +157,14 @@
   <div class="offcanvas-body d-flex flex-column gap-3">
 
     <!-- INFORMAÇÕES DO USUÁRIO (se logado) -->
-    <div v-if="userStore.isLogged" class="user-info-mobile p-3 rounded-3 text-center mb-2">
-      <div class="avatar-mobile mb-2">
-        <i class="bi bi-person-circle fs-1"></i>
+    <div v-if="userStore.isLogged" class="user-info-mobile p-3 d-flex justify-content-center align-items-center text-start mb-2">
+      <div class="avatar-mobile me-2">
+        <i class="bi bi-person-circle display-1"></i>
       </div>
-      <h6 class="mb-1">{{ userStore.fullName || 'Usuário' }}</h6>
-      <small class="text-muted">{{ userStore.whatsapp || 'Telefone não informado' }}</small>
+      <div class="col-11">
+        <h6 class="mb-0">{{ userStore.fullName || 'Usuário' }}</h6>
+        <small class="text-muted">{{ userStore.whatsapp || 'Telefone não informado' }}</small>
+      </div>
     </div>
 
     <!-- HORÁRIOS -->
@@ -175,13 +177,13 @@
         <div class="d-flex align-items-start gap-2">
           <i class="bi bi-calendar-day mt-1 text-purple"></i>
           <span class="d-flex flex-column">
-            Segunda à sexta-feira <i class="fw-normal">14:00 às 18:00</i>
+            Segunda à sexta-feira <i class="fst-normal">14:00 às 18:00</i>
           </span>
         </div>
         <div class="d-flex align-items-start gap-2">
-          <i class="bi bi-calendar-weekend mt-1 text-purple"></i>
+          <i class="bi bi-calendar-day mt-1 text-purple"></i>
           <span class="d-flex flex-column">
-            Sábado e Domingo <i class="fw-normal">14:00 às 18:00</i>
+            Sábado e Domingo <i class="fst-normal">14:00 às 18:00</i>
           </span>
         </div>
       </div>
@@ -742,13 +744,8 @@
     color: #1f2937;
   }
 
-  .user-info-mobile {
-    background: linear-gradient(135deg, #FFF1C3 0%, #FFE8A0 100%);
-    border: 1px solid #FFC400;
-  }
-
   .user-info-mobile i {
-    color: #A4268E;
+    color: #CCC;
   }
 
   .section-title {

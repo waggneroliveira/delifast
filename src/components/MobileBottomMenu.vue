@@ -216,7 +216,7 @@ const handleLoginSuccess = (userData) => {
 }
 
 .menu-container {
-  background: #A4268E;
+  background: #FFF1C3;
   padding: 6px;
   border-radius: 40px;
   display: flex;
@@ -226,7 +226,7 @@ const handleLoginSuccess = (userData) => {
 .menu-item {
   all: unset;
   cursor: pointer;
-  color: #fff;
+  color: #000;
   width: 47px;
   height: 40px;
   border-radius: 50%;

@@ -10,7 +10,11 @@
       <div class="modal-content p-0 rounded-0 h-100">
 
         <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-2 position-relative">
+        <div class="bg-header d-flex justify-content-between align-items-center mb-4 position-relative">
+          <span class="ms-4 d-flex gap-1 fw-medium text-capitalize">
+              <i class="bi bi-cup-straw me-1"></i>
+              {{ product?.category }}
+            </span>
           <div class="my-3 d-flex justify-content-end align-items-center w-100 px-4 z-in">
             <button class="btn-close" @click="close"></button>
           </div>
@@ -22,7 +26,7 @@
             <div class="image">
               <img
                 :src="product?.images?.[0] || product?.image"
-                class="img-fluid w-100 rounded-4 mb-2"
+                class="img-fluid w-100 rounded-3 mb-2"
               />
             </div>
 
@@ -651,6 +655,13 @@
     if (hasSizes.value && !selectedSize.value) return false
     if (hasFlavors.value && selectedFlavors.value.length === 0) return false
     return true
+  })
+
+  const formattedCategory = computed(() => {
+    if (!props.product?.category) return ''
+    return props.product.category
+      .toLowerCase()
+      .replace(/\b\w/g, l => l.toUpperCase())
   })
 
   // Funções auxiliares
@@ -1350,6 +1361,9 @@ watch(
 </script>
 
 <style scoped>
+.bg-header{
+  background: #FFF1C3;
+}
 .badge-spec {
   font-size: 0.75rem;
   font-weight: 400;

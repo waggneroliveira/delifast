@@ -336,7 +336,7 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: #A4268E;
+    background: #FFF1C3;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     padding: 0 16px;
   }
@@ -348,21 +348,21 @@ onUnmounted(() => {
   
   /* Estilos para quando o carrossel está fixo/sticky */
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link {
-    color: white;
+    color: #000;
   }
   
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link.active {
-    color: white;
-    border-bottom: 2px solid white;
+    color: #000;
+    border-bottom: 2px solid #000;
     padding-bottom: 2px;
   }
   
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active :deep(.swiper-button-prev) {
-    filter: brightness(0) invert(1);
+    filter: brightness(0);
   }
   
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active :deep(.swiper-button-next) {
-    filter: brightness(0) invert(1);
+    filter: brightness(0);
   }
   .menu-swiper {
     padding-bottom: 30px;
