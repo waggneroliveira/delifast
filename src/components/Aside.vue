@@ -33,7 +33,7 @@
           <a 
             href="#" 
             class="menu-link" 
-            :class="{ 'active': activeCategory === category.id }"
+            :class="{ 'active text-primary': activeCategory === category.id }"
             @click.prevent="scrollToCategory(category.id)"
           >
             {{ category.name }}
@@ -283,7 +283,7 @@ onUnmounted(() => {
 /* Menu desktop */
 .menu-link {
   padding: 10px 0;
-  color: #666;
+  color: var(--text-medium);
   text-decoration: none;
   border-bottom: 1px solid #eee;
   font-size: clamp(0.875rem, 1vw, 1rem);
@@ -291,16 +291,17 @@ onUnmounted(() => {
   width: 75%;
   display: block;
   cursor: pointer;
+  font-weight: 500;
 }
 
 .menu-link:hover {
-  color: #A4268E;
+  color: var(--primary);
 }
 
 .menu-link.active {
-  color: #A4268E;
+  color: var(--primary);
   font-weight: 500;
-  border-bottom: 2px solid #A4268E;
+  border-bottom: 2px solid var(--primary);
 }
 
 /* Mobile Swiper styling */
@@ -374,8 +375,7 @@ onUnmounted(() => {
   }
   
   .menu-swiper .menu-link.active {
-    color: #A4268E;
-    border-bottom: 2px solid #A4268E;
+    border-bottom: 2px solid var(--primary);
     padding-bottom: 2px;
   }
   

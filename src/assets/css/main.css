@@ -8,14 +8,14 @@
   --primary-dark: #7A1C69;
 
   /* ========= BACKGROUNDS ========= */
-  --bg-main: #FFF1C3;
+  --bg-main: #F5F5F5;
   --bg-soft: #FFF6D9;
   --bg-hover: #FFE8A3;
   --bg-white: #FFFFFF;
 
   /* ========= TEXTO ========= */
   --text-dark: #2A2A2A;
-  --text-medium: #6B6B6B;
+  --text-medium: #595959;
   --text-light: #9E9E9E;
   --color-grey: #333633;
 
@@ -33,9 +33,40 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* Classes de texto */
+
+.text-primary { color: var(--primary) !important; }
+.text-primary-light { color: var(--primary-light) !important; }
+.text-primary-soft { color: var(--primary-soft) !important; }
+.text-primary-dark { color: var(--primary-dark) !important; }
+
+.text-dark { color: var(--text-dark) !important; }
+.text-medium { color: var(--text-medium) !important; }
+.text-light { color: var(--text-light) !important; }
+.text-grey { color: var(--color-grey) !important; }
+
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-danger { color: var(--danger) !important; }
+
+/* Classes de background */
+.bg-primary { background-color: var(--primary) !important; }
+.bg-primary-light { background-color: var(--primary-light) !important; }
+.bg-primary-soft { background-color: var(--primary-soft) !important; }
+.bg-primary-dark { background-color: var(--primary-dark) !important; }
+
+.bg-main { background-color: var(--bg-main) !important; }
+.bg-soft { background-color: var(--bg-soft) !important; }
+.bg-hover { background-color: var(--bg-hover) !important; }
+.bg-white { background-color: var(--bg-white) !important; }
+
+.bg-success { background-color: var(--success) !important; }
+.bg-warning { background-color: var(--warning) !important; }
+.bg-danger { background-color: var(--danger) !important; }
+
 .btn-primary{
-    background: #A4268E !important;
-    border-color: #A4268E !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
 }
 html, body {
     overflow-x: hidden;
@@ -45,7 +76,7 @@ html, body {
 
 body {
     font-family: var(--font-primary);
-    background: #F5F5F5;
+    background: var(--bg-main);
 }
 p, .horous-day{
     color: var(--color-grey);
@@ -55,5 +86,5 @@ p, .horous-day{
 }
 .title-section-product{
     font-size: clamp(1.125rem, 2vw, 2rem);
-    color: #A4268E;
+    color: var(--primary);
 }
