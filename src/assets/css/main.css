@@ -8,11 +8,14 @@
   --primary-dark: #7A1C69;
 
   /* ========= BACKGROUNDS ========= */
+  --bg-primary-hover: rgba(245, 116, 116, 0.705);
   --bg-main: #F5F5F5;
-  --bg-light: #eee;
+  --bg-ccc: #CCC;
+  --bg-light: #EEE;
   --bg-soft: #FFF6D9;
-  --bg-ouro: #FFF1C3;
+  --bg-ouro: #ffc3c3;
   --bg-yellow: #FFC400;
+  --bg-orange: #FF8C00;
   --bg-hover: #FFE8A3;
   --bg-white: #FFFFFF;
 
@@ -73,6 +76,10 @@
     background: var(--primary) !important;
     border-color: var(--primary) !important;
 }
+.modal-header, .menu-container {
+  background: var(--bg-ouro);
+}
+
 html, body {
     overflow-x: hidden;
     width: 100%;

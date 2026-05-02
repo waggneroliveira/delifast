@@ -10,7 +10,7 @@
       <div class="modal-content p-0">
 
         <!-- HEADER -->
-        <div class="header-modal d-flex justify-content-between align-items-center mb-3 py-2 px-4">
+        <div class="modal-header d-flex justify-content-between align-items-center mb-3 py-2 px-4">
           <div class="d-flex gap-2">
             <svg width="24" height="27" viewBox="0 0 24 27" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12.3556 14.8065C16.3556 14.6323 19.5556 11.3661 19.5556 7.40323C19.5556 3.30968 16.1778 0 12 0C7.82222 0 4.44444 3.30968 4.44444 7.40323C4.44444 11.3661 7.64444 14.5887 11.6444 14.8065C5.06667 15.0242 0 20.1629 0 27H1.77778C1.77778 20.9032 6.17778 16.5484 12 16.5484C17.8222 16.5484 22.2222 20.9032 22.2222 27H24C24 20.1629 18.9333 15.0242 12.3556 14.8065ZM6.22222 7.44677C6.22222 4.31129 8.8 1.78548 12 1.78548C15.2 1.78548 17.7778 4.31129 17.7778 7.44677C17.7778 10.5823 15.2 13.1081 12 13.1081C8.8 13.1081 6.22222 10.5387 6.22222 7.44677Z" fill="#595959"/>
@@ -248,10 +248,6 @@ watch(() => props.modelValue, (open) => {
 </script>
 
 <style scoped>
-.header-modal {
-  background: #FFF1C3;
-}
-
 .modal-content {
   border-radius: 0px;
   max-width: 500px;
@@ -285,7 +281,7 @@ watch(() => props.modelValue, (open) => {
 
 .option-card:hover {
   background: #f5f5f5;
-  border-color: #FF8C00;
+  border-color: var(--bg-orange);
 }
 
 .option-card input {
@@ -296,7 +292,7 @@ watch(() => props.modelValue, (open) => {
 }
 
 .option-card:has(input:checked) {
-  border-color: #FF8C00;
+  border-color: var(--bg-orange);
   background: #FFF8F0;
 }
 
@@ -340,7 +336,7 @@ watch(() => props.modelValue, (open) => {
 }
 
 .btn-primary {
-  background-color: #FFC400;
+  background-color: var(--primary);
   border: none;
   color: #000;
   font-weight: 500;
@@ -349,7 +345,7 @@ watch(() => props.modelValue, (open) => {
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background-color: #e6b000;
+  background-color: var(--bg-hover);
   color: #000;
 }
 

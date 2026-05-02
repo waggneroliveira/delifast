@@ -724,8 +724,7 @@
 
   /* ================= ESTILOS DO MENU MOBILE ================= */
   .offcanvas-header {
-    background: #FFF1C3;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--bg-ouro);
   }
 
   .offcanvas-title {
@@ -735,7 +734,7 @@
   }
 
   .user-info-mobile i {
-    color: #CCC;
+    color: var(--bg-ccc);
   }
 
   .section-title {

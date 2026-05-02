@@ -10,12 +10,12 @@
       <div class="modal-content p-0 rounded-0 h-100">
 
         <!-- HEADER -->
-        <div class="bg-header d-flex justify-content-between align-items-center mb-4 position-relative">
-          <span class="ms-4 d-flex gap-1 fw-medium text-capitalize">
-              <i class="bi bi-cup-straw me-1"></i>
-              {{ product?.category }}
-            </span>
-          <div class="my-3 d-flex justify-content-end align-items-center w-100 px-4 z-in">
+        <div class="modal-header d-flex justify-content-between align-items-center mb-4 position-relative">
+          <span class="ms-2 d-flex gap-1 fw-medium text-capitalize">
+            <i class="bi bi-cup-straw me-1"></i>
+            {{ product?.category }}
+          </span>
+          <div class="d-flex justify-content-end align-items-center w-100 z-in">
             <button class="btn-close" @click="close"></button>
           </div>
         </div>
@@ -1361,9 +1361,6 @@ watch(
 </script>
 
 <style scoped>
-.bg-header{
-  background: #FFF1C3;
-}
 .badge-spec {
   font-size: 0.75rem;
   font-weight: 400;
@@ -1383,14 +1380,6 @@ watch(
   height: 450px;
   overflow-y: auto;
   padding-right: 8px;
-}
-
-.text-primary {
-  color: #A4268E !important;
-}
-
-.bg-primary {
-  background: #A4268E !important;
 }
 
 .image {
@@ -1424,11 +1413,11 @@ watch(
 }
 
 .option-item:hover {
-  border-color: #a020f0;
+  border-color: var(--bg-primary-hover);
 }
 
 .option-item.active {
-  border-color: #a020f0;
+  border-color: var(--bg-primary-hover);
   background: #f8f0ff;
 }
 
@@ -1442,7 +1431,7 @@ watch(
 }
 
 .scroll::-webkit-scrollbar-thumb {
-  background: #A4268E;
+  background: var(--primary);
   border-radius: 10px;
 }
 

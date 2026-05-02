@@ -412,15 +412,28 @@ onUnmounted(() => {
   }
 
   :deep(.swiper-button-prev) {
-    background-image: url('@/assets/images/left.svg');
     width: 25px;
     height: 25px;
+
+    background-color: var(--primary);
+
+    -webkit-mask: url('@/assets/images/left.svg') no-repeat center;
+    mask: url('@/assets/images/left.svg') no-repeat center;
+
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
 
   :deep(.swiper-button-next) {
-    background-image: url('@/assets/images/right.svg');
     width: 25px;
     height: 25px;
+        background-color: var(--primary);
+
+    -webkit-mask: url('@/assets/images/right.svg') no-repeat center;
+    mask: url('@/assets/images/right.svg') no-repeat center;
+
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
 }
 

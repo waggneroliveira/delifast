@@ -551,7 +551,6 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 
 /* Header - Identidade visual do perfil */
 .modal-header {
-  background: #FFF1C3;
   padding: 12px 20px;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
@@ -718,7 +717,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 }
 
 .order-total {
-  color: #A4268E;
+  color: var(--primary);
   font-weight: 600;
   font-size: 1rem;
 }
@@ -778,7 +777,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 
 .item-price {
   font-weight: 500;
-  color: #A4268E;
+  color: var(--primary);
 }
 
 /* Customizations */
@@ -849,7 +848,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 }
 
 .btn-reorder {
-  background: #FFC400;
+  background: var(--bg-yellow);
   color: #000;
   border: none;
   padding: 10px 20px;
@@ -860,7 +859,7 @@ console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
 }
 
 .btn-reorder:hover {
-  background: #e6b000;
+  background: var(--bg-hover);
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

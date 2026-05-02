@@ -10,7 +10,7 @@
       <div class="modal-content p-0">
 
         <!-- HEADER -->
-        <div class="header-modal d-flex justify-content-between align-items-center mb-3 py-2 px-4">
+        <div class="modal-header d-flex justify-content-between align-items-center mb-3 py-2 px-4">
           <div class="d-flex gap-2">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M0 13.6719V7.65625H19.6875V13.6719C19.6875 14.5947 18.9355 15.3125 18.0469 15.3125H1.64062C0.71875 15.3125 0 14.5947 0 13.6719ZM6.5625 11.3477V12.7148C6.5625 12.9541 6.7334 13.125 6.97266 13.125H11.6211C11.8262 13.125 12.0312 12.9541 12.0312 12.7148V11.3477C12.0312 11.1426 11.8262 10.9375 11.6211 10.9375H6.97266C6.7334 10.9375 6.5625 11.1426 6.5625 11.3477ZM2.1875 11.3477V12.7148C2.1875 12.9541 2.3584 13.125 2.59766 13.125H5.05859C5.26367 13.125 5.46875 12.9541 5.46875 12.7148V11.3477C5.46875 11.1426 5.26367 10.9375 5.05859 10.9375H2.59766C2.3584 10.9375 2.1875 11.1426 2.1875 11.3477ZM19.6875 1.64062V3.28125H0V1.64062C0 0.751953 0.71875 0 1.64062 0H18.0469C18.9355 0 19.6875 0.751953 19.6875 1.64062Z" fill="#595959"/>
@@ -122,10 +122,6 @@ const confirmPayment = () => {
   width: 100%;
 }
 
-.header-modal {
-  background: #FFF1C3;
-}
-
 .modal-title {
   font-size: clamp(1rem, 1.125vw, 1.125rem);
 }
@@ -152,16 +148,16 @@ const confirmPayment = () => {
 
 .option-card:hover {
   background: #f5f5f5;
-  border-color: #FF8C00 !important;
+  border-color: var(--bg-orange) !important;
 }
 
 .option-card.selected {
-  border-color: #A4268E !important;
+  border-color: var(--primary) !important;
   background: #f9f0f8;
 }
 
 .option-card input {
-  accent-color: #A4268E;
+  accent-color: var(--primary);
   margin-right: 8px;
 }
 
@@ -173,13 +169,13 @@ const confirmPayment = () => {
 }
 
 .btn-primary {
-  background-color: #A4268E;
-  border-color: #A4268E;
+  background-color: var(--primary);
+  border-color: var(--primary);
 }
 
 .btn-primary:hover {
-  background-color: #8a1f77;
-  border-color: #8a1f77;
+  background-color: var(--bg-hover);
+  border-color: var(--bg-hover);
 }
 
 .btn-primary:disabled {

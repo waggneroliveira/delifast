@@ -216,7 +216,6 @@ const handleLoginSuccess = (userData) => {
 }
 
 .menu-container {
-  background: #FFF1C3;
   padding: 6px;
   border-radius: 40px;
   display: flex;

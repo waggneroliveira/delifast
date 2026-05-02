@@ -84,7 +84,7 @@
                                         </svg>
                                     </button>
                                     <svg v-if="selectedDeliveryMethod && !(selectedDeliveryMethod?.value === 'delivery' && !selectedAddress)" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect width="28" height="28" rx="14" fill="#FF8C00"/>
+                                        <rect width="28" height="28" rx="14" fill="var(--bg-orange)"/>
                                         <path d="M11.8656 18.775L7.19687 14.1063C6.91563 13.825 6.91563 13.3469 7.19687 13.0656L8.20937 12.0531C8.49062 11.7719 8.94062 11.7719 9.22187 12.0531L12.4 15.2031L19.15 8.45313C19.4312 8.17188 19.8812 8.17188 20.1625 8.45313L21.175 9.46563C21.4562 9.74688 21.4562 10.225 21.175 10.5063L12.9062 18.775C12.625 19.0562 12.1469 19.0562 11.8656 18.775Z" fill="white"/>
                                     </svg>
                                 </div>
@@ -175,7 +175,7 @@
                                         </svg>
                                     </button>
                                     <svg v-if="selectedPaymentMethod" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect width="28" height="28" rx="14" fill="#FF8C00"/>
+                                        <rect width="28" height="28" rx="14" fill="var(--bg-orange)"/>
                                         <path d="M11.8656 18.775L7.19687 14.1063C6.91563 13.825 6.91563 13.3469 7.19687 13.0656L8.20937 12.0531C8.49062 11.7719 8.94062 11.7719 9.22187 12.0531L12.4 15.2031L19.15 8.45313C19.4312 8.17188 19.8812 8.17188 20.1625 8.45313L21.175 9.46563C21.4562 9.74688 21.4562 10.225 21.175 10.5063L12.9062 18.775C12.625 19.0562 12.1469 19.0562 11.8656 18.775Z" fill="white"/>
                                     </svg>
                                 </div>
@@ -1003,7 +1003,7 @@
     border-color: #E0E0E0;
 }
 .contorno{
-    border: 1px solid #ff8c00;
+    border: 1px solid var(--bg-orange);
 }
 .finish{
     font-size: 0.75rem !important;
@@ -1015,7 +1015,7 @@
     font-size: 0.938rem;
 }
 .icon-address{
-    background: #FF8C00; 
+    background: var(--bg-orange); 
 }
 .cart-item .fw-bold{
     font-size: 0.938rem;
@@ -1069,7 +1069,7 @@
 
 /* Header */
 .cart-header {
-  background: #FFF1C3;
+  background: var(--bg-ouro);
   padding: 12px 16px;
   font-weight: 600;
 }
@@ -1118,8 +1118,8 @@
 
 /* Botão final */
 .btn-confirm {
-  background: #FFC400 !important;
-  color: #000000 !important;
+  background: var(--bg-yellow) !important;
+  color: var(--text-dark) !important;
   border: none;
   border-radius: inherit;
   font-weight: 500;

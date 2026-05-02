@@ -1,9 +1,9 @@
 <template>
   <div
     v-if="modelValue"
-    class="modal fade show"
+    class="modal fade show modal-overlay"
     tabindex="-1"
-    style="display: block; background: rgba(0,0,0,.5)"
+    style="display: block;"
     @click.self="close"
   >
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -441,9 +441,42 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Estilos seguindo a identidade visual do componente de endereço */
-.modal-header {
-  background: #FFF1C3;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modal-title {
@@ -583,7 +616,7 @@ h6, .form-label, .form-check-label {
 
 .info-label {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--text-medium);
   margin-bottom: 5px;
   display: flex;
   align-items: center;
@@ -603,21 +636,20 @@ h6, .form-label, .form-check-label {
 
 /* Botões */
 .btn-primary {
-  background: #FFC400 !important;
-  border-color: #FFC400 !important;
+  border-color: var(--primary) !important;
   color: #000 !important;
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: #e6b000 !important;
-  border-color: #e6b000 !important;
+  background: var(--bg-primary-hover) !important;
+  border-color: var(--bg-primary-hover) !important;
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: #6c757d !important;
-  border-color: #6c757d !important;
+  background: var(--text-medium) !important;
+  border-color: var(--text-medium) !important;
 }
 
 .btn-secondary:hover {
@@ -626,12 +658,12 @@ h6, .form-label, .form-check-label {
 }
 
 .btn-outline-secondary {
-  color: #6c757d !important;
-  border-color: #6c757d !important;
+  color: var(--text-medium) !important;
+  border-color: var(--text-medium) !important;
 }
 
 .btn-outline-secondary:hover {
-  background: #6c757d !important;
+  background: var(--text-medium) !important;
   color: #fff !important;
   transform: translateY(-1px);
 }
