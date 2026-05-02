@@ -285,7 +285,7 @@ onUnmounted(() => {
   padding: 10px 0;
   color: var(--text-medium);
   text-decoration: none;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--text-light);
   font-size: clamp(0.875rem, 1vw, 1rem);
   transition: 0.2s;
   width: 75%;
@@ -327,7 +327,7 @@ onUnmounted(() => {
 }
 
 .menu-swiper .menu-link.active {
-  border-bottom: 2px solid #A4268E;
+  border-bottom: 2px solid var(--primary);
 }
 /* Quando o sticky está ativo no mobile */
 @media (max-width: 680px) {
@@ -337,7 +337,7 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: #FFF1C3;
+    background: var(--bg-ouro);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     padding: 0 16px;
   }
@@ -349,12 +349,11 @@ onUnmounted(() => {
   
   /* Estilos para quando o carrossel está fixo/sticky */
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link {
-    color: #000;
+    color: var(--text-dark) !important;
   }
   
   .mobile-swiper-container.sticky-mobile .menu-swiper.sticky-active .menu-link.active {
-    color: #000;
-    border-bottom: 2px solid #000;
+    border-bottom: 2px solid var(--text-dark);
     padding-bottom: 2px;
   }
   
@@ -371,7 +370,7 @@ onUnmounted(() => {
   
   /* Cores originais no mobile normal (sem sticky) */
   .menu-swiper .menu-link {
-    color: #666;
+    color: var(--color-grey);
   }
   
   .menu-swiper .menu-link.active {

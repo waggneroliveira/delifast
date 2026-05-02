@@ -43,7 +43,7 @@
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                       <h6 class="card-title">{{ addr.nickname }}</h6>
-                      <span class="badge text-black px-3" :class="addr.primary ? 'bg-primary' : 'bg-secondary'">
+                      <span class="badge text-black px-3" :class="addr.primary ? 'bg-primary text-white' : 'bg-secondary'">
                         {{ addr.primary ? 'Principal' : 'Secundário' }}
                       </span>
                     </div>
@@ -148,10 +148,10 @@
               </div>
 
               <div class="d-flex justify-content-between mt-4">
-                <button class="btn btn-secondary" @click="showList">
+                <button class="btn bg-light" @click="showList">
                   Voltar
                 </button>
-                <button class="btn btn-primary" @click="nextStep">
+                <button class="btn bg-yellow fw-medium" @click="nextStep">
                   Continuar
                 </button>
               </div>
@@ -171,8 +171,8 @@
               </div>
 
               <div class="d-flex justify-content-between mt-4">
-                <button class="btn btn-secondary" @click="prevStep">Voltar</button>
-                <button class="btn btn-success" @click="saveAddress">
+                <button class="btn bg-light" @click="prevStep">Voltar</button>
+                <button class="btn bg-yellow fw-medium" @click="saveAddress">
                   Salvar Endereço
                 </button>
               </div>
@@ -453,10 +453,10 @@
         font-size: 0.75rem;
     }
     .bg-primary{
-        background: #D9FFE6 !important;
+      background: var(--primary)!important;
     }
-    .bg-secondary, .progress-bar{
-        background: #FFC400 !important;
+     .bg-secondary, .progress-bar{
+        background: var(--bg-yellow) !important;
     }
     .modal-title{
         font-size: clamp(1rem, 1.125vw, 1.125rem);
@@ -465,7 +465,7 @@
         font-size: clamp(0.938rem, 1vw, 1rem);
     }
     .modal-header{
-        background: #FFF1C3;
+        background: var(--bg-ouro);
     }
     .address-card {
         transition: all 0.3s ease;
@@ -475,7 +475,7 @@
         transform: translateY(-2px);
     }
     .address-card.selected {
-        border-color: #0d6efd;
+        border-color: var(--primary);
         background-color: rgba(13,110,253,.05);
     }
     @media (max-width: 476px) {

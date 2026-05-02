@@ -9,14 +9,17 @@
 
   /* ========= BACKGROUNDS ========= */
   --bg-main: #F5F5F5;
+  --bg-light: #eee;
   --bg-soft: #FFF6D9;
+  --bg-ouro: #FFF1C3;
+  --bg-yellow: #FFC400;
   --bg-hover: #FFE8A3;
   --bg-white: #FFFFFF;
 
   /* ========= TEXTO ========= */
   --text-dark: #2A2A2A;
   --text-medium: #595959;
-  --text-light: #9E9E9E;
+  --text-light: #eee;
   --color-grey: #333633;
 
   /* ========= BORDAS ========= */
@@ -57,6 +60,8 @@
 
 .bg-main { background-color: var(--bg-main) !important; }
 .bg-soft { background-color: var(--bg-soft) !important; }
+.bg-light { background-color: var(--bg-light) !important; }
+.bg-yellow { background-color: var(--bg-yellow) !important; }
 .bg-hover { background-color: var(--bg-hover) !important; }
 .bg-white { background-color: var(--bg-white) !important; }
 
