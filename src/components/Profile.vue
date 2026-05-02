@@ -637,7 +637,7 @@ h6, .form-label, .form-check-label {
 /* Botões */
 .btn-primary {
   border-color: var(--primary) !important;
-  color: #000 !important;
+  color: #FFF !important;
   font-weight: 600;
 }
 

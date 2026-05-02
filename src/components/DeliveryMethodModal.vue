@@ -338,7 +338,7 @@ watch(() => props.modelValue, (open) => {
 .btn-primary {
   background-color: var(--primary);
   border: none;
-  color: #000;
+  color: #FFF;
   font-weight: 500;
   height: 42px;
 }
@@ -346,7 +346,7 @@ watch(() => props.modelValue, (open) => {
 .btn-primary:hover,
 .btn-primary:focus {
   background-color: var(--bg-hover);
-  color: #000;
+  color: #FFF;
 }
 
 .btn-secondary {

@@ -1048,7 +1048,7 @@
     font-size: clamp(0.75rem, 0.75vw, 0.875rem) !important;
 }
 .percent{
-    background: #A4268E;
+    background: var(--primary);
     font-size: 0.75rem;
     font-weight: 600;
 }
