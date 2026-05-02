@@ -34,7 +34,7 @@
       <!-- LOCALIZAÇÃO -->
       <div class="footer-col location-col">
         <h4>Localização</h4>
-        <p>Lauro de Freitas - BA</p>
+        <p class="text-white">Lauro de Freitas - BA</p>
 
         <div class="delivery">
           <span class="f-icon">F</span>
@@ -57,7 +57,7 @@ export default {
 
 <style scoped>
 .footer {
-  background: linear-gradient(90deg, #a4268e, #c85bb3);
+  background: var(--primary);
   color: #fff;
   padding: 30px 20px;
 }
