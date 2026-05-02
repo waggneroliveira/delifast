@@ -17,6 +17,7 @@
     import MobileBottomMenu from '@/components/MobileBottomMenu.vue'
     import OrderHistoryModal from '@/components/OrderHistoryModal.vue'
     import IdentifyModal from '@/components/IdentifyModal.vue'
+    import Footer from '@/components/Footer.vue'
 
     // Store e Toast
     const cart = useCartStore()
@@ -910,6 +911,8 @@
       v-model="showLoginModal"
       @submit="handleIdentify"
     />
+
+    <Footer/>
   </div>
 </template>
 
