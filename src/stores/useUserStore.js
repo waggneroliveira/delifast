@@ -1,5 +1,6 @@
 // stores/useUserStore.js
 import { defineStore } from 'pinia'
+import { clientApi, clearClientToken, getClientToken } from '@/services/api'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -62,15 +63,24 @@ export const useUserStore = defineStore('user', {
 
     // Logout
     logout() {
+      const logoutRequest = getClientToken()
+        ? clientApi.logout().catch((error) => {
+            console.error('Erro ao encerrar sessão na API:', error)
+            return null
+          })
+        : Promise.resolve(null)
+
       this.id = null
       this.fullName = ''
       this.whatsapp = ''
       this.email = ''
       this.isLogged = false
+      clearClientToken()
       
       // Remover do localStorage
       localStorage.removeItem('userData')
       console.log('👋 Usuário deslogado')
+      return logoutRequest
     },
 
     // Salvar no localStorage
@@ -86,6 +96,11 @@ export const useUserStore = defineStore('user', {
     // Carregar do localStorage ao iniciar
     loadUserFromStorage() {
       const saved = localStorage.getItem('userData')
+      if (!getClientToken()) {
+        if (saved || this.isLogged) this.logout()
+        return
+      }
+
       if (saved) {
         try {
           const data = JSON.parse(saved)

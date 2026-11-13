@@ -713,41 +713,10 @@
     })
 
     const handleIdentify = (data) => {
-        userStore.login({ 
-            fullName: data.fullName, 
-            whatsapp: data.whatsapp,
-            deliveryMethod: data.deliveryMethod,
-            paymentMethod: data.paymentMethod,
-            selectedAddress: data.selectedAddress
-        })
-        
         showModal.value = false
-        
-        if (data.deliveryMethod) {
-            selectedDeliveryMethod.value = data.deliveryMethod
-            localStorage.setItem('selectedDeliveryMethod', JSON.stringify(data.deliveryMethod))
-        }
-        
-        if (data.paymentMethod) {
-            selectedPaymentMethod.value = data.paymentMethod
-            localStorage.setItem('selectedPaymentMethod', data.paymentMethod)
-        }
-        
-        if (data.selectedAddress) {
-            selectedAddress.value = data.selectedAddress
-            localStorage.setItem('selectedAddressId', data.selectedAddress.id.toString())
-            localStorage.setItem('selectedAddress', JSON.stringify(data.selectedAddress))
-        }
-        
         toast.success(`Bem-vindo(a), ${data.fullName}!`, {
             timeout: 4000
         })
-        
-        setTimeout(() => {
-            updateSelectedAddress()
-            loadSavedDeliveryMethod()
-            loadSavedPaymentMethod()
-        }, 100)
     }
 
     const handleStorageChange = (e) => {
@@ -821,40 +790,6 @@
         
         window.addEventListener('storage', handleStorageChange)
         window.addEventListener('addresses-updated', handleCustomAddressUpdate)
-        
-        window.addEventListener('user-login', (event) => {
-            if (event.detail) {
-                userStore.login({
-                    fullName: event.detail.fullName,
-                    whatsapp: event.detail.whatsapp,
-                    deliveryMethod: event.detail.deliveryMethod,
-                    paymentMethod: event.detail.paymentMethod,
-                    selectedAddress: event.detail.selectedAddress
-                })
-                
-                if (event.detail.deliveryMethod) {
-                    selectedDeliveryMethod.value = event.detail.deliveryMethod
-                    localStorage.setItem('selectedDeliveryMethod', JSON.stringify(event.detail.deliveryMethod))
-                }
-                
-                if (event.detail.paymentMethod) {
-                    selectedPaymentMethod.value = event.detail.paymentMethod
-                    localStorage.setItem('selectedPaymentMethod', event.detail.paymentMethod)
-                }
-                
-                if (event.detail.selectedAddress) {
-                    selectedAddress.value = event.detail.selectedAddress
-                    localStorage.setItem('selectedAddressId', event.detail.selectedAddress.id.toString())
-                    localStorage.setItem('selectedAddress', JSON.stringify(event.detail.selectedAddress))
-                }
-                
-                setTimeout(() => {
-                    updateSelectedAddress()
-                    loadSavedDeliveryMethod()
-                    loadSavedPaymentMethod()
-                }, 100)
-            }
-        })
     })
 
     onUnmounted(() => {

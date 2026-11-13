@@ -182,12 +182,6 @@ const handleLoginSuccess = (userData) => {
   toast.success(`Bem-vindo(a), ${userData.fullName}!`, {
     timeout: 3000
   })
-  
-  // Após login, abre o perfil automaticamente
-  setTimeout(() => {
-    active.value = 'profile'
-    showProfileModal.value = true
-  }, 500)
 }
 </script>
 

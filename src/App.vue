@@ -131,16 +131,7 @@
       
       showOrderHistoryModal.value = false
     }
-    const handleIdentify = ({ whatsapp: wpp, fullName: name }) => {
-      const userData = {
-        id: Date.now(),
-        fullName: name,
-        whatsapp: wpp,
-        email: ''
-      }
-      
-      console.log('📝 Realizando login com dados:', userData)
-      userStore.login(userData)
+    const handleIdentify = ({ fullName: name }) => {
       showLoginModal.value = false
       
       toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, {
