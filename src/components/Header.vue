@@ -1,8 +1,45 @@
+<script setup>
+import { onMounted, ref } from 'vue'
+import axios from 'axios'
+import fallbackImage from '@/assets/images/banner-inner.png'
+
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://delivery.localhost:8000/api').replace(/\/+$/, '')
+
+const desktopImage = ref(fallbackImage)
+const mobileImage = ref(fallbackImage)
+
+const resolveImageUrl = (path) => {
+    if (/^https?:\/\//i.test(path)) return path
+
+    const imagePath = path.replace(/^\/+/, '')
+    const storagePath = imagePath.startsWith('storage/') ? imagePath : `storage/${imagePath}`
+    return new URL(storagePath, `${new URL(apiBaseUrl).origin}/`).href
+}
+
+onMounted(async () => {
+    try {
+        const { data } = await axios.get(`${apiBaseUrl}/slides`)
+        const slide = data?.data
+
+        if (slide?.path_image) desktopImage.value = resolveImageUrl(slide.path_image)
+        if (slide?.path_image_mobile) mobileImage.value = resolveImageUrl(slide.path_image_mobile)
+        else mobileImage.value = desktopImage.value
+    } catch (error) {
+        console.error('Não foi possível carregar o banner da API.', error)
+    }
+})
+</script>
+
 <template>
     <div class="banner-inner container-fluid p-0 position-relative text-end">
-        <img src="@/assets/images/banner-inner.png" 
-        alt="Banner interno" 
-        class="w-100 h-100 position-relative z-10 cover">
+        <picture class="d-block w-100 h-100 position-relative z-10">
+            <source :srcset="mobileImage" media="(max-width: 680px)">
+            <img
+                :src="desktopImage"
+                alt="Banner interno"
+                class="w-100 h-100 cover"
+            >
+        </picture>
 
         <div class="overlay">
             <!-- Botão menu mobile -->
