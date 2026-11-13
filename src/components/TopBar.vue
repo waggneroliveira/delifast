@@ -377,6 +377,7 @@
     path_image_logo_header: null,
     name: 'Oxente Açaiteria',
     description: 'Praticidade que alimenta.',
+    primary_color: '#10513D',
   })
 
   // estado dos modais
@@ -640,7 +641,13 @@
 
     try {
       const { tenant } = await getTenantConfig()
-      if (tenant) tenantConfig.value = tenant
+      if (tenant) {
+        tenantConfig.value = tenant
+        document.documentElement.style.setProperty(
+          '--primary',
+          tenant.primary_color || '#10513D'
+        )
+      }
     } catch (error) {
       console.error('Não foi possível carregar as configurações do tenant.', error)
     }
@@ -660,10 +667,6 @@
 
 <style scoped>
 
-  :root {
-      --primary: {{ tenantConfig.primary_color ?: '#10513D' }};
-  }
-  .bg-primary { background-color: var(--primary) !important; }
   .reset-button {
     all: unset;
     cursor: pointer;
