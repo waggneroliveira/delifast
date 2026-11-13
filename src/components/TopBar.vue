@@ -3,18 +3,18 @@
 
     <div class="content-logo">
       <!-- Logo -->
-      <div class="image text-center mb-2 mb-md-3 position-relative rounded-circle">
+      <div class="image text-center mb-2 mb-md-3 position-relative rounded-circle overflow-hidden">
           <img 
-              src="@/assets/images/logo.png" 
-              alt="Oxente Açaiteria"
+              :src="tenantConfig.path_image_logo_header ? resolveApiAssetUrl(tenantConfig.path_image_logo_header) : fallbackLogo"
+              :alt="tenantConfig.name ? `Logo de ${tenantConfig.name}` : 'Logo do estabelecimento'"
               class="logo"
           />
       </div>
 
       <!-- Nome + status -->
       <div class="text-center text-md-start mb-0 mb-md-4 w-100">
-        <h5 class="fw-medium text-primary mb-1">Oxente Açaiteria</h5>
-        <small class="d-block font-12 text-grey">Praticidade que alimenta.</small>
+        <h5 class="fw-medium text-primary mb-1">{{ tenantConfig.name }}</h5>
+        <small class="d-block font-12 text-grey">{{ tenantConfig.description }}</small>
         
         <div class="d-flex justify-content-center justify-content-md-start align-items-center mt-0 mt-md-2">
           <span class="status-dot me-1"></span>
@@ -367,10 +367,17 @@
   import DeliveryLocations from '@/components/DeliveryLocations.vue'
   import OrderHistoryModal from '@/components/OrderHistoryModal.vue'
   import ProfileModal from '@/components/Profile.vue'
+  import fallbackLogo from '@/assets/images/logo.png'
+  import { getTenantConfig, resolveApiAssetUrl } from '@/services/api'
 
   const toast = useToast()
   const cartStore = useCartStore()
   const userStore = useUserStore()
+  const tenantConfig = ref({
+    path_image_logo_header: null,
+    name: 'Oxente Açaiteria',
+    description: 'Praticidade que alimenta.',
+  })
 
   // estado dos modais
   const showProfileModal = ref(false)
@@ -628,8 +635,15 @@
     toast.success(`Bem-vindo(a), ${name}! Login realizado com sucesso!`, { timeout: 4000 })
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     userStore.loadUserFromStorage()
+
+    try {
+      const { tenant } = await getTenantConfig()
+      if (tenant) tenantConfig.value = tenant
+    } catch (error) {
+      console.error('Não foi possível carregar as configurações do tenant.', error)
+    }
   })
 
   const logout = () => {

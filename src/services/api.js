@@ -15,6 +15,11 @@ export const api = axios.create({
     baseURL: apiBaseUrl,
 })
 
+export const getTenantConfig = async () => {
+    const { data } = await api.get('/tenant')
+    return data.data
+}
+
 export const resolveApiAssetUrl = (path) => {
     if (/^https?:\/\//i.test(path)) return path
 
