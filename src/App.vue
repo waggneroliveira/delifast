@@ -29,6 +29,11 @@
     const selectedProduct = ref(null)
     const showOrderHistoryModal = ref(false)
     const showLoginModal = ref(false)
+    const hasAnnouncements = ref(null)
+
+    const handleAnnouncementAvailability = (available) => {
+      hasAnnouncements.value = available
+    }
 
     // Abrir modal do produto
     const openProductModal = (product) => {
@@ -856,9 +861,9 @@
             <!-- PASSANDO AS CATEGORIAS PARA O ASIDE -->
             <Aside :categories="categories" class="aside" />
 
-            <div class="content w-mobile-100">
+            <div class="content w-mobile-100" :class="{ 'mt-5': hasAnnouncements === false }">
               
-              <Announcement/>
+              <Announcement @availability-change="handleAnnouncementAvailability" />
               
               <div class="carousel-breakout">
                 <ProductCarousel

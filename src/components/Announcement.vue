@@ -1,22 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import fallbackImage from '@/assets/images/anuncio-horizontal.png'
 import { api, resolveApiAssetUrl } from '@/services/api'
 
-const fallbackAnnouncement = {
-  localFallback: true,
-  link: null,
-  path_image: null,
-  path_image_mobile: null,
-  path_image_vertical: null,
-}
-
-const announcements = ref([fallbackAnnouncement])
-
-const imageUrl = (announcement, path) => {
-  if (announcement.localFallback || !path) return fallbackImage
-  return resolveApiAssetUrl(path)
-}
+const emit = defineEmits(['availability-change'])
+const announcements = ref([])
 
 const loadAnnouncements = async () => {
   const { data } = await api.get('/announcements')
@@ -26,9 +13,14 @@ const loadAnnouncements = async () => {
     throw new Error('A resposta da API não contém a lista de anúncios top-right.')
   }
 
-  announcements.value = topRightAnnouncements.length
-    ? topRightAnnouncements
-    : [fallbackAnnouncement]
+  announcements.value = topRightAnnouncements.filter((announcement) => (
+    announcement && (
+      announcement.path_image
+      || announcement.path_image_mobile
+      || announcement.path_image_vertical
+    )
+  ))
+  emit('availability-change', announcements.value.length > 0)
 }
 
 onMounted(async () => {
@@ -36,6 +28,7 @@ onMounted(async () => {
     await loadAnnouncements()
   } catch (error) {
     console.error('Não foi possível carregar os anúncios da API.', error)
+    emit('availability-change', false)
   }
 })
 </script>
@@ -54,17 +47,16 @@ onMounted(async () => {
       <picture>
         <source
           v-if="announcement.path_image_vertical"
-          :srcset="imageUrl(announcement, announcement.path_image_vertical)"
+          :srcset="resolveApiAssetUrl(announcement.path_image_vertical)"
           media="(max-width: 480px)"
         >
         <source
           v-if="announcement.path_image_mobile || announcement.path_image_vertical"
-          :srcset="imageUrl(announcement, announcement.path_image_mobile || announcement.path_image_vertical)"
+          :srcset="resolveApiAssetUrl(announcement.path_image_mobile || announcement.path_image_vertical)"
           media="(max-width: 768px)"
         >
         <img
-          :src="imageUrl(
-            announcement,
+          :src="resolveApiAssetUrl(
             announcement.path_image || announcement.path_image_mobile || announcement.path_image_vertical,
           )"
           alt="Anúncio"
@@ -88,10 +80,11 @@ picture {
 }
 
 .image img {
-  width: 100%;
-  max-width: 500px;
-  height: 120px;
-  object-fit: cover;
+    width: 100%;
+    max-width: 800px;
+    height: 120px;
+    object-fit: cover;
+    aspect-ratio: 1 / 1.92;
 }
 
 @media (max-width: 768px) {

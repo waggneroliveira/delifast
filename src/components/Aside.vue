@@ -42,12 +42,36 @@
       </Swiper>
     </div>
 
-    <!-- Banner -->
-    <div class="mt-5 text-start d-none d-md-block">
-      <img 
-        src="@/assets/images/anuncio.png" 
-        class="img-fluid"
-      />
+    <div
+      v-for="(announcement, index) in announcements"
+      :key="announcement.id || index"
+      class="mt-5 text-start d-none d-md-block"
+    >
+      <component
+        :is="announcement.link ? 'a' : 'div'"
+        v-bind="announcement.link ? { href: announcement.link } : {}"
+        class="sidebar-announcement"
+      >
+        <picture>
+          <source
+            v-if="announcement.path_image_vertical"
+            :srcset="resolveApiAssetUrl(announcement.path_image_vertical)"
+            media="(min-width: 768px)"
+          >
+          <source
+            v-if="announcement.path_image_mobile"
+            :srcset="resolveApiAssetUrl(announcement.path_image_mobile)"
+            media="(max-width: 767px)"
+          >
+          <img
+            :src="resolveApiAssetUrl(
+              announcement.path_image || announcement.path_image_vertical || announcement.path_image_mobile,
+            )"
+            alt="Anúncio lateral"
+            class="img-fluid"
+          >
+        </picture>
+      </component>
     </div>
 
   </aside>
@@ -58,6 +82,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 // Swiper
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation } from 'swiper/modules'
+import { api, resolveApiAssetUrl } from '@/services/api'
 
 // CSS do Swiper
 import 'swiper/css'
@@ -74,7 +99,25 @@ const props = defineProps({
 const activeCategory = ref(null)
 const isSticky = ref(false)
 const initialOffsetTop = ref(0)
+const announcements = ref([])
 let swiperInstance = null
+
+const loadAnnouncements = async () => {
+  const { data } = await api.get('/announcements')
+  const sidebarAnnouncements = data?.data?.['sidebar-left']
+
+  if (!Array.isArray(sidebarAnnouncements)) {
+    throw new Error('A resposta da API não contém a lista de anúncios sidebar-left.')
+  }
+
+  announcements.value = sidebarAnnouncements.filter((announcement) => (
+    announcement && (
+      announcement.path_image
+      || announcement.path_image_mobile
+      || announcement.path_image_vertical
+    )
+  ))
+}
 
 // Função para capturar instância do Swiper
 const onSwiperInit = (swiper) => {
@@ -257,10 +300,16 @@ const handleResize = () => {
 }
 
 // Adiciona evento de scroll
-onMounted(() => {
+onMounted(async () => {
   initialize()
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('resize', handleResize)
+
+  try {
+    await loadAnnouncements()
+  } catch (error) {
+    console.error('Não foi possível carregar os anúncios laterais da API.', error)
+  }
 })
 
 // Limpa evento ao desmontar
@@ -302,6 +351,17 @@ onUnmounted(() => {
   color: var(--primary);
   font-weight: 500;
   border-bottom: 2px solid var(--primary);
+}
+
+.sidebar-announcement,
+.sidebar-announcement picture {
+  display: block;
+}
+
+.sidebar-announcement img {
+  width: 100%;
+  max-width: 210px;
+  height: auto;
 }
 
 /* Mobile Swiper styling */
