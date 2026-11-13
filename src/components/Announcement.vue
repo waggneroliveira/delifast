@@ -1,6 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Autoplay } from 'swiper/modules'
 import { api, resolveApiAssetUrl } from '@/services/api'
+
+import 'swiper/css'
 
 const emit = defineEmits(['availability-change'])
 const announcements = ref([])
@@ -34,36 +38,43 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div
-    v-for="(announcement, index) in announcements"
-    :key="announcement.id || index"
-    class="image my-4 mt-0 my-md-0"
-  >
-    <component
-      :is="announcement.link ? 'a' : 'div'"
-      class="announcement-link"
-      v-bind="announcement.link ? { href: announcement.link } : {}"
+  <div v-if="announcements.length" class="image my-4 mt-0 my-md-0">
+    <Swiper
+      :modules="[Autoplay]"
+      :slides-per-view="1"
+      :loop="announcements.length > 1"
+      :autoplay="{ delay: 7000, disableOnInteraction: false }"
+      :allow-touch-move="false"
+      :simulate-touch="false"
+      :prevent-clicks="true"
+      :prevent-clicks-propagation="true"
+      class="announcement-swiper"
     >
-      <picture>
-        <source
-          v-if="announcement.path_image_vertical"
-          :srcset="resolveApiAssetUrl(announcement.path_image_vertical)"
-          media="(max-width: 480px)"
-        >
-        <source
-          v-if="announcement.path_image_mobile || announcement.path_image_vertical"
-          :srcset="resolveApiAssetUrl(announcement.path_image_mobile || announcement.path_image_vertical)"
-          media="(max-width: 768px)"
-        >
-        <img
-          :src="resolveApiAssetUrl(
-            announcement.path_image || announcement.path_image_mobile || announcement.path_image_vertical,
-          )"
-          alt="Anúncio"
-          class="logo"
-        >
-      </picture>
-    </component>
+      <SwiperSlide
+        v-for="(announcement, index) in announcements"
+        :key="announcement.id || index"
+      >
+        <picture>
+          <source
+            v-if="announcement.path_image_vertical"
+            :srcset="resolveApiAssetUrl(announcement.path_image_vertical)"
+            media="(max-width: 480px)"
+          >
+          <source
+            v-if="announcement.path_image_mobile || announcement.path_image_vertical"
+            :srcset="resolveApiAssetUrl(announcement.path_image_mobile || announcement.path_image_vertical)"
+            media="(max-width: 768px)"
+          >
+          <img
+            :src="resolveApiAssetUrl(
+              announcement.path_image || announcement.path_image_mobile || announcement.path_image_vertical,
+            )"
+            alt="Anúncio"
+            class="logo"
+          >
+        </picture>
+      </SwiperSlide>
+    </Swiper>
   </div>
 </template>
 
@@ -74,7 +85,6 @@ onMounted(async () => {
   margin-left: calc(-49.5vw + 50%);
 }
 
-.announcement-link,
 picture {
   display: block;
 }

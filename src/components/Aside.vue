@@ -42,36 +42,43 @@
       </Swiper>
     </div>
 
-    <div
-      v-for="(announcement, index) in announcements"
-      :key="announcement.id || index"
-      class="mt-5 text-start d-none d-md-block"
-    >
-      <component
-        :is="announcement.link ? 'a' : 'div'"
-        v-bind="announcement.link ? { href: announcement.link } : {}"
-        class="sidebar-announcement"
+    <div v-if="announcements.length" class="mt-5 text-start d-none d-md-block">
+      <Swiper
+        :modules="[Autoplay]"
+        :slides-per-view="1"
+        :loop="announcements.length > 1"
+        :autoplay="{ delay: 7000, disableOnInteraction: false }"
+        :allow-touch-move="false"
+        :simulate-touch="false"
+        :prevent-clicks="true"
+        :prevent-clicks-propagation="true"
+        class="sidebar-announcement-swiper"
       >
-        <picture>
-          <source
-            v-if="announcement.path_image_vertical"
-            :srcset="resolveApiAssetUrl(announcement.path_image_vertical)"
-            media="(min-width: 768px)"
-          >
-          <source
-            v-if="announcement.path_image_mobile"
-            :srcset="resolveApiAssetUrl(announcement.path_image_mobile)"
-            media="(max-width: 767px)"
-          >
-          <img
-            :src="resolveApiAssetUrl(
-              announcement.path_image || announcement.path_image_vertical || announcement.path_image_mobile,
-            )"
-            alt="Anúncio lateral"
-            class="img-fluid"
-          >
-        </picture>
-      </component>
+        <SwiperSlide
+          v-for="(announcement, index) in announcements"
+          :key="announcement.id || index"
+        >
+          <picture class="sidebar-announcement">
+            <source
+              v-if="announcement.path_image_vertical"
+              :srcset="resolveApiAssetUrl(announcement.path_image_vertical)"
+              media="(min-width: 768px)"
+            >
+            <source
+              v-if="announcement.path_image_mobile"
+              :srcset="resolveApiAssetUrl(announcement.path_image_mobile)"
+              media="(max-width: 767px)"
+            >
+            <img
+              :src="resolveApiAssetUrl(
+                announcement.path_image || announcement.path_image_vertical || announcement.path_image_mobile,
+              )"
+              alt="Anúncio lateral"
+              class="img-fluid"
+            >
+          </picture>
+        </SwiperSlide>
+      </Swiper>
     </div>
 
   </aside>
@@ -81,7 +88,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 // Swiper
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation } from 'swiper/modules'
+import { Autoplay, Navigation } from 'swiper/modules'
 import { api, resolveApiAssetUrl } from '@/services/api'
 
 // CSS do Swiper
