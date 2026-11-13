@@ -50,7 +50,15 @@ export const clientApi = {
     me: {
         get: () => api.get(`${clientEndpoint}/me`),
         put: (data) => api.put(`${clientEndpoint}/me`, data),
-        patch: (data) => api.patch(`${clientEndpoint}/me`, data),
+        patch: (data) => {
+            if (typeof FormData !== 'undefined' && data instanceof FormData) {
+                // Laravel/PHP parses multipart form fields reliably through POST with method spoofing.
+                data.set('_method', 'PATCH')
+                return api.post(`${clientEndpoint}/me`, data)
+            }
+
+            return api.patch(`${clientEndpoint}/me`, data)
+        },
         delete: () => api.delete(`${clientEndpoint}/me`),
     },
     logout: () => {

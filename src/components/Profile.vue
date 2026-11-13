@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="modelValue"
+    v-if="modelValue && isAuthenticated"
     class="modal fade show modal-overlay"
     tabindex="-1"
     style="display: block;"
@@ -14,178 +14,162 @@
           <h5 class="modal-title">
             <i class="bi bi-person-circle me-2"></i>Meu Perfil
           </h5>
-          <button type="button" class="btn-close" @click="close"></button>
+          <button type="button" class="btn-close" @click="close" :disabled="isSaving"></button>
         </div>
 
         <div class="modal-body">
-
-          <!-- Input de arquivo ÚNICO fora das views condicionais -->
-          <input 
-            type="file" 
-            ref="avatarInput" 
-            style="display: none" 
-            accept="image/jpeg,image/png,image/jpg,image/gif"
-            @change="handleImageUpload"
-          >
-
-          <!-- VISUALIZAÇÃO DO PERFIL -->
-          <div v-if="view === 'view'" class="profile-view">
-            
-            <!-- Avatar e Info -->
-            <div class="text-center mb-4">
-              <div class="avatar-container mb-3" @click="triggerImageUpload">
-                <img 
-                  v-if="profile.avatar" 
-                  :src="profile.avatar" 
-                  class="avatar-img"
-                  alt="Avatar"
-                >
-                <div v-else class="avatar-placeholder">
-                  <i class="bi bi-person-fill"></i>
-                </div>
-                <div class="avatar-edit-overlay">
-                  <i class="bi bi-camera-fill"></i>
-                </div>
-              </div>
-              <h5 class="mb-1">{{ profile.nome || 'Usuário' }}</h5>
-              <p class="text-muted small">Clique na foto para alterar</p>
+          <div v-if="isLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Carregando...</span>
             </div>
-
-            <!-- Informações do Perfil -->
-            <div class="profile-info">
-              <div class="info-card mb-3">
-                <div class="info-label">
-                  <i class="bi bi-person"></i>
-                  <span>Nome Completo</span>
-                </div>
-                <div class="info-value">{{ profile.nome || 'Não informado' }}</div>
-              </div>
-
-              <div class="info-card mb-3">
-                <div class="info-label">
-                  <i class="bi bi-telephone"></i>
-                  <span>Telefone</span>
-                </div>
-                <div class="info-value">{{ formatPhone(profile.telefone) || 'Não informado' }}</div>
-              </div>
-
-
-              <div class="info-card mb-3" v-if="profile.genero">
-                <div class="info-label">
-                  <i class="bi bi-gender-ambiguous"></i>
-                  <span>Gênero</span>
-                </div>
-                <div class="info-value">{{ formatGenero(profile.genero) }}</div>
-              </div>
-            </div>
-
-            <!-- Botões de Ação -->
-            <div class="action-buttons mt-4 d-flex justify-content-end align-items-center">
-              <button class="btn btn-outline-secondary me-2" @click="close">
-                <i class="bi bi-x-circle me-2"></i>Fechar
-              </button>
-              <button class="btn btn-primary" @click="editProfile">
-                <i class="bi bi-pencil-square me-2"></i>Editar Perfil
-              </button>
-            </div>
+            <p class="text-muted mt-2 mb-0">Carregando perfil...</p>
           </div>
+          <template v-else>
 
-          <!-- FORMULÁRIO DE EDIÇÃO -->
-          <div v-else>
-            <h6 class="mb-3">Editar Perfil</h6>
+            <input
+              type="file"
+              ref="avatarInput"
+              style="display: none"
+              accept="image/*"
+              @change="handleImageUpload"
+            >
 
-            <div class="row g-3">
-              <div class="col-12 text-center mb-3">
-                <div class="avatar-container-edit mb-2" @click="triggerImageUpload">
-                  <img 
-                    v-if="form.avatar" 
-                    :src="form.avatar" 
-                    class="avatar-img-edit"
-                    alt="Avatar"
+            <div v-if="view === 'view'" class="profile-view">
+              <div class="text-center mb-4">
+                <div class="avatar-container mb-3">
+                  <img
+                    v-if="profile.path_image"
+                    :src="resolveApiAssetUrl(profile.path_image)"
+                    class="avatar-img"
+                    alt="Foto do perfil"
                   >
-                  <div v-else class="avatar-placeholder-edit">
+                  <div v-else class="avatar-placeholder">
                     <i class="bi bi-person-fill"></i>
                   </div>
-                  <div class="avatar-edit-overlay-edit">
-                    <i class="bi bi-camera-fill"></i>
-                  </div>
                 </div>
-                <small class="text-muted">Clique para alterar a foto</small>
+                <h5 class="mb-1">{{ profile.name || 'Usuário' }}</h5>
+                <p class="text-muted small">Edite seu perfil para alterar a foto</p>
               </div>
 
-              <div class="col-12 col-md-7">
-                <label class="form-label">
-                  Nome Completo <span class="text-danger">*</span>
-                </label>
-                <input 
-                  v-model="form.nome" 
-                  class="form-control" 
-                  placeholder="Digite seu nome completo"
-                  :class="{ 'is-invalid': errors.nome }"
-                >
-                <div class="invalid-feedback" v-if="errors.nome">{{ errors.nome }}</div>
+              <div class="profile-info">
+                <div class="info-card mb-3">
+                  <div class="info-label">
+                    <i class="bi bi-person"></i>
+                    <span>Nome</span>
+                  </div>
+                  <div class="info-value">{{ profile.name || 'Não informado' }}</div>
+                </div>
+
+                <div class="info-card mb-3">
+                  <div class="info-label">
+                    <i class="bi bi-telephone"></i>
+                    <span>Telefone</span>
+                  </div>
+                  <div class="info-value">{{ formatPhone(profile.phone) || 'Não informado' }}</div>
+                </div>
+
+                <div class="info-card mb-3">
+                  <div class="info-label">
+                    <i class="bi bi-envelope"></i>
+                    <span>E-mail</span>
+                  </div>
+                  <div class="info-value">{{ profile.email || 'Não informado' }}</div>
+                </div>
               </div>
 
-              <div class="col-12 col-md-5">
-                <label class="form-label">
-                  Telefone <span class="text-danger">*</span>
-                </label>
-                <input 
-                  v-model="form.telefone" 
-                  class="form-control" 
-                  placeholder="(00) 00000-0000"
-                  maxlength="16"
-                  @input="handlePhoneInput"
-                  :class="{ 'is-invalid': errors.telefone }"
-                >
-                <div class="invalid-feedback" v-if="errors.telefone">{{ errors.telefone }}</div>
-              </div>
-
-              <div class="col-md-12">
-                <label class="form-label">E-mail <small>(opicional)</small></label>
-                <input 
-                  v-model="form.email" 
-                  class="form-control" 
-                  type="email"
-                  placeholder="seu@email.com"
-                  :class="{ 'is-invalid': errors.email }"
-                >
-                <div class="invalid-feedback" v-if="errors.email">{{ errors.email }}</div>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label">Data de Nascimento <small>(opicional)</small></label>
-                <input 
-                  v-model="form.dataNascimento" 
-                  class="form-control" 
-                  type="date"
-                  :max="getMaxDate()"
-                >
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label">Gênero <small>(opicional)</small></label>
-                <select v-model="form.genero" class="form-select">
-                  <option value="">Selecione</option>
-                  <option value="masculino">Masculino</option>
-                  <option value="feminino">Feminino</option>
-                  <option value="nao_binario">Não Binário</option>
-                  <option value="prefiro_nao_dizer">Prefiro não dizer</option>
-                  <option value="outro">Outro</option>
-                </select>
+              <div class="action-buttons mt-4 d-flex justify-content-end align-items-center">
+                <button class="btn btn-outline-secondary me-2" @click="close">
+                  <i class="bi bi-x-circle me-2"></i>Fechar
+                </button>
+                <button class="btn btn-primary" @click="editProfile">
+                  <i class="bi bi-pencil-square me-2"></i>Editar Perfil
+                </button>
               </div>
             </div>
 
-            <div class="d-flex justify-content-end align-items-center mt-4">
-              <button class="btn btn-secondary" @click="cancelEdit">
-                Cancelar
-              </button>
-              <button class="btn btn-primary ms-2" @click="saveProfile">
-                Salvar Perfil
-              </button>
-            </div>
-          </div>
+            <div v-else>
+              <h6 class="mb-3">Editar Perfil</h6>
 
+              <div class="row g-3">
+                <div class="col-12 text-center mb-3">
+                  <div class="avatar-container-edit mb-2" @click="triggerImageUpload">
+                    <img
+                      v-if="imagePreview || form.path_image"
+                      :src="imagePreview || resolveApiAssetUrl(form.path_image)"
+                      class="avatar-img-edit"
+                      alt="Foto do perfil"
+                    >
+                    <div v-else class="avatar-placeholder-edit">
+                      <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="avatar-edit-overlay-edit">
+                      <i class="bi bi-camera-fill"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <small class="text-muted">Clique para selecionar uma foto (máximo 2 MB)</small>
+                  </div>
+                  <button
+                    v-if="imagePreview || form.path_image"
+                    type="button"
+                    class="btn btn-link btn-sm text-danger"
+                    @click="removeImage"
+                  >
+                    Remover foto
+                  </button>
+                </div>
+
+                <div class="col-12 col-md-7">
+                  <label class="form-label">
+                    Nome <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    v-model="form.name"
+                    class="form-control"
+                    placeholder="Digite seu nome"
+                    :class="{ 'is-invalid': errors.name }"
+                  >
+                  <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
+                </div>
+
+                <div class="col-12 col-md-5">
+                  <label class="form-label">
+                    Telefone <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    v-model="form.phone"
+                    class="form-control"
+                    placeholder="(00) 00000-0000"
+                    maxlength="16"
+                    @input="handlePhoneInput"
+                    :class="{ 'is-invalid': errors.phone }"
+                  >
+                  <div class="invalid-feedback" v-if="errors.phone">{{ errors.phone }}</div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">E-mail <small>(opcional)</small></label>
+                  <input
+                    v-model="form.email"
+                    class="form-control"
+                    type="email"
+                    placeholder="seu@email.com"
+                    :class="{ 'is-invalid': errors.email }"
+                  >
+                  <div class="invalid-feedback" v-if="errors.email">{{ errors.email }}</div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end align-items-center mt-4">
+                <button class="btn btn-secondary" @click="cancelEdit" :disabled="isSaving">
+                  Cancelar
+                </button>
+                <button class="btn btn-primary ms-2" @click="saveProfile" :disabled="isSaving">
+                  {{ isSaving ? 'Salvando...' : 'Salvar Perfil' }}
+                </button>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -193,10 +177,13 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { computed, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useUserStore } from '@/stores/useUserStore'
+import { clientApi, getClientToken, resolveApiAssetUrl } from '@/services/api'
 
 const toast = useToast()
+const userStore = useUserStore()
 
 const props = defineProps({
   modelValue: Boolean
@@ -204,239 +191,217 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'profile-updated'])
 
-const view = ref('view') // 'view' ou 'edit'
+const isAuthenticated = computed(() => userStore.isLogged && Boolean(getClientToken()))
+const view = ref('view')
 const avatarInput = ref(null)
 const errors = ref({})
+const profile = ref({ id: null, name: '', phone: '', email: '', path_image: null })
+const form = ref({ ...profile.value })
+const isLoading = ref(false)
+const isSaving = ref(false)
+const selectedImage = ref(null)
+const imagePreview = ref('')
+const deleteImage = ref(false)
 
-// Perfil do usuário
-const profile = ref({
-  nome: '',
-  telefone: '',
-  email: '',
-  dataNascimento: '',
-  genero: '',
-  avatar: null
-})
-
-// Formulário de edição
-const form = ref({
-  nome: '',
-  telefone: '',
-  email: '',
-  dataNascimento: '',
-  genero: '',
-  avatar: null
-})
-
-// Carregar perfil do localStorage
-const loadProfile = () => {
-  const savedProfile = localStorage.getItem('userProfile')
-  if (savedProfile) {
-    profile.value = JSON.parse(savedProfile)
-    // Reset do formulário com os dados atuais
-    form.value = { ...profile.value }
-  } else {
-    // Perfil padrão
-    const defaultProfile = {
-      nome: '',
-      telefone: '',
-      email: '',
-      dataNascimento: '',
-      genero: '',
-      avatar: null
-    }
-    profile.value = defaultProfile
-    form.value = { ...defaultProfile }
+const setProfile = (client) => {
+  if (!client || typeof client !== 'object' || !client.id) {
+    throw new Error('A resposta do perfil não contém os dados do cliente.')
   }
+
+  profile.value = {
+    id: client.id,
+    name: client.name || '',
+    phone: client.phone || '',
+    email: client.email || '',
+    path_image: client.path_image || null,
+  }
+  userStore.updateUser({
+    id: client.id,
+    fullName: profile.value.name,
+    whatsapp: profile.value.phone,
+    email: profile.value.email,
+    pathImage: profile.value.path_image,
+  })
 }
 
-// Salvar perfil no localStorage
-const saveProfileToStorage = () => {
-  localStorage.setItem('userProfile', JSON.stringify(profile.value))
-  emit('profile-updated', profile.value)
-  
-  // Disparar evento para outros componentes
-  window.dispatchEvent(new CustomEvent('profile-updated'))
-  localStorage.setItem('profileUpdated', Date.now().toString())
+const resetImageChanges = () => {
+  if (imagePreview.value) URL.revokeObjectURL(imagePreview.value)
+  imagePreview.value = ''
+  selectedImage.value = null
+  deleteImage.value = false
 }
 
-// Formatar telefone
+const loadProfile = async () => {
+  const response = await clientApi.me.get()
+  setProfile(response.data?.data)
+  form.value = { ...profile.value }
+}
+
 const handlePhoneInput = () => {
-  let v = form.value.telefone.replace(/\D/g, '')
-  
-  if (v.length > 11) {
-    v = v.slice(0, 11)
-  }
-  
-  if (v.length > 0) {
-    v = v.replace(/^(\d{2})(\d)/g, '($1) $2')
-  }
-  
-  if (v.length > 10) {
-    v = v.replace(/^(\d{2}) (\d{5})(\d{4})$/, '($1) $2-$3')
-  } else if (v.length > 6) {
-    v = v.replace(/^(\d{2}) (\d{4})(\d{0,4})$/, '($1) $2-$3')
-  }
-  
-  form.value.telefone = v
+  form.value.phone = formatPhone(form.value.phone)
 }
 
 const formatPhone = (phone) => {
-  if (!phone) return ''
-  return phone
+  const digits = String(phone || '').replace(/\D/g, '').slice(0, 11)
+  if (!digits) return ''
+  if (digits.length <= 2) return `(${digits}`
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
 }
 
-const formatDate = (date) => {
-  if (!date) return ''
-  const [year, month, day] = date.split('-')
-  return `${day}/${month}/${year}`
-}
-
-const formatGenero = (genero) => {
-  const generos = {
-    'masculino': 'Masculino',
-    'feminino': 'Feminino',
-    'nao_binario': 'Não Binário',
-    'prefiro_nao_dizer': 'Prefiro não dizer',
-    'outro': 'Outro'
-  }
-  return generos[genero] || genero
-}
-
-const getMaxDate = () => {
-  const today = new Date()
-  const year = today.getFullYear() - 18 // Maior de 18 anos
-  return `${year}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-}
-
-// Upload de imagem
 const triggerImageUpload = () => {
-  if (avatarInput.value) {
-    avatarInput.value.click()
-  } else {
-    // Fallback: tenta encontrar qualquer input file no modal
-    const fileInput = document.querySelector('input[type="file"][accept*="image"]')
-    if (fileInput) {
-      fileInput.click()
-    } else {
-      toast.error('Erro ao abrir seletor de imagem', { timeout: 3000 })
-    }
-  }
+  avatarInput.value?.click()
 }
 
 const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  
-  if (file && file.type.startsWith('image/')) {
-    // Valida tamanho máximo (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 5MB', { timeout: 3000 })
-      return
-    }
-    
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const avatarUrl = e.target.result
-      if (view.value === 'edit') {
-        form.value.avatar = avatarUrl
-        toast.success('Foto alterada! Clique em "Salvar Perfil" para confirmar.', { timeout: 3000 })
-      } else {
-        profile.value.avatar = avatarUrl
-        form.value.avatar = avatarUrl
-        saveProfileToStorage()
-        toast.success('Foto atualizada com sucesso!', { timeout: 3000 })
-      }
-    }
-    reader.onerror = () => {
-      toast.error('Erro ao carregar a imagem', { timeout: 3000 })
-    }
-    reader.readAsDataURL(file)
-    
-    // Limpa o input para permitir o mesmo arquivo novamente
-    event.target.value = ''
-  } else {
-    toast.error('Por favor, selecione uma imagem válida (JPG, PNG, GIF)', { timeout: 3000 })
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    toast.error('Selecione um arquivo de imagem válido.')
+    return
   }
+  if (file.size > 2 * 1024 * 1024) {
+    toast.error('A imagem deve ter no máximo 2 MB.')
+    return
+  }
+
+  resetImageChanges()
+  selectedImage.value = file
+  imagePreview.value = URL.createObjectURL(file)
 }
 
-// Validação
+const removeImage = () => {
+  resetImageChanges()
+  deleteImage.value = true
+  form.value.path_image = null
+}
+
 const validateForm = () => {
   errors.value = {}
-  
-  // Validação do Nome (obrigatório)
-  if (!form.value.nome || form.value.nome.trim() === '') {
-    errors.value.nome = 'Nome completo é obrigatório'
-  } else if (form.value.nome.trim().length < 3) {
-    errors.value.nome = 'Nome deve ter no mínimo 3 caracteres'
-  } else if (form.value.nome.trim().split(' ').length < 2) {
-    errors.value.nome = 'Por favor, informe seu nome completo'
+
+  if (!form.value.name || form.value.name.trim().length < 3) {
+    errors.value.name = 'Informe um nome com pelo menos 3 caracteres.'
   }
-  
-  // Validação do Telefone (obrigatório)
-  if (!form.value.telefone || form.value.telefone.trim() === '') {
-    errors.value.telefone = 'Telefone é obrigatório'
-  } else {
-    const phoneDigits = form.value.telefone.replace(/\D/g, '')
-    if (phoneDigits.length !== 11) {
-      errors.value.telefone = 'Telefone deve ter 11 dígitos (DDD + 9 dígitos)'
-    }
+
+  const phoneDigits = form.value.phone.replace(/\D/g, '')
+  if (phoneDigits.length !== 11) {
+    errors.value.phone = 'Telefone deve ter 11 dígitos (DDD + número).'
   }
-  
-  // Validação do E-mail (opcional, mas se preenchido deve ser válido)
+
   if (form.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    errors.value.email = 'E-mail inválido'
+    errors.value.email = 'E-mail inválido.'
   }
-  
   return Object.keys(errors.value).length === 0
 }
 
-// Ações do perfil
 const editProfile = async () => {
+  resetImageChanges()
   form.value = { ...profile.value }
   view.value = 'edit'
-  // Aguarda o DOM ser atualizado
   await nextTick()
 }
 
 const cancelEdit = async () => {
+  resetImageChanges()
   form.value = { ...profile.value }
   view.value = 'view'
   await nextTick()
 }
 
-const saveProfile = () => {
-  if (validateForm()) {
-    profile.value = { ...form.value }
-    saveProfileToStorage()
-    view.value = 'view'
-    toast.success('Perfil atualizado com sucesso!', { timeout: 3000 })
-  } else {
+const getErrorMessage = (error) => {
+  const validationErrors = error.response?.data?.errors
+  const firstValidationError = validationErrors
+    ? Object.values(validationErrors).flat()[0]
+    : null
+  return firstValidationError || error.response?.data?.message || error.message || 'Não foi possível atualizar o perfil.'
+}
+
+const handleUnauthorized = async () => {
+  await userStore.logout()
+  emit('update:modelValue', false)
+  toast.warning('Sua sessão expirou. Faça login novamente.')
+}
+
+const saveProfile = async () => {
+  if (!validateForm()) {
     toast.error('Por favor, corrija os erros no formulário', { timeout: 3000 })
+    return
+  }
+
+  const payload = new FormData()
+  payload.append('name', form.value.name.trim())
+  payload.append('phone', form.value.phone.replace(/\D/g, ''))
+  payload.append('email', form.value.email.trim())
+  if (selectedImage.value) payload.append('path_image', selectedImage.value)
+  if (deleteImage.value) payload.append('delete_path_image', '1')
+
+  isSaving.value = true
+  try {
+    const response = await clientApi.me.patch(payload)
+    const updatedClient = response.data?.data
+    setProfile(updatedClient)
+    resetImageChanges()
+    form.value = { ...profile.value }
+    view.value = 'view'
+    emit('profile-updated', updatedClient)
+  } catch (error) {
+    if (error.response?.status === 401) {
+      await handleUnauthorized()
+      return
+    }
+    const validationErrors = error.response?.data?.errors || {}
+    errors.value = Object.fromEntries(
+      Object.entries(validationErrors).map(([field, messages]) => [
+        field,
+        Array.isArray(messages) ? messages[0] : messages,
+      ]),
+    )
+    toast.error(getErrorMessage(error), { timeout: 4000 })
+  } finally {
+    isSaving.value = false
   }
 }
 
-// Fechar modal
 const close = () => {
+  if (isSaving.value) return
   emit('update:modelValue', false)
   view.value = 'view'
+  resetImageChanges()
   form.value = { ...profile.value }
   errors.value = {}
 }
 
-// Observar quando o modal abre
 watch(() => props.modelValue, async (newValue) => {
-  if (newValue) {
-    loadProfile()
-    view.value = 'view'
-    errors.value = {}
-    // Aguarda a renderização do DOM
-    await nextTick()
-  }
-})
+  if (!newValue) return
 
-// Inicializar
-onMounted(() => {
-  loadProfile()
+  userStore.loadUserFromStorage()
+  view.value = 'view'
+  errors.value = {}
+  if (!userStore.isLogged || !getClientToken()) {
+    emit('update:modelValue', false)
+    toast.warning('Faça login para acessar seu perfil.')
+    return
+  }
+
+  isLoading.value = true
+  try {
+    await loadProfile()
+  } catch (error) {
+    if (error.response?.status === 401) {
+      await handleUnauthorized()
+    } else {
+      toast.error(getErrorMessage(error), { timeout: 4000 })
+      emit('update:modelValue', false)
+    }
+  } finally {
+    isLoading.value = false
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (imagePreview.value) URL.revokeObjectURL(imagePreview.value)
 })
 </script>
 

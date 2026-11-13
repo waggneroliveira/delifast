@@ -137,6 +137,7 @@ const login = async () => {
       fullName: client.name,
       whatsapp: client.phone,
       email: client.email || '',
+      pathImage: client.path_image || '',
     })
 
     emit('submit', {
@@ -144,6 +145,7 @@ const login = async () => {
       fullName: client.name,
       whatsapp: client.phone,
       email: client.email || '',
+      pathImage: client.path_image || '',
     })
     isLoading.value = false
     close()

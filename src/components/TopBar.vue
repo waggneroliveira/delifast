@@ -113,7 +113,7 @@
               <a class="dropdown-item" href="#" @click="showAddressModal = true">
                 Meus Endereços
               </a>
-              <a class="dropdown-item" href="#" @click="showProfileModal = true">
+              <a class="dropdown-item" href="#" @click.prevent="openProfileModal">
                 Meu Perfil
               </a>
               <a class="dropdown-item" href="#" @click="openOrderHistory">
@@ -541,6 +541,12 @@
   // Abrir modal de perfil
   const openProfileModal = () => {
     closeOffcanvas()
+    if (!userStore.isLogged) {
+      toast.warning('Faça login para acessar seu perfil!', { timeout: 3000 })
+      showModal.value = true
+      return
+    }
+
     setTimeout(() => {
       showProfileModal.value = true
     }, 150)

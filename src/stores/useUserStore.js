@@ -8,6 +8,7 @@ export const useUserStore = defineStore('user', {
     fullName: '',       // Nome completo
     whatsapp: '',       // WhatsApp para contato
     email: '',          // Email (opcional, para futuro)
+    pathImage: '',
     isLogged: false     // Status de login
   }),
 
@@ -20,7 +21,8 @@ export const useUserStore = defineStore('user', {
       id: state.id,
       fullName: state.fullName,
       whatsapp: state.whatsapp,
-      email: state.email
+      email: state.email,
+      pathImage: state.pathImage
     }),
     
     // Nome de exibição (primeiro nome)
@@ -38,6 +40,7 @@ export const useUserStore = defineStore('user', {
       this.fullName = userData.fullName || ''
       this.whatsapp = userData.whatsapp || ''
       this.email = userData.email || ''
+      this.pathImage = userData.pathImage || userData.path_image || ''
       this.isLogged = true
       
       // Salvar no localStorage para persistência
@@ -52,10 +55,12 @@ export const useUserStore = defineStore('user', {
 
     // Atualizar dados do usuário
     updateUser(userData) {
-      if (userData.id) this.id = userData.id
-      if (userData.fullName) this.fullName = userData.fullName
-      if (userData.whatsapp) this.whatsapp = userData.whatsapp
-      if (userData.email) this.email = userData.email
+      if (Object.prototype.hasOwnProperty.call(userData, 'id')) this.id = userData.id
+      if (Object.prototype.hasOwnProperty.call(userData, 'fullName')) this.fullName = userData.fullName || ''
+      if (Object.prototype.hasOwnProperty.call(userData, 'whatsapp')) this.whatsapp = userData.whatsapp || ''
+      if (Object.prototype.hasOwnProperty.call(userData, 'email')) this.email = userData.email || ''
+      if (Object.prototype.hasOwnProperty.call(userData, 'pathImage')) this.pathImage = userData.pathImage || ''
+      if (Object.prototype.hasOwnProperty.call(userData, 'path_image')) this.pathImage = userData.path_image || ''
       
       this.saveToStorage()
       console.log('📝 Dados do usuário atualizados:', userData)
@@ -74,6 +79,7 @@ export const useUserStore = defineStore('user', {
       this.fullName = ''
       this.whatsapp = ''
       this.email = ''
+      this.pathImage = ''
       this.isLogged = false
       clearClientToken()
       
@@ -89,7 +95,8 @@ export const useUserStore = defineStore('user', {
         id: this.id,
         fullName: this.fullName,
         whatsapp: this.whatsapp,
-        email: this.email
+        email: this.email,
+        pathImage: this.pathImage
       }))
     },
 
@@ -108,6 +115,7 @@ export const useUserStore = defineStore('user', {
           this.fullName = data.fullName || ''
           this.whatsapp = data.whatsapp || ''
           this.email = data.email || ''
+          this.pathImage = data.pathImage || data.path_image || ''
           this.isLogged = true
           console.log('📦 Usuário carregado do storage:', {
             id: this.id,
@@ -144,6 +152,6 @@ export const useUserStore = defineStore('user', {
   persist: {
     key: 'user',
     storage: localStorage,
-    paths: ['id', 'fullName', 'whatsapp', 'email', 'isLogged']
+    paths: ['id', 'fullName', 'whatsapp', 'email', 'pathImage', 'isLogged']
   }
 })
