@@ -1,6 +1,6 @@
 <script setup>
     import { RouterView } from 'vue-router'
-    import { ref, watch, computed, onMounted } from 'vue'
+    import { ref, watch, computed, onMounted, reactive, nextTick } from 'vue'
     import { useCartStore } from '@/stores/useCartStore'
     import { useToast } from 'vue-toastification'
     import { useUserStore } from '@/stores/useUserStore'
@@ -30,6 +30,44 @@
     const showOrderHistoryModal = ref(false)
     const showLoginModal = ref(false)
     const hasAnnouncements = ref(null)
+    const isStartupLoading = ref(true)
+    const startupReady = reactive({
+      header: false,
+      tenant: false,
+      topAnnouncements: false,
+      sidebarAnnouncements: false,
+    })
+    let isFinalizingStartup = false
+
+    const finishStartup = async () => {
+      try {
+        await nextTick()
+        if (document.fonts?.ready) await document.fonts.ready
+
+        const images = Array.from(document.images).filter((image) => image.loading !== 'lazy')
+        await Promise.all(images.map((image) => {
+          if (image.complete) return Promise.resolve()
+
+          return new Promise((resolve) => {
+            const finish = () => resolve()
+            image.addEventListener('load', finish, { once: true })
+            image.addEventListener('error', finish, { once: true })
+          })
+        }))
+      } catch (error) {
+        console.error('Não foi possível aguardar todos os arquivos da loja.', error)
+      } finally {
+        isStartupLoading.value = false
+      }
+    }
+
+    const markStartupReady = (component) => {
+      startupReady[component] = true
+      if (isFinalizingStartup || !Object.values(startupReady).every(Boolean)) return
+
+      isFinalizingStartup = true
+      finishStartup()
+    }
 
     const handleAnnouncementAvailability = (available) => {
       hasAnnouncements.value = available
@@ -839,7 +877,18 @@
 
 <template>
   <div class="container-fluid p-0">
-    <Header class="header" />
+    <Transition name="system-loader">
+      <div v-if="isStartupLoading" class="system-loader" role="status" aria-live="polite">
+        <div class="loader-card">
+          <div class="loader-spinner" aria-hidden="true"></div>
+          <p class="loader-title mb-1">Preparando sua loja</p>
+          <p class="loader-description mb-3">Carregando configurações e ofertas...</p>
+          <div class="loader-progress" aria-hidden="true"><span></span></div>
+        </div>
+      </div>
+    </Transition>
+
+    <Header class="header" @startup-ready="markStartupReady('header')" />
     
     <MobileBottomMenu 
     @change="handleMenuChange" 
@@ -852,18 +901,25 @@
 
         <!-- Topo CONTIDO -->
         <div class="container">
-          <TopBar />          
+          <TopBar @startup-ready="markStartupReady('tenant')" />
         </div>
 
         <div class="container py-0">
   
           <div class="d-flex flex-wrap">
             <!-- PASSANDO AS CATEGORIAS PARA O ASIDE -->
-            <Aside :categories="categories" class="aside" />
+            <Aside
+              :categories="categories"
+              class="aside"
+              @startup-ready="markStartupReady('sidebarAnnouncements')"
+            />
 
             <div class="content w-mobile-100" :class="{ 'mt-5': hasAnnouncements === false }">
               
-              <Announcement @availability-change="handleAnnouncementAvailability" />
+              <Announcement
+                @availability-change="handleAnnouncementAvailability"
+                @startup-ready="markStartupReady('topAnnouncements')"
+              />
               
               <div class="carousel-breakout">
                 <ProductCarousel
@@ -913,6 +969,94 @@
 </template>
 
 <style scoped>
+.system-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f6f8f7;
+}
+
+.system-loader-leave-active {
+  transition: opacity 300ms ease;
+}
+
+.system-loader-leave-to {
+  opacity: 0;
+}
+
+.loader-card {
+  width: min(340px, 100%);
+  padding: 32px 28px 26px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e8eeea;
+  border-radius: 20px;
+  box-shadow: 0 16px 48px rgba(32, 60, 45, 0.08);
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 20px;
+  border: 3px solid #e7eee9;
+  border-top-color: #4a8068;
+  border-right-color: #4a8068;
+  border-radius: 50%;
+  animation: loader-spin 900ms linear infinite;
+}
+
+.loader-title {
+  color: #263a30;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.loader-description {
+  color: #78847d;
+  font-size: 0.875rem;
+}
+
+.loader-progress {
+  height: 3px;
+  overflow: hidden;
+  background: #edf1ee;
+  border-radius: 999px;
+}
+
+.loader-progress span {
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: #4a8068;
+  border-radius: inherit;
+  animation: loader-progress 1.4s ease-in-out infinite;
+}
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-progress {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(310%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-spinner,
+  .loader-progress span {
+    animation: none;
+  }
+}
+
 @media (max-width: 768px) {
   .aside{
     width: 100%;

@@ -6,7 +6,7 @@ import { api, resolveApiAssetUrl } from '@/services/api'
 
 import 'swiper/css'
 
-const emit = defineEmits(['availability-change'])
+const emit = defineEmits(['availability-change', 'startup-ready'])
 const announcements = ref([])
 
 const loadAnnouncements = async () => {
@@ -33,6 +33,8 @@ onMounted(async () => {
   } catch (error) {
     console.error('Não foi possível carregar os anúncios da API.', error)
     emit('availability-change', false)
+  } finally {
+    emit('startup-ready')
   }
 })
 </script>

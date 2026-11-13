@@ -3,6 +3,7 @@
     import fallbackImage from '@/assets/images/banner-inner.png'
     import { api, resolveApiAssetUrl } from '@/services/api'
 
+    const emit = defineEmits(['startup-ready'])
     const desktopImage = ref(fallbackImage)
     const mobileImage = ref(fallbackImage)
 
@@ -16,6 +17,8 @@
             else mobileImage.value = desktopImage.value
         } catch (error) {
             console.error('Não foi possível carregar o banner da API.', error)
+        } finally {
+            emit('startup-ready')
         }
     })
 </script>

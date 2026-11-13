@@ -373,6 +373,7 @@
   const toast = useToast()
   const cartStore = useCartStore()
   const userStore = useUserStore()
+  const emit = defineEmits(['startup-ready'])
   const tenantConfig = ref({
     path_image_logo_header: null,
     name: 'Oxente Açaiteria',
@@ -635,9 +636,8 @@
   }
 
   onMounted(async () => {
-    userStore.loadUserFromStorage()
-
     try {
+      userStore.loadUserFromStorage()
       const { tenant } = await getTenantConfig()
       if (tenant) {
         tenantConfig.value = tenant
@@ -648,6 +648,8 @@
       }
     } catch (error) {
       console.error('Não foi possível carregar as configurações do tenant.', error)
+    } finally {
+      emit('startup-ready')
     }
   })
 

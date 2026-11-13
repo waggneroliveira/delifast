@@ -102,6 +102,7 @@ const props = defineProps({
     default: () => []
   }
 })
+const emit = defineEmits(['startup-ready'])
 
 const activeCategory = ref(null)
 const isSticky = ref(false)
@@ -316,6 +317,8 @@ onMounted(async () => {
     await loadAnnouncements()
   } catch (error) {
     console.error('Não foi possível carregar os anúncios laterais da API.', error)
+  } finally {
+    emit('startup-ready')
   }
 })
 
