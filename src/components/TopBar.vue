@@ -659,6 +659,11 @@
 </script>
 
 <style scoped>
+
+  :root {
+      --primary: {{ tenantConfig.primary_color ?: '#10513D' }};
+  }
+  .bg-primary { background-color: var(--primary) !important; }
   .reset-button {
     all: unset;
     cursor: pointer;
