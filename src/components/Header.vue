@@ -1,33 +1,23 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import axios from 'axios'
-import fallbackImage from '@/assets/images/banner-inner.png'
+    import { onMounted, ref } from 'vue'
+    import fallbackImage from '@/assets/images/banner-inner.png'
+    import { api, resolveApiAssetUrl } from '@/services/api'
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://delivery.localhost:8000/api').replace(/\/+$/, '')
+    const desktopImage = ref(fallbackImage)
+    const mobileImage = ref(fallbackImage)
 
-const desktopImage = ref(fallbackImage)
-const mobileImage = ref(fallbackImage)
+    onMounted(async () => {
+        try {
+            const { data } = await api.get('/slides')
+            const slide = data.data
 
-const resolveImageUrl = (path) => {
-    if (/^https?:\/\//i.test(path)) return path
-
-    const imagePath = path.replace(/^\/+/, '')
-    const storagePath = imagePath.startsWith('storage/') ? imagePath : `storage/${imagePath}`
-    return new URL(storagePath, `${new URL(apiBaseUrl).origin}/`).href
-}
-
-onMounted(async () => {
-    try {
-        const { data } = await axios.get(`${apiBaseUrl}/slides`)
-        const slide = data?.data
-
-        if (slide?.path_image) desktopImage.value = resolveImageUrl(slide.path_image)
-        if (slide?.path_image_mobile) mobileImage.value = resolveImageUrl(slide.path_image_mobile)
-        else mobileImage.value = desktopImage.value
-    } catch (error) {
-        console.error('Não foi possível carregar o banner da API.', error)
-    }
-})
+            if (slide?.path_image) desktopImage.value = resolveApiAssetUrl(slide.path_image)
+            if (slide?.path_image_mobile) mobileImage.value = resolveApiAssetUrl(slide.path_image_mobile)
+            else mobileImage.value = desktopImage.value
+        } catch (error) {
+            console.error('Não foi possível carregar o banner da API.', error)
+        }
+    })
 </script>
 
 <template>
