@@ -105,16 +105,15 @@
       }
 
       const colors = appearance.value.colors || {}
-      const background = normalizeHexColor(colors.background) || '#FEF3E5'
+      const background = normalizeHexColor(colors.primary)
+        || normalizeHexColor(getComputedStyle(document.documentElement).getPropertyValue('--primary'))
+        || '#10513D'
       const requestedText = normalizeHexColor(colors.text) || '#262321'
       const readableText = getColorContrast(requestedText, background) >= 4.5
         ? requestedText
         : getColorLuminance(background) > 0.179 ? '#262321' : '#FFFFFF'
-      const requestedPrimary = normalizeHexColor(colors.primary) || '#F36B18'
-      const primary = getColorContrast(requestedPrimary, background) >= 3
-        ? requestedPrimary
-        : getColorContrast('#F36B18', background) >= 3 ? '#F36B18' : readableText
       const secondary = normalizeHexColor(colors.secondary) || '#F3DFC9'
+      const primary = getColorContrast(secondary, background) >= 3 ? secondary : readableText
 
       return {
         '--loader-background': background,
@@ -1157,12 +1156,18 @@
   position: relative;
   display: inline-block;
   margin-bottom: 4px;
+  width: 190px;
+  height: 190px;
+  margin-top: -170px;
+  background: #FFF;
+  border: 7px solid rgba(0, 0, 0, 0.10);
+  border-radius: 100%;
 }
 
 .loader-icon {
   display: block;
-  width: 104px;
-  height: 104px;
+  width: 160px;
+  height: 160px;
   margin: 0 auto;
   object-fit: contain;
   mix-blend-mode: multiply;
