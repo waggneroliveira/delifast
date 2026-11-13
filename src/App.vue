@@ -4,7 +4,7 @@
     import { useCartStore } from '@/stores/useCartStore'
     import { useToast } from 'vue-toastification'
     import { useUserStore } from '@/stores/useUserStore'
-    import delifastLogo from '@/assets/images/logo.png'
+    import delifastLoaderIcon from '@/assets/images/load.png'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -881,15 +881,28 @@
     <Transition name="system-loader">
       <div v-if="isStartupLoading" class="system-loader" role="status" aria-live="polite">
         <div class="loader-card">
-          <img
-            :src="delifastLogo"
-            class="loader-logo"
-            alt="DeliFast - Sistema de Delivery"
-          >
-          <p class="loader-title mb-1">Preparando sua loja</p>
-          <p class="loader-description mb-3">O DeliFast está carregando configurações e ofertas...</p>
-          <div class="loader-spinner" aria-hidden="true"></div>
-          <div class="loader-progress" aria-hidden="true"><span></span></div>
+          <div class="loader-icon-wrapper">
+            <img
+              :src="delifastLoaderIcon"
+              class="loader-icon"
+              alt=""
+              aria-hidden="true"
+            >
+          </div>
+          
+          <!-- Nome com fonte mais arredondada/elegante e shimmer mais lento -->
+          <p class="loader-brand" aria-label="DeliFast">
+            <span class="brand-part">Deli</span><span class="brand-part loader-brand-fast">Fast</span>
+          </p>
+
+          <div class="loader-text-group">
+            <p class="loader-title mb-1">Estamos preparando tudo para você!</p>
+            <p class="loader-description mb-3">Carregando novidades e ofertas especiais...</p>
+          </div>
+
+          <div class="loader-footer">
+            <div class="loader-spinner" aria-hidden="true"></div>
+          </div>
         </div>
       </div>
     </Transition>
@@ -985,69 +998,136 @@
   background: #fef3e5;
 }
 
+.system-loader-enter-active,
 .system-loader-leave-active {
-  transition: opacity 300ms ease;
+  transition: opacity 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.system-loader-enter-from,
 .system-loader-leave-to {
   opacity: 0;
 }
-
-.loader-card {
-  width: min(340px, 100%);
-  padding: 24px 28px 26px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid #f1dfca;
-  border-radius: 20px;
-  box-shadow: 0 16px 48px rgba(95, 57, 22, 0.08);
+.loader-brand::after{
+  content: '';
+  height: 3px;
+  width: 50px;
+  background: #f36b18;
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.loader-logo {
+.loader-card {
+  width: min(345px, 100%);
+  padding: 24px 28px 26px;
+  text-align: center;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.loader-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.loader-icon {
   display: block;
-  width: 156px;
-  height: 156px;
-  margin: 0 auto 8px;
+  width: 104px;
+  height: 104px;
+  margin: 0 auto;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
 
-.loader-spinner {
-  width: 30px;
-  height: 30px;
-  margin: 0 auto 16px;
-  border: 2px solid #f3dfc9;
-  border-top-color: #f36b18;
-  border-right-color: #f36b18;
-  border-radius: 50%;
-  animation: loader-spin 900ms linear infinite;
+.loader-brand {
+  margin: 0 0 16px;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 2.3rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  display: flex;
+  justify-content: center;
+  gap: 1px;
+}
+
+.brand-part {
+  background: linear-gradient(
+    90deg, 
+    #24211f 0%, 
+    #24211f 38%, 
+    #ffffff 50%, 
+    #24211f 62%, 
+    #24211f 100%
+  );
+  background-size: 250% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: text-shimmer 3.5s linear infinite;
+}
+
+.loader-brand-fast {
+  background: linear-gradient(
+    90deg, 
+    #f36b18 0%, 
+    #f36b18 38%, 
+    #ffffff 50%, 
+    #f36b18 62%, 
+    #f36b18 100%
+  );
+  background-size: 250% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: text-shimmer 3.5s linear infinite;
+  animation-delay: 200ms;
+}
+
+.loader-text-group {
+  margin-bottom: 22px;
 }
 
 .loader-title {
   color: #262321;
   font-size: 1rem;
   font-weight: 600;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
 .loader-description {
   color: #74695e;
   font-size: 0.875rem;
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
-.loader-progress {
-  height: 3px;
-  overflow: hidden;
-  background: #f3e5d6;
-  border-radius: 999px;
+.loader-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.loader-progress span {
-  display: block;
-  width: 35%;
-  height: 100%;
-  background: #f36b18;
-  border-radius: inherit;
-  animation: loader-progress 1.4s ease-in-out infinite;
+.loader-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid #f3dfc9;
+  border-top-color: #f36b18;
+  border-right-color: #f36b18;
+  border-radius: 50%;
+  animation: loader-spin 900ms linear infinite;
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
 }
 
 @keyframes loader-spin {
@@ -1056,18 +1136,9 @@
   }
 }
 
-@keyframes loader-progress {
-  from {
-    transform: translateX(-110%);
-  }
-  to {
-    transform: translateX(310%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .loader-spinner,
-  .loader-progress span {
+  .brand-part {
     animation: none;
   }
 }
