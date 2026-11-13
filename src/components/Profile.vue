@@ -14,7 +14,7 @@
           <h5 class="modal-title">
             <i class="bi bi-person-circle me-2"></i>Meu Perfil
           </h5>
-          <button type="button" class="btn-close" @click="close" :disabled="isSaving"></button>
+          <button type="button" class="btn-close" @click="close" :disabled="isSaving || isDeleting"></button>
         </div>
 
         <div class="modal-body">
@@ -51,39 +51,69 @@
                 <p class="text-muted small">Edite seu perfil para alterar a foto</p>
               </div>
 
-              <div class="profile-info">
-                <div class="info-card mb-3">
-                  <div class="info-label">
-                    <i class="bi bi-person"></i>
-                    <span>Nome</span>
+              <div class="profile-info row g-3">
+                  <div class="col-12 col-lg-7">
+                      <div class="info-card h-100">
+                          <div class="info-label">
+                              <i class="bi bi-person"></i>
+                              <span>Nome</span>
+                          </div>
+                          <div class="info-value">{{ profile.name || 'Não informado' }}</div>
+                      </div>
                   </div>
-                  <div class="info-value">{{ profile.name || 'Não informado' }}</div>
-                </div>
 
-                <div class="info-card mb-3">
-                  <div class="info-label">
-                    <i class="bi bi-telephone"></i>
-                    <span>Telefone</span>
+                  <div class="col-12 col-lg-5">
+                      <div class="info-card h-100">
+                          <div class="info-label">
+                              <i class="bi bi-telephone"></i>
+                              <span>Telefone</span>
+                          </div>
+                          <div class="info-value">{{ formatPhone(profile.phone) || 'Não informado' }}</div>
+                      </div>
                   </div>
-                  <div class="info-value">{{ formatPhone(profile.phone) || 'Não informado' }}</div>
-                </div>
 
-                <div class="info-card mb-3">
-                  <div class="info-label">
-                    <i class="bi bi-envelope"></i>
-                    <span>E-mail</span>
+                  <div class="col-12">
+                      <div class="info-card h-100">
+                          <div class="info-label">
+                              <i class="bi bi-envelope"></i>
+                              <span>E-mail</span>
+                          </div>
+                          <div class="info-value">{{ profile.email || 'Não informado' }}</div>
+                      </div>
                   </div>
-                  <div class="info-value">{{ profile.email || 'Não informado' }}</div>
-                </div>
               </div>
 
               <div class="action-buttons mt-4 d-flex justify-content-end align-items-center">
-                <button class="btn btn-outline-secondary me-2" @click="close">
+                <button
+                  class="btn btn-outline-danger me-auto"
+                  @click="showDeleteConfirmation = true"
+                  :disabled="isDeleting"
+                >
+                  <i class="bi bi-trash me-2"></i>Excluir conta
+                </button>
+                <button class="btn btn-outline-secondary me-2" @click="close" :disabled="isDeleting">
                   <i class="bi bi-x-circle me-2"></i>Fechar
                 </button>
-                <button class="btn btn-primary" @click="editProfile">
+                <button class="btn btn-primary" @click="editProfile" :disabled="isDeleting">
                   <i class="bi bi-pencil-square me-2"></i>Editar Perfil
                 </button>
+              </div>
+
+              <div v-if="showDeleteConfirmation" class="alert alert-danger mt-3 mb-0" role="alert">
+                <strong>Excluir sua conta?</strong>
+                <p class="mb-3">Essa ação é permanente e não poderá ser desfeita.</p>
+                <div class="d-flex justify-content-end gap-2">
+                  <button
+                    class="btn btn-outline-secondary"
+                    @click="showDeleteConfirmation = false"
+                    :disabled="isDeleting"
+                  >
+                    Manter conta
+                  </button>
+                  <button class="btn btn-danger" @click="deleteAccount" :disabled="isDeleting">
+                    {{ isDeleting ? 'Excluindo...' : 'Excluir definitivamente' }}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -180,7 +210,7 @@
 import { computed, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useUserStore } from '@/stores/useUserStore'
-import { clientApi, getClientToken, resolveApiAssetUrl } from '@/services/api'
+import { clearClientToken, clientApi, getClientToken, resolveApiAssetUrl } from '@/services/api'
 
 const toast = useToast()
 const userStore = useUserStore()
@@ -189,7 +219,7 @@ const props = defineProps({
   modelValue: Boolean
 })
 
-const emit = defineEmits(['update:modelValue', 'profile-updated'])
+const emit = defineEmits(['update:modelValue', 'profile-updated', 'account-deleted'])
 
 const isAuthenticated = computed(() => userStore.isLogged && Boolean(getClientToken()))
 const view = ref('view')
@@ -199,6 +229,8 @@ const profile = ref({ id: null, name: '', phone: '', email: '', path_image: null
 const form = ref({ ...profile.value })
 const isLoading = ref(false)
 const isSaving = ref(false)
+const isDeleting = ref(false)
+const showDeleteConfirmation = ref(false)
 const selectedImage = ref(null)
 const imagePreview = ref('')
 const deleteImage = ref(false)
@@ -310,12 +342,12 @@ const cancelEdit = async () => {
   await nextTick()
 }
 
-const getErrorMessage = (error) => {
+const getErrorMessage = (error, fallback = 'Não foi possível atualizar o perfil.') => {
   const validationErrors = error.response?.data?.errors
   const firstValidationError = validationErrors
     ? Object.values(validationErrors).flat()[0]
     : null
-  return firstValidationError || error.response?.data?.message || error.message || 'Não foi possível atualizar o perfil.'
+  return firstValidationError || error.response?.data?.message || error.message || fallback
 }
 
 const handleUnauthorized = async () => {
@@ -364,10 +396,33 @@ const saveProfile = async () => {
   }
 }
 
+const deleteAccount = async () => {
+  if (!showDeleteConfirmation.value || isDeleting.value) return
+
+  isDeleting.value = true
+  try {
+    const response = await clientApi.me.delete()
+    clearClientToken()
+    await userStore.logout()
+    emit('update:modelValue', false)
+    emit('account-deleted', response.data)
+    toast.success(response.data?.message || 'Sua conta foi excluída com sucesso.')
+  } catch (error) {
+    if (error.response?.status === 401) {
+      await handleUnauthorized()
+      return
+    }
+    toast.error(getErrorMessage(error, 'Não foi possível excluir sua conta.'), { timeout: 4000 })
+  } finally {
+    isDeleting.value = false
+  }
+}
+
 const close = () => {
-  if (isSaving.value) return
+  if (isSaving.value || isDeleting.value) return
   emit('update:modelValue', false)
   view.value = 'view'
+  showDeleteConfirmation.value = false
   resetImageChanges()
   form.value = { ...profile.value }
   errors.value = {}
@@ -379,6 +434,7 @@ watch(() => props.modelValue, async (newValue) => {
   userStore.loadUserFromStorage()
   view.value = 'view'
   errors.value = {}
+  showDeleteConfirmation.value = false
   if (!userStore.isLogged || !getClientToken()) {
     emit('update:modelValue', false)
     toast.warning('Faça login para acessar seu perfil.')
