@@ -1,9 +1,15 @@
 import axios from 'axios'
 
-const localApiBaseUrl = 'http://delivery.localhost:8000/api'
-const apiBaseUrl = import.meta.env.DEV
-    ? localApiBaseUrl
-    : new URL('/api', window.location.origin).href.replace(/\/$/, '')
+const apiBaseUrl = (() => {
+    const url = new URL(window.location.origin)
+
+    if (import.meta.env.DEV) {
+        url.port = '8000'
+    }
+
+    url.pathname = '/api'
+    return url.href.replace(/\/$/, '')
+})()
 
 export const api = axios.create({
     baseURL: apiBaseUrl,
