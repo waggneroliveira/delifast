@@ -4,6 +4,7 @@
     import { useCartStore } from '@/stores/useCartStore'
     import { useToast } from 'vue-toastification'
     import { useUserStore } from '@/stores/useUserStore'
+    import delifastLogo from '@/assets/images/logo.png'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -880,9 +881,14 @@
     <Transition name="system-loader">
       <div v-if="isStartupLoading" class="system-loader" role="status" aria-live="polite">
         <div class="loader-card">
-          <div class="loader-spinner" aria-hidden="true"></div>
+          <img
+            :src="delifastLogo"
+            class="loader-logo"
+            alt="DeliFast - Sistema de Delivery"
+          >
           <p class="loader-title mb-1">Preparando sua loja</p>
-          <p class="loader-description mb-3">Carregando configurações e ofertas...</p>
+          <p class="loader-description mb-3">O DeliFast está carregando configurações e ofertas...</p>
+          <div class="loader-spinner" aria-hidden="true"></div>
           <div class="loader-progress" aria-hidden="true"><span></span></div>
         </div>
       </div>
@@ -976,7 +982,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: #f6f8f7;
+  background: #fef3e5;
 }
 
 .system-loader-leave-active {
@@ -989,40 +995,49 @@
 
 .loader-card {
   width: min(340px, 100%);
-  padding: 32px 28px 26px;
+  padding: 24px 28px 26px;
   text-align: center;
-  background: #fff;
-  border: 1px solid #e8eeea;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #f1dfca;
   border-radius: 20px;
-  box-shadow: 0 16px 48px rgba(32, 60, 45, 0.08);
+  box-shadow: 0 16px 48px rgba(95, 57, 22, 0.08);
+}
+
+.loader-logo {
+  display: block;
+  width: 156px;
+  height: 156px;
+  margin: 0 auto 8px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }
 
 .loader-spinner {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 20px;
-  border: 3px solid #e7eee9;
-  border-top-color: #4a8068;
-  border-right-color: #4a8068;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 16px;
+  border: 2px solid #f3dfc9;
+  border-top-color: #f36b18;
+  border-right-color: #f36b18;
   border-radius: 50%;
   animation: loader-spin 900ms linear infinite;
 }
 
 .loader-title {
-  color: #263a30;
+  color: #262321;
   font-size: 1rem;
   font-weight: 600;
 }
 
 .loader-description {
-  color: #78847d;
+  color: #74695e;
   font-size: 0.875rem;
 }
 
 .loader-progress {
   height: 3px;
   overflow: hidden;
-  background: #edf1ee;
+  background: #f3e5d6;
   border-radius: 999px;
 }
 
@@ -1030,7 +1045,7 @@
   display: block;
   width: 35%;
   height: 100%;
-  background: #4a8068;
+  background: #f36b18;
   border-radius: inherit;
   animation: loader-progress 1.4s ease-in-out infinite;
 }
