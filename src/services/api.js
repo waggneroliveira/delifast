@@ -11,7 +11,40 @@ const apiBaseUrl = (() => {
     return url.href.replace(/\/$/, '')
 })()
 
+const appearanceCacheKey = `delifast:appearance:${apiBaseUrl}/appearance`
 const clientTokenKey = 'clientToken'
+
+const normalizeAppearance = (response) => {
+    const data = response?.data?.appearance || response?.data || response
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error('A resposta de /appearance não contém os dados do tenant.')
+    }
+
+    return {
+        name: typeof data.name === 'string' && data.name.trim() ? data.name.trim() : null,
+        logo: typeof data.logo === 'string' && data.logo.trim() ? data.logo.trim() : null,
+        colors: data.colors && typeof data.colors === 'object' && !Array.isArray(data.colors)
+            ? data.colors
+            : {},
+    }
+}
+
+export const getCachedAppearance = () => {
+    if (typeof localStorage === 'undefined') return null
+
+    try {
+        const cached = localStorage.getItem(appearanceCacheKey)
+        if (!cached) return null
+
+        const appearance = normalizeAppearance(JSON.parse(cached))
+        return appearance.name || appearance.logo || Object.keys(appearance.colors).length
+            ? appearance
+            : null
+    } catch (error) {
+        console.warn('Não foi possível ler a aparência em cache.', error)
+        return null
+    }
+}
 
 export const getClientToken = () => (
     typeof localStorage === 'undefined' ? null : localStorage.getItem(clientTokenKey)
@@ -78,8 +111,33 @@ export const getTenantConfig = async () => {
     return data.data
 }
 
+export const getAppearance = async () => {
+    const { data } = await api.get('/appearance')
+    const appearance = normalizeAppearance(data)
+
+    if (typeof localStorage !== 'undefined') {
+        try {
+            localStorage.setItem(appearanceCacheKey, JSON.stringify(appearance))
+        } catch (error) {
+            console.warn('Não foi possível salvar a aparência em cache.', error)
+        }
+    }
+
+    return appearance
+}
+
 export const resolveApiAssetUrl = (path) => {
-    if (/^https?:\/\//i.test(path)) return path
+    if (/^https?:\/\//i.test(path)) {
+        const assetUrl = new URL(path)
+        const apiUrl = new URL(apiBaseUrl)
+
+        if (['localhost', '127.0.0.1', '::1'].includes(assetUrl.hostname)) {
+            assetUrl.protocol = apiUrl.protocol
+            assetUrl.host = apiUrl.host
+        }
+
+        return assetUrl.href
+    }
 
     const imagePath = path.replace(/^\/+/, '')
     const storagePath = imagePath.startsWith('storage/') ? imagePath : `storage/${imagePath}`

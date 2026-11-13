@@ -5,6 +5,7 @@
     import { useToast } from 'vue-toastification'
     import { useUserStore } from '@/stores/useUserStore'
     import delifastLoaderIcon from '@/assets/images/load.png'
+    import { getAppearance, getCachedAppearance, resolveApiAssetUrl } from '@/services/api'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -32,7 +33,16 @@
     const showLoginModal = ref(false)
     const hasAnnouncements = ref(null)
     const isStartupLoading = ref(true)
+    const defaultAppearance = {
+      name: 'DeliFast',
+      logo: null,
+      colors: {},
+    }
+    const cachedAppearance = getCachedAppearance()
+    const appearance = ref(cachedAppearance || defaultAppearance)
+    const isAppearanceReady = ref(Boolean(cachedAppearance))
     const startupReady = reactive({
+      appearance: false,
       header: false,
       tenant: false,
       topAnnouncements: false,
@@ -40,21 +50,116 @@
     })
     let isFinalizingStartup = false
 
+    const normalizeHexColor = (color) => {
+      if (typeof color !== 'string' || !/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color)) return null
+      if (color.length === 4) {
+        return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+      }
+      return color
+    }
+
+    const getColorLuminance = (color) => {
+      const hex = normalizeHexColor(color)
+      if (!hex) return 0
+      const channels = [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255)
+      const linear = channels.map((channel) => (
+        channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+      ))
+      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722
+    }
+
+    const getColorContrast = (firstColor, secondColor) => {
+      const firstLuminance = getColorLuminance(firstColor)
+      const secondLuminance = getColorLuminance(secondColor)
+      const lighter = Math.max(firstLuminance, secondLuminance)
+      const darker = Math.min(firstLuminance, secondLuminance)
+      return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    const blendColors = (foreground, background, opacity) => {
+      const foregroundHex = normalizeHexColor(foreground)
+      const backgroundHex = normalizeHexColor(background)
+      const channels = [1, 3, 5].map((index) => {
+        const foregroundChannel = parseInt(foregroundHex.slice(index, index + 2), 16)
+        const backgroundChannel = parseInt(backgroundHex.slice(index, index + 2), 16)
+        const blendedChannel = Math.round(
+          foregroundChannel * opacity + backgroundChannel * (1 - opacity),
+        )
+        return blendedChannel.toString(16).padStart(2, '0')
+      })
+      return `#${channels.join('')}`
+    }
+
+    const loaderBrandName = computed(() => appearance.value.name || 'DeliFast')
+    const loaderLogo = computed(() => (
+      appearance.value.logo ? resolveApiAssetUrl(appearance.value.logo) : delifastLoaderIcon
+    ))
+    const loaderThemeStyle = computed(() => {
+      if (!isAppearanceReady.value) {
+        return {
+          '--loader-background': '#F4F5F7',
+          '--loader-text': '#374151',
+          '--loader-primary': '#6B7280',
+          '--loader-track': '#E5E7EB',
+        }
+      }
+
+      const colors = appearance.value.colors || {}
+      const background = normalizeHexColor(colors.background) || '#FEF3E5'
+      const requestedText = normalizeHexColor(colors.text) || '#262321'
+      const readableText = getColorContrast(requestedText, background) >= 4.5
+        ? requestedText
+        : getColorLuminance(background) > 0.179 ? '#262321' : '#FFFFFF'
+      const requestedPrimary = normalizeHexColor(colors.primary) || '#F36B18'
+      const primary = getColorContrast(requestedPrimary, background) >= 3
+        ? requestedPrimary
+        : getColorContrast('#F36B18', background) >= 3 ? '#F36B18' : readableText
+      const secondary = normalizeHexColor(colors.secondary) || '#F3DFC9'
+
+      return {
+        '--loader-background': background,
+        '--loader-text': readableText,
+        '--loader-primary': primary,
+        '--loader-track': blendColors(secondary, background, 0.24),
+      }
+    })
+
+    const loadAppearance = async () => {
+      const data = await getAppearance()
+      appearance.value = {
+        name: typeof data.name === 'string' && data.name.trim() ? data.name.trim() : 'DeliFast',
+        logo: typeof data.logo === 'string' && data.logo.trim() ? data.logo.trim() : null,
+        colors: data.colors,
+      }
+    }
+
+    const handleLoaderLogoError = () => {
+      if (appearance.value.logo) {
+        appearance.value = { ...appearance.value, logo: null }
+      }
+    }
+
     const finishStartup = async () => {
       try {
         await nextTick()
         if (document.fonts?.ready) await document.fonts.ready
 
-        const images = Array.from(document.images).filter((image) => image.loading !== 'lazy')
-        await Promise.all(images.map((image) => {
-          if (image.complete) return Promise.resolve()
+        let images
+        do {
+          await nextTick()
+          images = Array.from(document.images).filter(
+            (image) => image.loading !== 'lazy' && !image.complete,
+          )
+          await Promise.all(images.map((image) => {
+            if (image.complete) return Promise.resolve()
 
-          return new Promise((resolve) => {
-            const finish = () => resolve()
-            image.addEventListener('load', finish, { once: true })
-            image.addEventListener('error', finish, { once: true })
-          })
-        }))
+            return new Promise((resolve) => {
+              const finish = () => resolve()
+              image.addEventListener('load', finish, { once: true })
+              image.addEventListener('error', finish, { once: true })
+            })
+          }))
+        } while (images.length)
       } catch (error) {
         console.error('Não foi possível aguardar todos os arquivos da loja.', error)
       } finally {
@@ -69,6 +174,17 @@
       isFinalizingStartup = true
       finishStartup()
     }
+
+    onMounted(async () => {
+      try {
+        await loadAppearance()
+      } catch (error) {
+        console.error('Não foi possível carregar a aparência do tenant.', error)
+      } finally {
+        isAppearanceReady.value = true
+        markStartupReady('appearance')
+      }
+    })
 
     const handleAnnouncementAvailability = (available) => {
       hasAnnouncements.value = available
@@ -879,20 +995,29 @@
 <template>
   <div class="container-fluid p-0">
     <Transition name="system-loader">
-      <div v-if="isStartupLoading" class="system-loader" role="status" aria-live="polite">
+      <div
+        v-if="isStartupLoading"
+        class="system-loader"
+        :style="loaderThemeStyle"
+        role="status"
+        aria-live="polite"
+      >
         <div class="loader-card">
-          <div class="loader-icon-wrapper">
+          <div v-if="isAppearanceReady" class="loader-icon-wrapper">
             <img
-              :src="delifastLoaderIcon"
+              :src="loaderLogo"
               class="loader-icon"
-              alt=""
-              aria-hidden="true"
+              :alt="`Logo de ${loaderBrandName}`"
+              @error="handleLoaderLogoError"
             >
           </div>
           
-          <!-- Nome com fonte mais arredondada/elegante e shimmer mais lento -->
-          <p class="loader-brand position-relative" aria-label="DeliFast">
-            <span class="brand-part">Deli</span><span class="brand-part loader-brand-fast">Fast</span>
+          <p
+            v-if="isAppearanceReady"
+            class="loader-brand position-relative"
+            :aria-label="loaderBrandName"
+          >
+            <span class="brand-part">{{ loaderBrandName }}</span>
           </p>
 
           <div class="loader-text-group">
@@ -995,7 +1120,8 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: #fef3e5;
+  background: var(--loader-background, #fef3e5);
+  transition: background-color 350ms ease;
 }
 
 .system-loader-enter-active,
@@ -1011,7 +1137,7 @@
   content: '';
   height: 3px;
   width: 50px;
-  background: #f36b18;
+  background: var(--loader-primary, #f36b18);
   position: absolute;
   bottom: -8px;
   left: 50%;
@@ -1045,46 +1171,29 @@
 .loader-brand {
   margin: 0 0 16px;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 2.3rem;
+  font-size: clamp(1.7rem, 7vw, 2.3rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.1;
-  display: flex;
-  justify-content: center;
-  gap: 1px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .brand-part {
+  max-width: 100%;
   background: linear-gradient(
-    90deg, 
-    #24211f 0%, 
-    #24211f 38%, 
-    #ffffff 50%, 
-    #24211f 62%, 
-    #24211f 100%
+    90deg,
+    var(--loader-text) 0%,
+    var(--loader-text) 38%,
+    var(--loader-primary) 50%,
+    var(--loader-text) 62%,
+    var(--loader-text) 100%
   );
   background-size: 250% auto;
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
   animation: text-shimmer 3.5s linear infinite;
-}
-
-.loader-brand-fast {
-  background: linear-gradient(
-    90deg, 
-    #f36b18 0%, 
-    #f36b18 38%, 
-    #ffffff 50%, 
-    #f36b18 62%, 
-    #f36b18 100%
-  );
-  background-size: 250% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: text-shimmer 3.5s linear infinite;
-  animation-delay: 200ms;
 }
 
 .loader-text-group {
@@ -1092,16 +1201,17 @@
 }
 
 .loader-title {
-  color: #262321;
+  color: var(--loader-text, #262321);
   font-size: 1rem;
   font-weight: 600;
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
 .loader-description {
-  color: #74695e;
+  color: var(--loader-text, #74695e);
   font-size: 0.875rem;
   margin: 0;
+  opacity: 0.78;
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
@@ -1114,9 +1224,9 @@
 .loader-spinner {
   width: 32px;
   height: 32px;
-  border: 2.5px solid #f3dfc9;
-  border-top-color: #f36b18;
-  border-right-color: #f36b18;
+  border: 2.5px solid var(--loader-track, #f3dfc9);
+  border-top-color: var(--loader-primary, #f36b18);
+  border-right-color: var(--loader-primary, #f36b18);
   border-radius: 50%;
   animation: loader-spin 900ms linear infinite;
 }
