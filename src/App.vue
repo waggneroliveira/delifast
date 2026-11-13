@@ -1132,16 +1132,6 @@
 .system-loader-leave-to {
   opacity: 0;
 }
-.loader-brand::after{
-  content: '';
-  height: 3px;
-  width: 50px;
-  background: var(--loader-primary, #f36b18);
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-}
 
 .loader-card {
   width: min(345px, 100%);
@@ -1161,18 +1151,19 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 4px;
-  width: 190px;
-  height: 190px;
-  flex: 0 0 190px;
+  width: 160px;
+  height: 160px;
+  flex: 0 0 160px;
   background: #FFF;
   border: 7px solid rgba(0, 0, 0, 0.10);
   border-radius: 100%;
+  overflow: hidden;
 }
 
 .loader-icon {
   display: block;
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
