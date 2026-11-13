@@ -19,7 +19,12 @@ const clientEndpoint = '/client'
 
 export const clientApi = {
     login: (credentials) => api.post(`${clientEndpoint}/login`, credentials),
-    me: () => api.get(`${clientEndpoint}/me`),
+    me: {
+        get: () => api.get(`${clientEndpoint}/me`),
+        put: (data) => api.put(`${clientEndpoint}/me`, data),
+        patch: (data) => api.patch(`${clientEndpoint}/me`, data),
+        delete: () => api.delete(`${clientEndpoint}/me`),
+    },
     logout: () => api.post(`${clientEndpoint}/logout`),
 }
 
