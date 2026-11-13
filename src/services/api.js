@@ -15,6 +15,14 @@ export const api = axios.create({
     baseURL: apiBaseUrl,
 })
 
+const clientEndpoint = '/client'
+
+export const clientApi = {
+    login: (credentials) => api.post(`${clientEndpoint}/login`, credentials),
+    me: () => api.get(`${clientEndpoint}/me`),
+    logout: () => api.post(`${clientEndpoint}/logout`),
+}
+
 export const getTenantConfig = async () => {
     const { data } = await api.get('/tenant')
     return data.data
