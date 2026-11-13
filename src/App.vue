@@ -891,7 +891,7 @@
           </div>
           
           <!-- Nome com fonte mais arredondada/elegante e shimmer mais lento -->
-          <p class="loader-brand" aria-label="DeliFast">
+          <p class="loader-brand position-relative" aria-label="DeliFast">
             <span class="brand-part">Deli</span><span class="brand-part loader-brand-fast">Fast</span>
           </p>
 
