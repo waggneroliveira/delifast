@@ -1146,6 +1146,9 @@
 .loader-card {
   width: min(345px, 100%);
   padding: 24px 28px 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   background: transparent;
   box-shadow: none;
@@ -1154,11 +1157,13 @@
 
 .loader-icon-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 4px;
   width: 190px;
   height: 190px;
-  margin-top: -170px;
+  flex: 0 0 190px;
   background: #FFF;
   border: 7px solid rgba(0, 0, 0, 0.10);
   border-radius: 100%;
@@ -1168,7 +1173,6 @@
   display: block;
   width: 160px;
   height: 160px;
-  margin: 0 auto;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
