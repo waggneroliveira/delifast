@@ -33,7 +33,7 @@
                 <div class="col-12 col-md-8 d-flex gap-3 align-items-start">
                   <div class="mt-1 flex-shrink-0">
                     <svg width="28" height="22" viewBox="0 0 39 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M36.4453 6.97266C38.3789 10.1367 36.6211 14.4727 32.9883 14.9414C32.6953 15 32.4609 15 32.168 15C30.4102 15 28.8867 14.2383 27.832 13.0664C26.7773 14.2383 25.2539 15 23.4961 15C21.7969 15 20.2148 14.2383 19.1602 13.0664C18.1055 14.2383 16.582 15 14.8828 15C13.125 15 11.6016 14.2383 10.5469 13.0664C9.49219 14.2383 7.96875 15 6.21094 15C5.91797 15 5.68359 15 5.39062 14.9414C1.75781 14.4727 0 10.1367 1.99219 6.97266L5.74219 0.878906C6.09375 0.351562 6.73828 0 7.38281 0H31.0547C31.6992 0 32.2852 0.351562 32.6367 0.878906L36.4453 6.97266ZM32.168 16.875C32.5195 16.875 32.8711 16.875 33.2227 16.8164C33.5742 16.8164 33.8672 16.6992 34.2188 16.6406V28.125C34.2188 29.1797 33.3398 30 32.3438 30H6.09375C5.03906 30 4.21875 29.1797 4.21875 28.125V16.6406C4.51172 16.6992 4.80469 16.7578 5.15625 16.8164C5.50781 16.875 5.85938 16.875 6.21094 16.875C6.79688 16.875 7.38281 16.8164 7.96875 16.6992V22.5H30.4688V16.6992C30.9961 16.8164 31.582 16.875 32.168 16.875Z" fill="var(--bg-orange)"/>
+                      <path d="M36.4453 6.97266C38.3789 10.1367 36.6211 14.4727 32.9883 14.9414C32.6953 15 32.4609 15 32.168 15C30.4102 15 28.8867 14.2383 27.832 13.0664C26.7773 14.2383 25.2539 15 23.4961 15C21.7969 15 20.2148 14.2383 19.1602 13.0664C18.1055 14.2383 16.582 15 14.8828 15C13.125 15 11.6016 14.2383 10.5469 13.0664C9.49219 14.2383 7.96875 15 6.21094 15C5.91797 15 5.68359 15 5.39062 14.9414C1.75781 14.4727 0 10.1367 1.99219 6.97266L5.74219 0.878906C6.09375 0.351562 6.73828 0 7.38281 0H31.0547C31.6992 0 32.2852 0.351562 32.6367 0.878906L36.4453 6.97266ZM32.168 16.875C32.5195 16.875 32.8711 16.875 33.2227 16.8164C33.5742 16.8164 33.8672 16.6992 34.2188 16.6406V28.125C34.2188 29.1797 33.3398 30 32.3438 30H6.09375C5.03906 30 4.21875 29.1797 4.21875 28.125V16.6406C4.51172 16.6992 4.80469 16.7578 5.15625 16.8164C5.50781 16.875 5.85938 16.875 6.21094 16.875C6.79688 16.875 7.38281 16.8164 7.96875 16.6992V22.5H30.4688V16.6992C30.9961 16.8164 31.582 16.875 32.168 16.875Z" fill="var(--primary)"/>
                     </svg>
                   </div>
                   <div>
@@ -70,24 +70,17 @@
 
             <!-- Lista de Áreas e Bairros -->
             <template v-else>
-              <div class="neighborhood-search-panel rounded-3 p-3 mb-4">
-                <label for="neighborhood-search" class="form-label fw-bold mb-2">
-                  Encontre seu bairro
-                </label>
-                <div class="position-relative">
-                  <i class="bi bi-search neighborhood-search-icon" aria-hidden="true"></i>
-                  <input
-                    id="neighborhood-search"
-                    v-model="searchQuery"
-                    type="search"
-                    class="form-control form-control-lg neighborhood-search-input"
-                    placeholder="Ex.: Centro, Vila..."
-                    autocomplete="off"
-                  >
-                </div>
-                <small class="d-block text-muted mt-2">
-                  Digite o nome do bairro para consultar a taxa de entrega.
-                </small>
+              <!-- Novo Campo de Busca Refinado -->
+              <div class="search-wrapper position-relative mb-4">
+                <i class="bi bi-search search-icon" aria-hidden="true"></i>
+                <input
+                  id="neighborhood-search"
+                  v-model="searchQuery"
+                  type="search"
+                  class="form-control search-input ps-5 pe-4 py-2.5 shadow-sm"
+                  placeholder="Digite o nome do seu bairro para buscar..."
+                  autocomplete="off"
+                >
               </div>
 
               <div class="d-flex align-items-center justify-content-between mb-3">
@@ -125,7 +118,7 @@
                 </div>
               </div>
 
-              <p v-if="!filteredAreas.length" class="text-muted text-center mb-0" role="status">
+              <p v-if="!filteredAreas.length" class="text-muted text-center py-4 mb-0" role="status">
                 Nenhum bairro encontrado para essa busca.
               </p>
             </template>
@@ -155,41 +148,37 @@
   flex-shrink: 0;
 }
 
-.neighborhood-search-panel {
-  background-color: #fffaf3;
-  border: 1px solid #ffd9a8;
+/* Novo estilo refinado para o input de busca */
+.search-input {
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  background-color: #fff;
+  transition: all 0.2s ease;
 }
 
-.neighborhood-search-panel label {
-  color: #595959;
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(255, 152, 0, 0.12);
 }
 
-.neighborhood-search-icon {
+.search-icon {
   position: absolute;
   top: 50%;
   left: 1rem;
-  z-index: 2;
-  color: #e88700;
-  font-size: 1.1rem;
   transform: translateY(-50%);
+  color: #adb5bd;
+  font-size: 0.95rem;
   pointer-events: none;
+  transition: color 0.2s ease;
 }
 
-.neighborhood-search-input {
-  min-height: 3.25rem;
-  padding-left: 3rem;
-  border: 2px solid #f2a23a;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.neighborhood-search-input:focus {
-  border-color: #e88700;
-  box-shadow: 0 0 0 0.2rem rgb(255 152 0 / 18%);
+.search-input:focus ~ .search-icon {
+  color: var(--primary);
 }
 
 .bi {
-  color: #FF9800;
+  color: var(--primary);
 }
 
 .neighborhood-item {
@@ -198,7 +187,7 @@
 }
 
 .neighborhood-item:hover {
-  border-color: #FF9800 !important;
+  border-color: var(--primary) !important;
 }
 
 .name {
@@ -206,7 +195,7 @@
   font-weight: 600;
   color: #595959;
   line-height: 1.25;
-  word-break: break-word; /* Garante que palavras longas quebrem certinho sem cortar */
+  word-break: break-word;
 }
 
 .value {
