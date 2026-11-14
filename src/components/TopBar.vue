@@ -17,8 +17,11 @@
         <small class="d-block font-12 text-grey">{{ tenantConfig.description }}</small>
         
         <div class="d-flex justify-content-center justify-content-md-start align-items-center mt-0 mt-md-2">
-          <span class="status-dot me-1"></span>
-          <small class="text-grey">Aberto <i class="fst-normal"> • 14h às 18h</i></small>
+          <span class="status-dot me-1" :class="statusDotClass"></span>
+          <small class="text-grey">
+            {{ storeStatusLabel }}
+            <i v-if="todayHoursLabel" class="fst-normal"> • {{ todayHoursLabel }}</i>
+          </small>
         </div>
       </div>
     </div>
@@ -27,25 +30,19 @@
     <div class="d-none d-md-flex flex-row flex-wrap align-items-start gap-2 text-secondary small mt-0 mt-md-5">
       
       <div class="horous">
-        <div class="d-flex align-items-start gap-2 mb-1 pe-2 border-end">
-          <svg class="mt-1" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8.49928 0C3.81162 0 0 3.81382 0 8.50135C0 13.1891 3.81162 17 8.49928 17C13.1869 17 17 13.1891 17 8.50135C17 3.81364 13.1869 0 8.49928 0ZM8.49928 1.11725C12.5836 1.11725 15.8847 4.41628 15.8847 8.50135C15.8847 12.5857 12.5836 15.8849 8.49928 15.8849C4.41497 15.8849 1.1158 12.5866 1.1158 8.50135C1.1158 4.417 4.41407 1.11725 8.49928 1.11725ZM8.49928 2.34841C8.19062 2.34841 7.941 2.59802 7.941 2.90599V8.50144C7.94241 8.6491 8.00147 8.79043 8.10623 8.89449L10.7416 11.5299C10.9595 11.7471 11.3118 11.7471 11.5298 11.5299C11.747 11.3119 11.747 10.9589 11.5298 10.7417L9.05696 8.27081V2.90594C9.05696 2.59798 8.80725 2.34841 8.49928 2.34841Z" fill="var(--primary)"/>
-          </svg>
-
-          <span class="horous-day d-flex flex-column text-grey">
-            Segunda à sexta-feira <i>14:00 às 18:00</i>
-          </span>
+        <div v-if="groupedOpeningHours.length" class="d-flex flex-column gap-1">
+          <div
+            v-for="group in groupedOpeningHours"
+            :key="group.key"
+            class="d-flex align-items-start gap-2"
+          >
+            <i class="bi bi-clock-history mt-1 text-primary"></i>
+            <span class="horous-day d-flex flex-column text-grey">
+              {{ group.daysLabel }} <i class="fst-normal">{{ group.hoursLabel }}</i>
+            </span>
+          </div>
         </div>
-
-        <div class="d-flex align-items-start gap-2">
-          <svg class="mt-1" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8.49928 0C3.81162 0 0 3.81382 0 8.50135C0 13.1891 3.81162 17 8.49928 17C13.1869 17 17 13.1891 17 8.50135C17 3.81364 13.1869 0 8.49928 0ZM8.49928 1.11725C12.5836 1.11725 15.8847 4.41628 15.8847 8.50135C15.8847 12.5857 12.5836 15.8849 8.49928 15.8849C4.41497 15.8849 1.1158 12.5866 1.1158 8.50135C1.1158 4.417 4.41407 1.11725 8.49928 1.11725ZM8.49928 2.34841C8.19062 2.34841 7.941 2.59802 7.941 2.90599V8.50144C7.94241 8.6491 8.00147 8.79043 8.10623 8.89449L10.7416 11.5299C10.9595 11.7471 11.3118 11.7471 11.5298 11.5299C11.747 11.3119 11.747 10.9589 11.5298 10.7417L9.05696 8.27081V2.90594C9.05696 2.59798 8.80725 2.34841 8.49928 2.34841Z" fill="var(--primary)"/>
-          </svg>
-
-          <span class="horous-day d-flex flex-column text-grey">
-            Sábado e Domingo <i>14:00 às 18:00</i>
-          </span>
-        </div>
+        <span v-else class="text-grey">Horário não informado</span>
       </div>
 
       <div class="d-flex align-items-center gap-2 px-2">
@@ -174,18 +171,19 @@
         <span class="text-grey">Horário de Funcionamento</span>
       </div>
       <div class="d-flex flex-column gap-2 text-secondary small ps-3">
-        <div class="d-flex align-items-start gap-2">
+        <div
+          v-for="group in groupedOpeningHours"
+          :key="group.key"
+          class="d-flex align-items-start gap-2"
+        >
           <i class="bi bi-calendar-day mt-1 text-primary"></i>
           <span class="d-flex flex-column text-grey">
-            Segunda à sexta-feira <i class="fst-normal">14:00 às 18:00</i>
+            {{ group.daysLabel }} <i class="fst-normal">{{ group.hoursLabel }}</i>
           </span>
         </div>
-        <div class="d-flex align-items-start gap-2">
-          <i class="bi bi-calendar-day mt-1 text-primary"></i>
-          <span class="d-flex flex-column text-grey">
-            Sábado e Domingo <i class="fst-normal">14:00 às 18:00</i>
-          </span>
-        </div>
+        <span v-if="!groupedOpeningHours.length" class="text-grey">
+          Horário não informado
+        </span>
       </div>
     </div>
 
@@ -358,7 +356,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, nextTick } from 'vue'
+  import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
   import { useCartStore } from '@/stores/useCartStore'
   import { useUserStore } from '@/stores/useUserStore'
   import { useToast } from 'vue-toastification'
@@ -368,7 +366,8 @@
   import OrderHistoryModal from '@/components/OrderHistoryModal.vue'
   import ProfileModal from '@/components/Profile.vue'
   import fallbackLogo from '@/assets/images/logo.png'
-  import { getTenantConfig, resolveApiAssetUrl } from '@/services/api'
+  import { getContacts, getTenantConfig, resolveApiAssetUrl } from '@/services/api'
+  import { groupOpeningHours, isStoreOpenAt } from '@/utils/openingHours'
 
   const toast = useToast()
   const cartStore = useCartStore()
@@ -380,6 +379,75 @@
     description: 'Praticidade que alimenta.',
     primary_color: '#10513D',
   })
+  const openingHours = ref([])
+  const openingHoursLoaded = ref(false)
+  const currentTime = ref(new Date())
+  let statusInterval
+
+  const groupedOpeningHours = computed(() => groupOpeningHours(openingHours.value))
+  const storeIsOpen = computed(() => isStoreOpenAt(openingHours.value, currentTime.value))
+  const storeStatusLabel = computed(() => {
+    if (!openingHoursLoaded.value) return 'Carregando horário'
+    if (storeIsOpen.value === null) return 'Horário indisponível'
+    return storeIsOpen.value ? 'Aberto' : 'Fechado'
+  })
+  const statusDotClass = computed(() => {
+    if (storeIsOpen.value === null) return 'status-dot-unknown'
+    return storeIsOpen.value ? 'status-dot-open' : 'status-dot-closed'
+  })
+  const todayHoursLabel = computed(() => {
+    const dayOfWeek = currentTime.value.getDay() || 7
+    const schedule = openingHours.value.find((hour) => Number(hour.day_of_week) === dayOfWeek)
+
+    return schedule && !schedule.is_closed
+      ? `${schedule.open_time} às ${schedule.close_time}`
+      : ''
+  })
+
+  const isValidTime = (time) => (
+    typeof time === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)
+  )
+
+  const loadOpeningHours = async () => {
+    try {
+      const contacts = await getContacts()
+      const schedule = contacts[0]?.opening_hours
+
+      if (!contacts.length) {
+        openingHours.value = []
+        return
+      }
+
+      if (!Array.isArray(schedule) || schedule.length !== 7) {
+        throw new Error('A resposta de /contacts não contém os horários dos sete dias.')
+      }
+
+      const days = new Set()
+      openingHours.value = schedule.map((hour) => {
+        const dayOfWeek = Number(hour?.day_of_week)
+        const isClosed = hour?.is_closed
+
+        if (
+          !Number.isInteger(dayOfWeek)
+          || dayOfWeek < 1
+          || dayOfWeek > 7
+          || days.has(dayOfWeek)
+          || typeof isClosed !== 'boolean'
+          || (!isClosed && (!isValidTime(hour.open_time) || !isValidTime(hour.close_time)))
+        ) {
+          throw new Error('A resposta de /contacts contém um horário de funcionamento inválido.')
+        }
+
+        days.add(dayOfWeek)
+        return { ...hour, day_of_week: dayOfWeek, is_closed: isClosed }
+      }).sort((first, second) => first.day_of_week - second.day_of_week)
+    } catch (error) {
+      console.error('Não foi possível carregar os horários de funcionamento da API.', error)
+      openingHours.value = []
+    } finally {
+      openingHoursLoaded.value = true
+    }
+  }
 
   // estado dos modais
   const showProfileModal = ref(false)
@@ -653,6 +721,18 @@
     }
   })
 
+  onMounted(() => {
+    currentTime.value = new Date()
+    statusInterval = window.setInterval(() => {
+      currentTime.value = new Date()
+    }, 30_000)
+    loadOpeningHours()
+  })
+
+  onUnmounted(() => {
+    window.clearInterval(statusInterval)
+  })
+
   const logout = () => {
     const userName = userStore.fullName || 'Usuário'
     userStore.logout()
@@ -688,8 +768,14 @@
   .status-dot {
       width: 8px;
       height: 8px;
-      background: #28a745;
+      background: #6c757d;
       border-radius: 50%;
+  }
+  .status-dot-open {
+      background: #28a745;
+  }
+  .status-dot-closed {
+      background: #dc3545;
   }
   .btn-reset {
     all: unset;

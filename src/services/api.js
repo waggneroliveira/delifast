@@ -133,6 +133,17 @@ export const getServiceLocations = async () => {
     return locations
 }
 
+export const getContacts = async () => {
+    const { data } = await api.get('/contacts')
+    const contacts = data?.data
+
+    if (!Array.isArray(contacts)) {
+        throw new Error('A resposta de /contacts não contém uma lista de contatos.')
+    }
+
+    return contacts
+}
+
 export const getAppearance = async () => {
     const { data } = await api.get('/appearance')
     const appearance = normalizeAppearance(data)
