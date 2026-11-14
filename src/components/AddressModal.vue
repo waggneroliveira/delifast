@@ -73,7 +73,7 @@
                       <button class="btn btn-sm btn-outline-secondary me-1" :disabled="isSaving" @click.stop="editAddress(addr.id)">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" :disabled="isSaving" @click.stop="deleteAddress(addr.id)">
+                      <button class="btn btn-sm btn-outline-danger" :disabled="isSaving" @click.stop="requestDeleteAddress(addr.id)">
                         <i class="bi bi-trash"></i>
                       </button>
                     </div>
@@ -206,6 +206,37 @@
       </div>
     </div>
   </div>
+  <div
+    v-if="addressToDelete"
+    class="modal fade show delete-confirmation"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    style="display: block; background: rgba(0,0,0,.5)"
+    @click.self="cancelDelete"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header py-2">
+          <h5 class="modal-title">Excluir endereço?</h5>
+          <button type="button" class="btn-close" :disabled="isSaving" @click="cancelDelete"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">
+            Deseja excluir o endereço <strong>{{ addressToDelete.nickname }}</strong>?
+          </p>
+        </div>
+        <div class="modal-footer py-2">
+          <button class="btn btn-light" :disabled="isSaving" @click="cancelDelete">
+            Cancelar
+          </button>
+          <button class="btn btn-danger" :disabled="isSaving" @click="deleteAddress">
+            {{ isSaving ? 'Excluindo...' : 'Excluir endereço' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   <IdentifyModal v-model="showIdentifyModal" />
 </template>
 
@@ -233,6 +264,7 @@
     const isSaving = ref(false)
     const loadError = ref('')
     const showIdentifyModal = ref(false)
+    const addressToDelete = ref(null)
     const brazilStates = [
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
         'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
@@ -385,16 +417,31 @@
         }
     }
 
-    const deleteAddress = async (id) => {
-        if (!confirm('Deseja excluir este endereço?')) return
+    const requestDeleteAddress = (id) => {
+        addressToDelete.value = addresses.value.find(
+            (address) => String(address.id) === String(id),
+        ) || null
+    }
 
-        const wasSelected = localStorage.getItem('selectedAddressId') === String(id)
+    const cancelDelete = () => {
+        if (!isSaving.value) addressToDelete.value = null
+    }
+
+    const deleteAddress = async () => {
+        const address = addressToDelete.value
+        if (!address || isSaving.value) return
+
+        const wasSelected = localStorage.getItem('selectedAddressId') === String(address.id)
         isSaving.value = true
 
         try {
-            await deleteAddressRequest(id)
+            await deleteAddressRequest(address.id)
             const updatedAddresses = await loadAddresses({ showFormWhenEmpty: false })
-            if (!updatedAddresses) return
+            if (!updatedAddresses) {
+                addressToDelete.value = null
+                toast.warning('Endereço excluído, mas não foi possível atualizar a lista.')
+                return
+            }
 
             if (wasSelected) {
                 const nextAddress = updatedAddresses.find((address) => address.primary)
@@ -413,6 +460,7 @@
             }
 
             toast.success('Endereço removido com sucesso!', { timeout: 3000 })
+            addressToDelete.value = null
         } catch (error) {
             console.error('Não foi possível remover o endereço.', error)
             toast.error(getErrorMessage(error, 'Não foi possível remover o endereço.'))
@@ -547,6 +595,9 @@
     }
     .modal-header{
         background: var(--bg-ouro);
+    }
+    .delete-confirmation {
+        z-index: 1070;
     }
     .address-card {
         transition: all 0.3s ease;
