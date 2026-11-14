@@ -111,6 +111,17 @@ export const getTenantConfig = async () => {
     return data.data
 }
 
+export const getCategories = async () => {
+    const { data } = await api.get('/category')
+    const categories = data?.data
+
+    if (!Array.isArray(categories)) {
+        throw new Error('A resposta de /category não contém uma lista de categorias.')
+    }
+
+    return categories
+}
+
 export const getAppearance = async () => {
     const { data } = await api.get('/appearance')
     const appearance = normalizeAppearance(data)

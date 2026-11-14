@@ -5,7 +5,12 @@
     import { useToast } from 'vue-toastification'
     import { useUserStore } from '@/stores/useUserStore'
     import delifastLoaderIcon from '@/assets/images/load.png'
-    import { getAppearance, getCachedAppearance, resolveApiAssetUrl } from '@/services/api'
+    import {
+      getAppearance,
+      getCachedAppearance,
+      getCategories,
+      resolveApiAssetUrl,
+    } from '@/services/api'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -818,23 +823,7 @@
       return products.value.filter(p => p.featured === true)
     })
 
-    // Categorias agrupadas para exibição
-    const categories = computed(() => {
-      const categoryMap = new Map()
-      
-      products.value.forEach(product => {
-        if (!categoryMap.has(product.category)) {
-          categoryMap.set(product.category, {
-            id: product.category,
-            name: getCategoryName(product.category),
-            products: []
-          })
-        }
-        categoryMap.get(product.category).products.push(product)
-      })
-      
-      return Array.from(categoryMap.values())
-    })
+    const categories = ref([])
 
     // Helper para nomes das categorias
     const getCategoryName = (categoryKey) => {
@@ -849,6 +838,58 @@
       }
       return names[categoryKey] || categoryKey
     }
+
+    const normalizeCategoryKey = (value) => String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+
+    const loadCategories = async () => {
+      const apiCategories = await getCategories()
+
+      categories.value = apiCategories.map((category) => {
+        const categoryName = category?.title ?? category?.name
+        const categoryId = category?.id ?? category?.slug
+
+        if (
+          !category
+          || categoryId == null
+          || typeof categoryName !== 'string'
+          || !categoryName.trim()
+        ) {
+          throw new Error('A resposta de /category contém uma categoria sem slug ou título.')
+        }
+
+        const categoryKeys = [category.id, category.slug, category.title, category.name]
+          .filter((key) => key != null)
+          .map(normalizeCategoryKey)
+        const normalizedCategoryName = normalizeCategoryKey(categoryName)
+
+        return {
+          ...category,
+          id: categoryId,
+          name: categoryName.trim(),
+          products: products.value.filter((product) => {
+            const productKeys = [product.category, product.category_id]
+              .filter((key) => key != null)
+              .map(normalizeCategoryKey)
+            const productDisplayName = normalizeCategoryKey(getCategoryName(product.category))
+
+            return productKeys.some((key) => categoryKeys.includes(key))
+              || productDisplayName === normalizedCategoryName
+          }),
+        }
+      })
+    }
+
+    onMounted(async () => {
+      try {
+        await loadCategories()
+      } catch (error) {
+        console.error('Não foi possível carregar as categorias da API.', error)
+      }
+    })
 
     // ========== FUNÇÕES PARA COMBOS ==========
     
