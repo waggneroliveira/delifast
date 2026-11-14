@@ -674,6 +674,7 @@
   .image{
       width: 210px;
       height: 210px;
+      margin: 0 auto;
       margin-top: -170px;
       background: #FFF;
       border: 7px solid rgba(0, 0, 0, 0.10);
