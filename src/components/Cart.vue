@@ -733,11 +733,8 @@
             selectedAddress.value = null
             selectedDeliveryMethod.value = null
             selectedPaymentMethod.value = ''
-            localStorage.removeItem('selectedAddressId')
             localStorage.removeItem('addresses')
             localStorage.removeItem('selectedAddress')
-            localStorage.removeItem('selectedDeliveryMethod')
-            localStorage.removeItem('selectedPaymentMethod')
         }
     })
 

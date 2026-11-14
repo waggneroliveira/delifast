@@ -161,8 +161,9 @@
                   <label class="form-label">Estado</label>
                   <select v-model="form.state" class="form-select">
                     <option value="">Selecione</option>
-                    <option value="BA">Bahia</option>
-                    <option value="SP">São Paulo</option>
+                    <option v-for="state in brazilStates" :key="state" :value="state">
+                      {{ state }}
+                    </option>
                   </select>
                 </div>
 
@@ -232,6 +233,11 @@
     const isSaving = ref(false)
     const loadError = ref('')
     const showIdentifyModal = ref(false)
+    const brazilStates = [
+        'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+        'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+        'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+    ]
 
     let debounceTimer = null
 
