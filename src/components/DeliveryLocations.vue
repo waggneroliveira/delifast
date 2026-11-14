@@ -70,15 +70,24 @@
 
             <!-- Lista de Áreas e Bairros -->
             <template v-else>
-              <div class="mb-3">
-                <label for="neighborhood-search" class="form-label">Buscar bairro</label>
-                <input
-                  id="neighborhood-search"
-                  v-model="searchQuery"
-                  type="search"
-                  class="form-control"
-                  placeholder="Digite o nome do bairro"
-                >
+              <div class="neighborhood-search-panel rounded-3 p-3 mb-4">
+                <label for="neighborhood-search" class="form-label fw-bold mb-2">
+                  Encontre seu bairro
+                </label>
+                <div class="position-relative">
+                  <i class="bi bi-search neighborhood-search-icon" aria-hidden="true"></i>
+                  <input
+                    id="neighborhood-search"
+                    v-model="searchQuery"
+                    type="search"
+                    class="form-control form-control-lg neighborhood-search-input"
+                    placeholder="Ex.: Centro, Vila..."
+                    autocomplete="off"
+                  >
+                </div>
+                <small class="d-block text-muted mt-2">
+                  Digite o nome do bairro para consultar a taxa de entrega.
+                </small>
               </div>
 
               <div class="d-flex align-items-center justify-content-between mb-3">
@@ -144,6 +153,39 @@
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
   flex-shrink: 0;
+}
+
+.neighborhood-search-panel {
+  background-color: #fffaf3;
+  border: 1px solid #ffd9a8;
+}
+
+.neighborhood-search-panel label {
+  color: #595959;
+}
+
+.neighborhood-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  z-index: 2;
+  color: #e88700;
+  font-size: 1.1rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.neighborhood-search-input {
+  min-height: 3.25rem;
+  padding-left: 3rem;
+  border: 2px solid #f2a23a;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.neighborhood-search-input:focus {
+  border-color: #e88700;
+  box-shadow: 0 0 0 0.2rem rgb(255 152 0 / 18%);
 }
 
 .bi {
