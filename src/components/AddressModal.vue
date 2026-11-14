@@ -581,6 +581,9 @@
         font-weight: 600;
         font-size: 0.75rem;
     }
+    .modal{
+      backdrop-filter: blur(4px);
+    }
     .bg-primary{
       background: var(--primary)!important;
     }

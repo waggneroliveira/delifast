@@ -197,7 +197,9 @@ onBeforeUnmount(() => {
   border: 0;
   border-radius: 0.75rem;
 }
-
+.modal{
+  backdrop-filter: blur(4px);
+}
 .modal-header {
   background: var(--bg-ouro);
 }

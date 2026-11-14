@@ -264,7 +264,9 @@ watch(() => props.modelValue, (open) => {
 .modal-body input {
   height: 42px;
 }
-
+.modal{
+  backdrop-filter: blur(4px);
+}
 .option-card {
   display: flex;
   gap: 12px;

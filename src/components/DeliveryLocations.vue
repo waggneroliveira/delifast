@@ -202,7 +202,9 @@
   font-size: 0.813rem;
   font-weight: 700;
 }
-
+.modal{
+    backdrop-filter: blur(4px);
+}
 .modal-backdrop {
   z-index: 1040;
 }

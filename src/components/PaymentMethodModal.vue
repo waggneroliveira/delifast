@@ -121,7 +121,9 @@ const confirmPayment = () => {
   max-width: 500px;
   width: 100%;
 }
-
+.modal{
+  backdrop-filter: blur(4px);
+}
 .modal-title {
   font-size: clamp(1rem, 1.125vw, 1.125rem);
 }
