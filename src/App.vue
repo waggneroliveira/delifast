@@ -347,7 +347,7 @@
         oldPrice: 119.90,
         cashback: 5,
         image: ['../src/assets/images/prod.png'],
-        category: 'hamburguers',
+        category: 'hamburger',
         tags: ['promoção', 'bacon', 'mais pedido'],
         productType: 'food',
         cuisineType: 'burger',
@@ -391,7 +391,7 @@
         oldPrice: 0,
         cashback: 8,
         image: ['../src/assets/images/prod.png'],
-        category: 'pizzas',
+        category: 'pizza',
         tags: ['tradicional', 'salgada', 'promoção'],
         productType: 'food',
         cuisineType: 'pizza',
@@ -825,60 +825,28 @@
 
     const categories = ref([])
 
-    // Helper para nomes das categorias
-    const getCategoryName = (categoryKey) => {
-      const names = {
-        'hamburguers': 'Hambúrgueres',
-        'pizzas': 'Pizzas',
-        'acai': 'Açaí',
-        'bebidas': 'Bebidas',
-        'entradas': 'Entradas',
-        'sobremesas': 'Sobremesas',
-        'combos': 'Combos'
-      }
-      return names[categoryKey] || categoryKey
-    }
-
-    const normalizeCategoryKey = (value) => String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '')
-
     const loadCategories = async () => {
       const apiCategories = await getCategories()
 
       categories.value = apiCategories.map((category) => {
         const categoryName = category?.title ?? category?.name
-        const categoryId = category?.id ?? category?.slug
+        const categorySlug = category?.slug
 
         if (
           !category
-          || categoryId == null
+          || typeof categorySlug !== 'string'
+          || !categorySlug
           || typeof categoryName !== 'string'
           || !categoryName.trim()
         ) {
           throw new Error('A resposta de /category contém uma categoria sem slug ou título.')
         }
 
-        const categoryKeys = [category.id, category.slug, category.title, category.name]
-          .filter((key) => key != null)
-          .map(normalizeCategoryKey)
-        const normalizedCategoryName = normalizeCategoryKey(categoryName)
-
         return {
           ...category,
-          id: categoryId,
+          id: categorySlug,
           name: categoryName.trim(),
-          products: products.value.filter((product) => {
-            const productKeys = [product.category, product.category_id]
-              .filter((key) => key != null)
-              .map(normalizeCategoryKey)
-            const productDisplayName = normalizeCategoryKey(getCategoryName(product.category))
-
-            return productKeys.some((key) => categoryKeys.includes(key))
-              || productDisplayName === normalizedCategoryName
-          }),
+          products: products.value.filter((product) => product.category === categorySlug),
         }
       })
     }
