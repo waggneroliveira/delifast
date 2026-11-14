@@ -145,7 +145,7 @@ export const getContacts = async () => {
 }
 
 export const getAddresses = async () => {
-    const { data } = await api.get('/addresses')
+    const { data } = await api.get('/client/addresses')
     const addresses = Array.isArray(data)
         ? data
         : Array.isArray(data?.data?.data)
@@ -153,17 +153,23 @@ export const getAddresses = async () => {
             : data?.data
 
     if (!Array.isArray(addresses)) {
-        throw new Error('A resposta de /addresses não contém uma lista de endereços.')
+        throw new Error('A resposta de /client/addresses não contém uma lista de endereços.')
     }
 
-    return addresses
+    return addresses.map((address) => ({
+        ...address,
+        nickname: address.title ?? address.nickname ?? '',
+        recipientName: address.recipient_name ?? address.recipientName ?? '',
+        cep: address.zip_code ?? address.cep ?? '',
+        primary: Boolean(address.is_default ?? address.primary),
+    }))
 }
 
-export const createAddress = (address) => api.post('/addresses', address)
+export const createAddress = (address) => api.post('/client/addresses', address)
 
-export const updateAddress = (id, address) => api.put(`/addresses/${encodeURIComponent(id)}`, address)
+export const updateAddress = (id, address) => api.put(`/client/addresses/${encodeURIComponent(id)}`, address)
 
-export const deleteAddress = (id) => api.delete(`/addresses/${encodeURIComponent(id)}`)
+export const deleteAddress = (id) => api.delete(`/client/addresses/${encodeURIComponent(id)}`)
 
 export const getAppearance = async () => {
     const { data } = await api.get('/appearance')

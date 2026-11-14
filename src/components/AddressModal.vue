@@ -28,7 +28,7 @@
                     v-if="addresses.length < 2"
                     class="btn btn-outline-primary btn-sm"
                     @click="showForm"
-                    :disabled="isLoadingAddresses || Boolean(loadError) || isSaving"
+                    :disabled="isLoadingAddresses || isSaving"
                 >
                     <i class="bi bi-plus"></i> Novo Endereço
                 </button>
@@ -62,6 +62,7 @@
                       </span>
                     </div>
 
+                    <p v-if="addr.recipientName" class="card-text small mb-1">{{ addr.recipientName }}</p>
                     <p class="card-text small mb-1">{{ addr.street }}, {{ addr.number }}</p>
                     <p class="card-text small mb-1">{{ addr.neighborhood }}</p>
                     <p class="card-text small mb-1">
@@ -87,7 +88,7 @@
           <div v-else>
             <div v-if="loadError" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
               <span>{{ loadError }}</span>
-              <button class="btn btn-sm btn-outline-danger ms-2" @click="loadAddresses()">
+              <button class="btn btn-sm btn-outline-danger ms-2" @click="loadAddresses({ showFormWhenEmpty: false })">
                 Tentar novamente
               </button>
             </div>
@@ -108,6 +109,11 @@
                 <div class="col-md-6">
                   <label class="form-label">Apelido do Endereço</label>
                   <input v-model="form.nickname" class="form-control" placeholder="Ex: Casa, Trabalho...">
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Nome de quem recebe</label>
+                  <input v-model="form.recipientName" class="form-control" autocomplete="name" required>
                 </div>
 
                 <div class="col-md-6">
@@ -160,11 +166,6 @@
                   </select>
                 </div>
 
-                <div class="col-12">
-                  <label class="form-label">Ponto de Referência</label>
-                  <input v-model="form.reference" class="form-control">
-                </div>
-
               </div>
 
               <div class="d-flex justify-content-between mt-4">
@@ -179,9 +180,9 @@
 
             <!-- STEP 2 -->
             <div class="form-step mt-3" v-if="step === 2">
-              <h6 class="mb-3">Instruções de Entrega</h6>
+              <h6 class="mb-3">Ponto de referência e instruções de entrega</h6>
 
-              <textarea v-model="form.instructions" class="form-control"></textarea>
+              <textarea v-model="form.reference" class="form-control"></textarea>
 
               <div class="form-check mt-3">
                 <input type="checkbox" v-model="form.primary" class="form-check-input">
@@ -244,6 +245,7 @@
     const createEmptyForm = () => ({
         cep: '',
         nickname: '',
+        recipientName: userStore.fullName,
         street: '',
         number: '',
         complement: '',
@@ -251,7 +253,6 @@
         city: '',
         state: '',
         reference: '',
-        instructions: '',
         primary: false,
         id: null
     })
@@ -264,7 +265,10 @@
             ? Object.values(validationErrors).flat()[0]
             : null
 
-        return firstValidationError || error.response?.data?.message || fallback
+        return firstValidationError
+            || error.response?.data?.message
+            || (error.response?.status ? `${fallback} (HTTP ${error.response.status})` : error.message)
+            || fallback
     }
 
     const loadAddresses = async ({ showFormWhenEmpty = true } = {}) => {
@@ -417,9 +421,19 @@
         const shouldSelect = Boolean(form.value.primary)
             || wasSelected
             || (isNewAddress && addresses.value.length === 0)
-        const payload = { ...form.value }
-        delete payload.id
-        payload.primary = Boolean(payload.primary)
+        const payload = {
+            title: form.value.nickname.trim() || 'Casa',
+            recipient_name: form.value.recipientName.trim(),
+            zip_code: form.value.cep.trim(),
+            state: form.value.state.trim(),
+            city: form.value.city.trim(),
+            neighborhood: form.value.neighborhood.trim(),
+            street: form.value.street.trim(),
+            number: form.value.number.trim(),
+            complement: form.value.complement.trim() || null,
+            reference: form.value.reference.trim() || null,
+            is_default: Boolean(form.value.primary),
+        }
         isSaving.value = true
 
         try {

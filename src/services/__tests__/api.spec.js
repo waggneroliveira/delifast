@@ -75,25 +75,43 @@ describe('API list endpoints', () => {
   })
 
   it('loads authenticated customer addresses from /addresses', async () => {
-    const addresses = [{ id: 8, nickname: 'Casa' }]
+    const addresses = [{
+      id: 8,
+      title: 'Casa',
+      recipient_name: 'Ana Cliente',
+      zip_code: '40000-000',
+      is_default: true,
+    }]
     const getSpy = vi.spyOn(api, 'get').mockResolvedValue({ data: { data: addresses } })
 
-    await expect(getAddresses()).resolves.toEqual(addresses)
-    expect(getSpy).toHaveBeenCalledWith('/addresses')
+    await expect(getAddresses()).resolves.toEqual([{
+      ...addresses[0],
+      nickname: 'Casa',
+      recipientName: 'Ana Cliente',
+      cep: '40000-000',
+      primary: true,
+    }])
+    expect(getSpy).toHaveBeenCalledWith('/client/addresses')
   })
 
   it('supports paginated address responses', async () => {
-    const addresses = [{ id: 8, nickname: 'Casa' }]
+    const addresses = [{ id: 8, title: 'Casa' }]
     vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { data: addresses } } })
 
-    await expect(getAddresses()).resolves.toEqual(addresses)
+    await expect(getAddresses()).resolves.toEqual([{
+      ...addresses[0],
+      nickname: 'Casa',
+      recipientName: '',
+      cep: '',
+      primary: false,
+    }])
   })
 
   it('rejects address responses without a list', async () => {
     vi.spyOn(api, 'get').mockResolvedValue({ data: { data: null } })
 
     await expect(getAddresses()).rejects.toThrow(
-      'A resposta de /addresses não contém uma lista de endereços.',
+      'A resposta de /client/addresses não contém uma lista de endereços.',
     )
   })
 
@@ -107,8 +125,8 @@ describe('API list endpoints', () => {
     await updateAddress(8, address)
     await deleteAddress(8)
 
-    expect(postSpy).toHaveBeenCalledWith('/addresses', address)
-    expect(putSpy).toHaveBeenCalledWith('/addresses/8', address)
-    expect(deleteSpy).toHaveBeenCalledWith('/addresses/8')
+    expect(postSpy).toHaveBeenCalledWith('/client/addresses', address)
+    expect(putSpy).toHaveBeenCalledWith('/client/addresses/8', address)
+    expect(deleteSpy).toHaveBeenCalledWith('/client/addresses/8')
   })
 })
