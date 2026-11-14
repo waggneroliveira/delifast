@@ -1,6 +1,11 @@
 <template>
   <div class="mb-4">
-    <h5 class="mb-2 mb-md-4 title-section-product">Destaques</h5>
+    <div class="product-section-header">
+      <h5 class="title-section-product">Destaques</h5>
+      <div class="product-section-announcement">
+        <slot name="announcement" />
+      </div>
+    </div>
       
     <Swiper
       :modules="[]"
@@ -53,4 +58,42 @@ const breakpoints = {
 </script>
 
 <style scoped>
+.product-section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+
+.title-section-product {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.product-section-announcement {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 800px;
+  margin-left: 115px;
+}
+
+@media (min-width: 768px) {
+  .product-section-header {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .product-section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .product-section-announcement {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+}
 </style>

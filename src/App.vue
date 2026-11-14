@@ -1058,17 +1058,18 @@
             />
 
             <div class="content w-mobile-100" :class="{ 'mt-5': hasAnnouncements === false }">
-              
-              <Announcement
-                @availability-change="handleAnnouncementAvailability"
-                @startup-ready="markStartupReady('topAnnouncements')"
-              />
-              
               <div class="carousel-breakout">
                 <ProductCarousel
                   :products="highlights"
                   @open="openProductModal"
-                />
+                >
+                  <template #announcement>
+                    <Announcement
+                      @availability-change="handleAnnouncementAvailability"
+                      @startup-ready="markStartupReady('topAnnouncements')"
+                    />
+                  </template>
+                </ProductCarousel>
               </div>
 
               <div class="list-product">

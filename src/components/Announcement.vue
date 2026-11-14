@@ -40,7 +40,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="announcements.length" class="image my-4 mt-0 my-md-0">
+  <div v-if="announcements.length" class="image">
     <Swiper
       :modules="[Autoplay]"
       :slides-per-view="1"
@@ -82,29 +82,42 @@ onMounted(async () => {
 
 <style scoped>
 .image {
-  text-align: end;
-  width: 90vw;
-  margin-left: calc(-49.5vw + 50%);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  text-align: center;
+}
+
+.announcement-swiper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.announcement-swiper :deep(.swiper-slide) {
+  max-width: 100%;
+  min-width: 0;
 }
 
 picture {
   display: block;
+  width: 100%;
 }
 
 .image img {
+    display: block;
     width: 100%;
     max-width: 800px;
+    margin-inline: auto;
     height: 120px;
     object-fit: cover;
     aspect-ratio: 1 / 1.92;
 }
 
 @media (max-width: 768px) {
-  .image {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-
   .image img {
     height: auto;
     max-height: 320px;
