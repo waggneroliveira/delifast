@@ -122,6 +122,17 @@ export const getCategories = async () => {
     return categories
 }
 
+export const getServiceLocations = async () => {
+    const { data } = await api.get('/service-locations')
+    const locations = data?.data
+
+    if (!Array.isArray(locations)) {
+        throw new Error('A resposta de /service-locations não contém uma lista de locais.')
+    }
+
+    return locations
+}
+
 export const getAppearance = async () => {
     const { data } = await api.get('/appearance')
     const appearance = normalizeAppearance(data)
