@@ -23,13 +23,19 @@
                 @click="showModal = true"
             >
                 <div class="d-flex justify-content-center align-items-center gap-2">
-                    <div class="icon-user rounded-3 d-flex justify-content-center align-items-center p-3">
-                        <svg width="20" height="23" viewBox="0 0 20 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div class="icon-user rounded-3 d-flex justify-content-center align-items-center p-2">
+                        <svg class="avatar-user" width="20" height="23" viewBox="0 0 20 23" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M10.2963 12.6129C13.6296 12.4645 16.2963 9.68226 16.2963 6.30645C16.2963 2.81936 13.4815 0 10 0C6.51852 0 3.7037 2.81936 3.7037 6.30645C3.7037 9.68226 6.37037 12.4274 9.7037 12.6129C4.22222 12.7984 0 17.1758 0 23H1.48148C1.48148 17.8065 5.14815 14.0968 10 14.0968C14.8519 14.0968 18.5185 17.8065 18.5185 23H20C20 17.1758 15.7778 12.7984 10.2963 12.6129ZM5.18518 6.34355C5.18518 3.67258 7.33333 1.52097 10 1.52097C12.6667 1.52097 14.8148 3.67258 14.8148 6.34355C14.8148 9.01452 12.6667 11.1661 10 11.1661C7.33333 11.1661 5.18518 8.97742 5.18518 6.34355Z" fill="#595959"/>
                         </svg>
                     </div>
                     <div class="text-start">
-                        <strong>{{ userStore.isLogged ? `Olá, ${userStore.fullName}!` : 'Identifique-se aqui' }}</strong>
+                        <strong v-if="userStore.isLogged">
+                            Olá, <span class="name-user">{{ userStore.fullName }}!</span>
+                        </strong>
+
+                        <strong v-else>
+                            Identifique-se aqui
+                        </strong>
                         <div class="small text-muted">
                             {{ userStore.isLogged ? 'Você já está identificado' : 'Antes de finalizar o pedido, simples e rápido!' }}
                         </div>
@@ -890,6 +896,13 @@
 </script>
 
 <style scoped>
+.avatar-user{
+    width: 16px;
+    height: 16px;
+}
+.name-user{
+    font-size: 0.875rem;
+}
 .is-reorder{
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
     font-size: 0.65rem;
