@@ -91,7 +91,7 @@
                 >
                   <i class="bi bi-trash me-2"></i>Excluir conta
                 </button>
-                <button class="btn btn-outline-secondary me-2" @click="close" :disabled="isDeleting">
+                <button class="btn btn-outline-secondary me-2 d-none" @click="close" :disabled="isDeleting">
                   <i class="bi bi-x-circle me-2"></i>Fechar
                 </button>
                 <button class="btn btn-primary" @click="editProfile" :disabled="isDeleting">

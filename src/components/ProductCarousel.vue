@@ -88,10 +88,15 @@ const breakpoints = {
   .product-section-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.5rem;
   }
 
   .product-section-announcement {
-    width: 100%;
+    order: -1;
+  }
+
+  .product-section-announcement {
+    width: 94%;
     max-width: none;
     margin-left: 0;
   }

@@ -119,9 +119,10 @@ picture {
 
 @media (max-width: 768px) {
   .image img {
-    height: auto;
-    max-height: 320px;
+    height: clamp(120px, 36vw, 170px);
+    max-height: 170px;
     object-fit: contain;
+    aspect-ratio: auto;
   }
 }
 </style>
