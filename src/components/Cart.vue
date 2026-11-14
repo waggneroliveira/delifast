@@ -410,6 +410,7 @@
     import PaymentMethodModal from './PaymentMethodModal.vue'
     import { useCartStore } from '@/stores/useCartStore'
     import { useUserStore } from '@/stores/useUserStore'
+    import { getAddresses } from '@/services/api'
 
     const toast = useToast()
     const cart = useCartStore()
@@ -492,76 +493,57 @@
     }
 
     // Função para lidar com a seleção do método de entrega
-    const handleDeliveryMethodSelected = (method) => {
+    const handleDeliveryMethodSelected = async (method) => {
         selectedDeliveryMethod.value = method
-        
-        if (method.value === 'delivery' && !selectedAddress.value) {
-            setTimeout(() => {
-                openAddressModal()
-            }, 300)
+
+        if (method.value === 'delivery') {
+            await updateSelectedAddress()
+            if (!selectedAddress.value) {
+                setTimeout(() => {
+                    openAddressModal()
+                }, 300)
+            }
         }
-        
+
         localStorage.setItem('selectedDeliveryMethod', JSON.stringify(method))
-        
+
         toast.info(`Forma de entrega selecionada: ${method.label}`, {
             timeout: 3000
         })
     }
 
-    // Função para lidar com a seleção do método de pagamento
-    const handlePaymentMethodSelected = (method) => {
-        selectedPaymentMethod.value = method
-        localStorage.setItem('selectedPaymentMethod', method)
-        
-        toast.info(`Forma de pagamento selecionada: ${getPaymentMethodText()}`, {
-            timeout: 3000
-        })
-    }
+    // Carrega do banco o endereço referenciado no armazenamento local.
+    const updateSelectedAddress = async () => {
+        localStorage.removeItem('addresses')
+        localStorage.removeItem('selectedAddress')
 
-    // Função para atualizar o endereço selecionado
-    const updateSelectedAddress = () => {
         if (!userStore.isLogged) {
             selectedAddress.value = null
-            return
+            return null
         }
 
-        const addressesJson = localStorage.getItem('addresses')
-        if (!addressesJson) {
+        try {
+            const addresses = await getAddresses()
+            const savedSelectedId = localStorage.getItem('selectedAddressId')
+            const selected = addresses.find(
+                (address) => String(address.id) === String(savedSelectedId),
+            )
+            const address = selected || addresses.find((item) => item.primary) || null
+
+            selectedAddress.value = address
+
+            if (address) {
+                localStorage.setItem('selectedAddressId', String(address.id))
+            } else {
+                localStorage.removeItem('selectedAddressId')
+            }
+
+            return address
+        } catch (error) {
+            console.error('Não foi possível carregar os endereços da API.', error)
             selectedAddress.value = null
-            localStorage.removeItem('selectedAddress')
-            return
-        }
-        
-        const addresses = JSON.parse(addressesJson)
-        const savedSelectedId = localStorage.getItem('selectedAddressId')
-        
-        if (savedSelectedId) {
-            const foundAddress = addresses.find(addr => addr.id === parseInt(savedSelectedId))
-            if (foundAddress) {
-                selectedAddress.value = foundAddress
-                localStorage.setItem('selectedAddress', JSON.stringify(foundAddress))
-            } else {
-                const primaryAddress = addresses.find(addr => addr.primary === true)
-                if (primaryAddress) {
-                    selectedAddress.value = primaryAddress
-                    localStorage.setItem('selectedAddressId', primaryAddress.id.toString())
-                    localStorage.setItem('selectedAddress', JSON.stringify(primaryAddress))
-                } else {
-                    selectedAddress.value = null
-                    localStorage.removeItem('selectedAddress')
-                    localStorage.removeItem('selectedAddressId')
-                }
-            }
-        } else {
-            const primaryAddress = addresses.find(addr => addr.primary === true)
-            if (primaryAddress) {
-                selectedAddress.value = primaryAddress
-                localStorage.setItem('selectedAddressId', primaryAddress.id.toString())
-                localStorage.setItem('selectedAddress', JSON.stringify(primaryAddress))
-            } else {
-                selectedAddress.value = null
-                localStorage.removeItem('selectedAddress')
-            }
+            toast.error(error.response?.data?.message || 'Não foi possível carregar os endereços.')
+            return null
         }
     }
 
@@ -571,8 +553,8 @@
         if (savedMethod) {
             try {
                 selectedDeliveryMethod.value = JSON.parse(savedMethod)
-            } catch (e) {
-                console.error('Erro ao carregar método de entrega:', e)
+            } catch (error) {
+                console.error('Erro ao carregar método de entrega:', error)
             }
         }
     }
@@ -585,8 +567,13 @@
         }
     }
 
-    const loadSavedAddress = () => {
-        updateSelectedAddress()
+    const handlePaymentMethodSelected = (method) => {
+        selectedPaymentMethod.value = method
+        localStorage.setItem('selectedPaymentMethod', method)
+
+        toast.info(`Forma de pagamento selecionada: ${getPaymentMethodText()}`, {
+            timeout: 3000
+        })
     }
 
     const openAddressModal = () => {
@@ -602,8 +589,8 @@
     const handleAddressSelected = (address) => {
         if (address) {
             selectedAddress.value = address
-            localStorage.setItem('selectedAddressId', address.id.toString())
-            localStorage.setItem('selectedAddress', JSON.stringify(address))
+            localStorage.setItem('selectedAddressId', String(address.id))
+            localStorage.removeItem('selectedAddress')
         } else {
             selectedAddress.value = null
             localStorage.removeItem('selectedAddressId')
@@ -720,9 +707,15 @@
     }
 
     const handleStorageChange = (e) => {
-        if ((e.key === 'addresses' || e.key === 'addressesUpdated') && userStore.isLogged) {
+        if (
+            ['selectedAddressId', 'addressesUpdated'].includes(e.key)
+            && userStore.isLogged
+        ) {
             updateSelectedAddress()
         }
+
+        if (e.key === 'selectedDeliveryMethod') loadSavedDeliveryMethod()
+        if (e.key === 'selectedPaymentMethod') loadSavedPaymentMethod()
     }
 
     const handleCustomAddressUpdate = () => {
@@ -741,6 +734,7 @@
             selectedDeliveryMethod.value = null
             selectedPaymentMethod.value = ''
             localStorage.removeItem('selectedAddressId')
+            localStorage.removeItem('addresses')
             localStorage.removeItem('selectedAddress')
             localStorage.removeItem('selectedDeliveryMethod')
             localStorage.removeItem('selectedPaymentMethod')
@@ -755,26 +749,6 @@
     forceUpdate.value++
     }, { deep: true })
 
-    const checkAddressChanges = () => {
-        const checkInterval = setInterval(() => {
-            if (userStore.isLogged) {
-                const savedAddressId = localStorage.getItem('selectedAddressId')
-                const savedAddress = localStorage.getItem('selectedAddress')
-                
-                if (savedAddressId && savedAddress) {
-                    const parsedAddress = JSON.parse(savedAddress)
-                    if (selectedAddress.value?.id !== parsedAddress.id) {
-                        updateSelectedAddress()
-                    }
-                }
-            }
-        }, 500)
-        
-        onUnmounted(() => {
-            clearInterval(checkInterval)
-        })
-    }
-
     onMounted(() => {
         // Expor products para o window para acesso no Cart
         if (typeof window !== 'undefined') {
@@ -783,10 +757,9 @@
         }
         
         userStore.loadUserFromStorage()
-        loadSavedAddress()
+        updateSelectedAddress()
         loadSavedDeliveryMethod()
         loadSavedPaymentMethod()
-        checkAddressChanges()
         
         window.addEventListener('storage', handleStorageChange)
         window.addEventListener('addresses-updated', handleCustomAddressUpdate)

@@ -158,20 +158,22 @@ const loadCurrentMethod = () => {
 
 const hasSelectedAddress = () => {
   const savedAddressId = localStorage.getItem('selectedAddressId')
-  const savedAddress = localStorage.getItem('selectedAddress')
-  return !!(savedAddressId && savedAddress)
+  return Boolean(savedAddressId)
 }
 
 const handleAddressSelected = async (address) => {
   showAddressModal.value = false
   
   if (address && pendingMethod.value === 'delivery') {
+    localStorage.setItem('selectedAddressId', String(address.id))
+    localStorage.removeItem('selectedAddress')
     const methodData = deliveryMethodsOptions[pendingMethod.value]
-    window.dispatchEvent(new CustomEvent('addresses-updated'))
     emit('method-selected', methodData)
     close()
     toast.success(`Endereço selecionado: ${formatAddress(address)}`, { timeout: 3000 })
   } else if (!address && pendingMethod.value === 'delivery') {
+    localStorage.removeItem('selectedAddressId')
+    localStorage.removeItem('selectedAddress')
     toast.warning('Para entrega em domicílio, é necessário selecionar um endereço!', { timeout: 3000 })
     loadCurrentMethod()
   }

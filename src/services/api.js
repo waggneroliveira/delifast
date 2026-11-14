@@ -144,6 +144,27 @@ export const getContacts = async () => {
     return contacts
 }
 
+export const getAddresses = async () => {
+    const { data } = await api.get('/addresses')
+    const addresses = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data?.data)
+            ? data.data.data
+            : data?.data
+
+    if (!Array.isArray(addresses)) {
+        throw new Error('A resposta de /addresses não contém uma lista de endereços.')
+    }
+
+    return addresses
+}
+
+export const createAddress = (address) => api.post('/addresses', address)
+
+export const updateAddress = (id, address) => api.put(`/addresses/${encodeURIComponent(id)}`, address)
+
+export const deleteAddress = (id) => api.delete(`/addresses/${encodeURIComponent(id)}`)
+
 export const getAppearance = async () => {
     const { data } = await api.get('/appearance')
     const appearance = normalizeAppearance(data)

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="modelValue"
+    v-if="modelValue && userStore.isLogged"
     class="modal fade show"
     tabindex="-1"
     style="display: block; background: rgba(0,0,0,.5)"
@@ -28,16 +28,30 @@
                     v-if="addresses.length < 2"
                     class="btn btn-outline-primary btn-sm"
                     @click="showForm"
+                    :disabled="isLoadingAddresses || Boolean(loadError) || isSaving"
                 >
                     <i class="bi bi-plus"></i> Novo Endereço
                 </button>
             </div>
 
-            <div class="row g-3">
+            <div v-if="loadError" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+              <span>{{ loadError }}</span>
+              <button class="btn btn-sm btn-outline-danger ms-2" @click="loadAddresses()">
+                Tentar novamente
+              </button>
+            </div>
+
+            <div v-else-if="isLoadingAddresses" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando endereços...</span>
+              </div>
+            </div>
+
+            <div v-else class="row g-3">
               <div class="col-md-6" v-for="addr in addresses" :key="addr.id">
                 <div
                   class="card address-card"
-                  :class="{ selected: selectedId === addr.id }"
+                  :class="{ selected: String(selectedId) === String(addr.id) }"
                   @click="selectAddress(addr.id)"
                 >
                   <div class="card-body">
@@ -55,10 +69,10 @@
                     </p>
 
                     <div class="mt-2">
-                      <button class="btn btn-sm btn-outline-secondary me-1" @click.stop="editAddress(addr.id)">
+                      <button class="btn btn-sm btn-outline-secondary me-1" :disabled="isSaving" @click.stop="editAddress(addr.id)">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" @click.stop="deleteAddress(addr.id)">
+                      <button class="btn btn-sm btn-outline-danger" :disabled="isSaving" @click.stop="deleteAddress(addr.id)">
                         <i class="bi bi-trash"></i>
                       </button>
                     </div>
@@ -71,6 +85,12 @@
 
           <!-- FORM -->
           <div v-else>
+            <div v-if="loadError" class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+              <span>{{ loadError }}</span>
+              <button class="btn btn-sm btn-outline-danger ms-2" @click="loadAddresses()">
+                Tentar novamente
+              </button>
+            </div>
 
             <div class="progress">
               <div
@@ -172,8 +192,8 @@
 
               <div class="d-flex justify-content-between mt-4">
                 <button class="btn bg-light" @click="prevStep">Voltar</button>
-                <button class="btn bg-yellow fw-medium" @click="saveAddress">
-                  Salvar Endereço
+                <button class="btn bg-yellow fw-medium" @click="saveAddress" :disabled="isSaving">
+                  {{ isSaving ? 'Salvando...' : 'Salvar Endereço' }}
                 </button>
               </div>
             </div>
@@ -184,13 +204,18 @@
       </div>
     </div>
   </div>
+  <IdentifyModal v-model="showIdentifyModal" />
 </template>
 
 <script setup>
-    import { ref, watch, onMounted } from 'vue'
+    import { onBeforeUnmount, ref, watch } from 'vue'
     import { useToast } from 'vue-toastification'
+    import { createAddress as createAddressRequest, deleteAddress as deleteAddressRequest, getAddresses, updateAddress as updateAddressRequest } from '@/services/api'
+    import { useUserStore } from '@/stores/useUserStore'
+    import IdentifyModal from './IdentifyModal.vue'
 
     const toast = useToast()
+    const userStore = useUserStore()
 
     const props = defineProps({
         modelValue: Boolean
@@ -202,32 +227,21 @@
     const step = ref(1)              // passo do formulário
     const selectedId = ref(null)     // id do endereço selecionado
     const loadingCEP = ref(false)    // flag de loading CEP
+    const isLoadingAddresses = ref(false)
+    const isSaving = ref(false)
+    const loadError = ref('')
+    const showIdentifyModal = ref(false)
 
     let debounceTimer = null
 
-    // Função para disparar evento de atualização
-    const triggerAddressUpdate = () => {
-        // Dispara evento customizado para notificar o Cart
+    const notifyAddressUpdate = () => {
         window.dispatchEvent(new CustomEvent('addresses-updated'))
-        // Também salva no storage para outras abas
         localStorage.setItem('addressesUpdated', Date.now().toString())
     }
 
-    // lista de endereços (carrega do LocalStorage se existir)
     const addresses = ref([])
-    
-    const loadAddresses = () => {
-        if (localStorage.getItem('addresses')) {
-            addresses.value = JSON.parse(localStorage.getItem('addresses'))
-        } else {
-            addresses.value = []
-        }
-    }
-    
-    loadAddresses()
 
-    // formulário
-    const form = ref({
+    const createEmptyForm = () => ({
         cep: '',
         nickname: '',
         street: '',
@@ -241,6 +255,45 @@
         primary: false,
         id: null
     })
+
+    const form = ref(createEmptyForm())
+
+    const getErrorMessage = (error, fallback) => {
+        const validationErrors = error.response?.data?.errors
+        const firstValidationError = validationErrors
+            ? Object.values(validationErrors).flat()[0]
+            : null
+
+        return firstValidationError || error.response?.data?.message || fallback
+    }
+
+    const loadAddresses = async ({ showFormWhenEmpty = true } = {}) => {
+        if (!userStore.isLogged) return []
+
+        isLoadingAddresses.value = true
+        loadError.value = ''
+        localStorage.removeItem('addresses')
+        localStorage.removeItem('selectedAddress')
+
+        try {
+            const loadedAddresses = await getAddresses()
+            addresses.value = loadedAddresses
+            selectedId.value = localStorage.getItem('selectedAddressId')
+
+            if (showFormWhenEmpty && loadedAddresses.length === 0) {
+                showForm()
+            }
+
+            return loadedAddresses
+        } catch (error) {
+            console.error('Não foi possível carregar os endereços da API.', error)
+            loadError.value = getErrorMessage(error, 'Não foi possível carregar os endereços.')
+            addresses.value = []
+            return null
+        } finally {
+            isLoadingAddresses.value = false
+        }
+    }
 
     /* 🔥 MÁSCARA + TRIGGER AUTOMÁTICO */
     const handleCepInput = () => {
@@ -287,163 +340,171 @@
     const showForm = () => {
         view.value = 'form'
         step.value = 1
-        // limpa o form apenas para novo endereço
-        form.value = {
-            cep: '',
-            nickname: '',
-            street: '',
-            number: '',
-            complement: '',
-            neighborhood: '',
-            city: '',
-            state: '',
-            reference: '',
-            instructions: '',
-            primary: false,
-            id: null
-        }
+        form.value = createEmptyForm()
     }
 
     const showList = () => {
         view.value = 'list'
-        loadAddresses() // Recarrega a lista ao voltar
-        triggerAddressUpdate() // Notifica mudança
     }
     
     const nextStep = () => step.value = 2
     const prevStep = () => step.value = 1
 
     /* ---- ENDEREÇOS ---- */
+    const setSelectedAddress = (address, shouldNotify = true) => {
+        selectedId.value = address.id
+        localStorage.setItem('selectedAddressId', String(address.id))
+        emit('address-selected', address)
+        if (shouldNotify) notifyAddressUpdate()
+    }
+
     const selectAddress = (id) => {
-        selectedId.value = id
-        const selectedAddr = addresses.value.find(a => a.id === id)
-        if (selectedAddr) {
-            emit('address-selected', selectedAddr)
-            close()
-        }
+        const selectedAddr = addresses.value.find((address) => String(address.id) === String(id))
+        if (!selectedAddr) return
+
+        setSelectedAddress(selectedAddr)
+        close()
     }
 
     const editAddress = (id) => {
-        const addr = addresses.value.find(a => a.id === id)
+        const addr = addresses.value.find((address) => String(address.id) === String(id))
         if (addr) {
-            form.value = { ...addr } // mantém id
+            form.value = { ...createEmptyForm(), ...addr }
             view.value = 'form'
             step.value = 1
         }
     }
 
-    const deleteAddress = (id) => {
-        if (confirm('Deseja excluir este endereço?')) {
-            const deletedAddress = addresses.value.find(a => a.id === id)
-            const wasSelected = localStorage.getItem('selectedAddressId') === id.toString()
-            
-            addresses.value = addresses.value.filter(a => a.id !== id)
-            localStorage.setItem('addresses', JSON.stringify(addresses.value))
-            
-            // Se o endereço excluído era o selecionado
+    const deleteAddress = async (id) => {
+        if (!confirm('Deseja excluir este endereço?')) return
+
+        const wasSelected = localStorage.getItem('selectedAddressId') === String(id)
+        isSaving.value = true
+
+        try {
+            await deleteAddressRequest(id)
+            const updatedAddresses = await loadAddresses({ showFormWhenEmpty: false })
+            if (!updatedAddresses) return
+
             if (wasSelected) {
-                // Tenta encontrar um endereço principal
-                const primaryAddress = addresses.value.find(addr => addr.primary === true)
-                if (primaryAddress) {
-                    emit('address-selected', primaryAddress)
-                } else if (addresses.value.length > 0) {
-                    // Se não tem principal, seleciona o primeiro da lista
-                    emit('address-selected', addresses.value[0])
+                const nextAddress = updatedAddresses.find((address) => address.primary)
+                    || updatedAddresses[0]
+
+                if (nextAddress) {
+                    setSelectedAddress(nextAddress)
                 } else {
-                    // Não tem mais endereços
+                    selectedId.value = null
+                    localStorage.removeItem('selectedAddressId')
                     emit('address-selected', null)
+                    notifyAddressUpdate()
                 }
+            } else {
+                notifyAddressUpdate()
             }
-            
-            triggerAddressUpdate() // Notifica mudança
-            loadAddresses() // Recarrega a lista
-            
-            toast.success('Endereço removido com sucesso!', {
-                timeout: 3000
-            })
+
+            toast.success('Endereço removido com sucesso!', { timeout: 3000 })
+        } catch (error) {
+            console.error('Não foi possível remover o endereço.', error)
+            toast.error(getErrorMessage(error, 'Não foi possível remover o endereço.'))
+        } finally {
+            isSaving.value = false
         }
     }
 
-    /* ---- SALVAR ---- */
-    const saveAddress = () => {
-        // Se for definir como principal, remove primary dos outros
-        if (form.value.primary) {
-            addresses.value.forEach(addr => {
-                addr.primary = false
-            })
-        }
-        
-        let isNewAddress = false
-        
-        if (form.value.id) {
-            // edição: atualiza endereço existente
-            const index = addresses.value.findIndex(a => a.id === form.value.id)
-            if (index !== -1) {
-                // Verifica se o endereço editado era o selecionado
-                const wasSelected = localStorage.getItem('selectedAddressId') === form.value.id.toString()
-                addresses.value[index] = { ...form.value }
-                
-                // Se era o selecionado, atualiza a seleção
-                if (wasSelected) {
-                    emit('address-selected', form.value)
-                }
-            }
-        } else {
-            // novo endereço: adiciona
-            isNewAddress = true
-            form.value.id = Date.now()
-            addresses.value.push({ ...form.value })
-        }
+    const saveAddress = async () => {
+        const isNewAddress = !form.value.id
+        const wasSelected = localStorage.getItem('selectedAddressId') === String(form.value.id)
+        const shouldSelect = Boolean(form.value.primary)
+            || wasSelected
+            || (isNewAddress && addresses.value.length === 0)
+        const payload = { ...form.value }
+        delete payload.id
+        payload.primary = Boolean(payload.primary)
+        isSaving.value = true
 
-        // persistir no LocalStorage
-        localStorage.setItem('addresses', JSON.stringify(addresses.value))
-        
-        // Se o endereço salvo for o principal, emite evento
-        if (form.value.primary) {
-            emit('address-selected', form.value)
-        } else if (isNewAddress && addresses.value.length === 1) {
-            // Se é o primeiro endereço, seleciona automaticamente
-            emit('address-selected', form.value)
+        try {
+            const response = isNewAddress
+                ? await createAddressRequest(payload)
+                : await updateAddressRequest(form.value.id, payload)
+
+            const updatedAddresses = await loadAddresses({ showFormWhenEmpty: false })
+            if (!updatedAddresses) {
+                view.value = 'list'
+                toast.warning('Endereço salvo, mas não foi possível atualizar a lista. Tente novamente.')
+                return
+            }
+
+            if (shouldSelect) {
+                const responseData = response.data?.data?.address
+                    || response.data?.data?.data
+                    || response.data?.data
+                const savedId = responseData?.id || form.value.id
+                const savedAddress = updatedAddresses.find(
+                    (address) => String(address.id) === String(savedId),
+                )
+                const fallbackAddress = form.value.primary
+                    ? updatedAddresses.find((address) => address.primary)
+                    : isNewAddress && updatedAddresses.length === 1
+                        ? updatedAddresses[0]
+                        : null
+                const selectedAddress = savedAddress || fallbackAddress
+
+                if (selectedAddress) setSelectedAddress(selectedAddress, false)
+            }
+
+            notifyAddressUpdate()
+            showList()
+            toast.success(
+                isNewAddress ? 'Endereço cadastrado com sucesso!' : 'Endereço atualizado com sucesso!',
+                { timeout: 3000 },
+            )
+        } catch (error) {
+            console.error('Não foi possível salvar o endereço.', error)
+            toast.error(getErrorMessage(error, 'Não foi possível salvar o endereço.'))
+        } finally {
+            isSaving.value = false
         }
-        
-        triggerAddressUpdate() // Notifica mudança
-        
-        // volta para lista
-        showList()
-        
-        toast.success(isNewAddress ? 'Endereço cadastrado com sucesso!' : 'Endereço atualizado com sucesso!', {
-            timeout: 3000
-        })
     }
 
-    // Após salvar o endereço, dispare este evento:
-     window.dispatchEvent(new CustomEvent('addresses-updated'))
-
-    /* ---- FECHAR MODAL ---- */
     const close = () => {
         emit('update:modelValue', false)
-        loadAddresses() // Recarrega endereços ao fechar
-        triggerAddressUpdate() // Notifica mudança
-    }
-    
-    const handleNoAddresses = () => {
-      // Se não há endereços e o modal abriu, já mostra o formulário
-      if (addresses.value.length === 0 && props.modelValue) {
-        showForm()
-      }
     }
 
-
-    // Observa quando o modal abre para recarregar os endereços
-    watch(() => props.modelValue, (newValue) => {
-      if (newValue) {
-        loadAddresses()
-        // Se não tem endereços, já abre o formulário
-        if (addresses.value.length === 0) {
-          showForm()
+    watch(() => props.modelValue, async (isOpen) => {
+        if (!isOpen) {
+            showIdentifyModal.value = false
+            return
         }
-      }
+
+        if (!userStore.isLogged) {
+            showIdentifyModal.value = true
+            return
+        }
+
+        view.value = 'list'
+        await loadAddresses()
+    }, { immediate: true })
+
+    watch(() => userStore.isLogged, async (isLogged) => {
+        if (!isLogged) {
+            addresses.value = []
+            return
+        }
+
+        if (props.modelValue) {
+            showIdentifyModal.value = false
+            view.value = 'list'
+            await loadAddresses()
+        }
     })
+
+    watch(showIdentifyModal, (isOpen, wasOpen) => {
+        if (!isOpen && wasOpen && props.modelValue && !userStore.isLogged) {
+            close()
+        }
+    })
+
+    onBeforeUnmount(() => clearTimeout(debounceTimer))
 </script>
 
 
