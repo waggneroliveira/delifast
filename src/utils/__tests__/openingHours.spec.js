@@ -12,19 +12,32 @@ const weeklySchedule = [
 ]
 
 describe('opening hours', () => {
-  it('groups days with the same schedule', () => {
+  it('omits closed days and groups consecutive days with the same schedule', () => {
     expect(groupOpeningHours(weeklySchedule)).toEqual([
       {
         key: '14:00-18:00',
-        daysLabel: 'Segunda à sexta-feira',
+        daysLabel: 'Seg à Sex',
         hoursLabel: '14:00 às 18:00',
       },
-      {
-        key: 'closed',
-        daysLabel: 'Sábado e domingo',
-        hoursLabel: 'Fechado',
-      },
     ])
+  })
+
+  it('formats separate consecutive ranges without using an all-days label', () => {
+    const schedule = [1, 2, 4, 5, 6, 7].map((dayOfWeek) => ({
+      day_of_week: dayOfWeek,
+      open_time: '10:00',
+      close_time: '20:00',
+      is_closed: false,
+    }))
+
+    expect(groupOpeningHours(schedule)[0].daysLabel).toBe('Seg à Ter e Qui à Dom')
+  })
+
+  it('returns no groups when every day is closed', () => {
+    expect(groupOpeningHours(weeklySchedule.map((schedule) => ({
+      ...schedule,
+      is_closed: true,
+    })))).toEqual([])
   })
 
   it('updates open status at the opening and closing times', () => {

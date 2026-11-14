@@ -1,39 +1,49 @@
 const dayNames = [
-  'segunda-feira',
-  'terça-feira',
-  'quarta-feira',
-  'quinta-feira',
-  'sexta-feira',
-  'sábado',
-  'domingo',
+  'Seg',
+  'Ter',
+  'Qua',
+  'Qui',
+  'Sex',
+  'Sáb',
+  'Dom',
 ]
 
 const formatDays = (days) => {
-  const sortedDays = [...days].sort((first, second) => first - second)
+  const sortedDays = [...new Set(days)].sort((first, second) => first - second)
+  const ranges = []
 
-  if (sortedDays.length === 7) return 'Todos os dias'
-  if (sortedDays.join(',') === '1,2,3,4,5') return 'Segunda à sexta-feira'
-  if (sortedDays.join(',') === '6,7') return 'Sábado e domingo'
+  sortedDays.forEach((day) => {
+    const lastRange = ranges[ranges.length - 1]
 
-  const names = sortedDays.map((day) => dayNames[day - 1])
-  const capitalizedFirstDay = `${names[0][0].toUpperCase()}${names[0].slice(1)}`
+    if (lastRange && day === lastRange[1] + 1) {
+      lastRange[1] = day
+    } else {
+      ranges.push([day, day])
+    }
+  })
 
-  if (names.length === 1) return capitalizedFirstDay
-  if (names.length === 2) return `${capitalizedFirstDay} e ${names[1]}`
+  const labels = ranges.map(([firstDay, lastDay]) => (
+    firstDay === lastDay
+      ? dayNames[firstDay - 1]
+      : `${dayNames[firstDay - 1]} à ${dayNames[lastDay - 1]}`
+  ))
 
-  return `${capitalizedFirstDay}, ${names.slice(1, -1).join(', ')} e ${names[names.length - 1]}`
+  if (labels.length < 2) return labels[0]
+  if (labels.length === 2) return `${labels[0]} e ${labels[1]}`
+
+  return `${labels.slice(0, -1).join(', ')} e ${labels[labels.length - 1]}`
 }
 
 export const groupOpeningHours = (openingHours) => {
   const groups = new Map()
 
   openingHours.forEach((schedule) => {
-    const isClosed = schedule.is_closed
-    const key = isClosed ? 'closed' : `${schedule.open_time}-${schedule.close_time}`
+    if (schedule.is_closed) return
+
+    const key = `${schedule.open_time}-${schedule.close_time}`
     const group = groups.get(key) || {
       key,
       days: [],
-      isClosed,
       openTime: schedule.open_time,
       closeTime: schedule.close_time,
     }
@@ -45,7 +55,7 @@ export const groupOpeningHours = (openingHours) => {
   return Array.from(groups.values()).map((group) => ({
     key: group.key,
     daysLabel: formatDays(group.days),
-    hoursLabel: group.isClosed ? 'Fechado' : `${group.openTime} às ${group.closeTime}`,
+    hoursLabel: `${group.openTime} às ${group.closeTime}`,
   }))
 }
 
