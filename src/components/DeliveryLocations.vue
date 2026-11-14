@@ -39,7 +39,7 @@
                   <div>
                     <span class="d-block fw-semibold small text-dark mb-1">Ponto de partida (Nosso Endereço)</span>
                     <p class="mb-0 small text-muted lh-sm">
-                      Rua Heróis de França 886, 4450-156 Porto, Portugal. Próximo à estátua da liberdade, entre a padaria e o posto de combustível.
+                      {{ contactAddressError || contactAddress || 'Endereço não informado.' }}
                     </p>
                   </div>
                 </div>
@@ -50,7 +50,7 @@
                     <i class="bi bi-clock-fill fs-5"></i>
                     <div>
                       <span class="d-block text-muted" style="font-size: 0.7rem;">Tempo estimado</span>
-                      <strong class="small text-dark">30-45 minutos</strong>
+                      <strong class="small text-dark">{{ estimatedTime || 'Não informado' }}</strong>
                     </div>
                   </div>
                 </div>
@@ -240,7 +240,7 @@
 
 <script setup>
     import { computed, ref, watch } from 'vue'
-    import { getServiceLocations } from '@/services/api'
+    import { getContacts, getServiceLocations } from '@/services/api'
 
     const props = defineProps({
     modelValue: Boolean
@@ -250,8 +250,12 @@
     const areas = ref([])
     const isLoading = ref(false)
     const loadError = ref('')
+    const contactAddress = ref('')
+    const contactAddressError = ref('')
+    const isLoadingContact = ref(false)
     const searchQuery = ref('')
     let hasLoaded = false
+    let hasLoadedContactAddress = false
 
     const show = computed({
     get: () => props.modelValue,
@@ -266,6 +270,14 @@
         style: 'currency',
         currency: 'BRL',
     }).format(Number(fee))
+
+    const estimatedTime = computed(() => {
+        const descriptions = areas.value
+            .map((area) => area.description?.trim())
+            .filter(Boolean)
+
+        return [...new Set(descriptions)].join(' • ')
+    })
 
     const normalizeSearchText = (value) => String(value ?? '')
         .normalize('NFD')
@@ -298,6 +310,7 @@
                     || location.id == null
                     || typeof location.title !== 'string'
                     || !location.title.trim()
+                    || (location.description != null && typeof location.description !== 'string')
                     || (location.neighborhoods != null && !Array.isArray(location.neighborhoods))
                 ) {
                     throw new Error('A resposta de /service-locations contém um local inválido.')
@@ -324,11 +337,36 @@
         }
     }
 
+    const loadContactAddress = async () => {
+        isLoadingContact.value = true
+        contactAddressError.value = ''
+
+        try {
+            const contacts = await getContacts()
+            const address = contacts[0]?.address_one
+
+            if (address != null && typeof address !== 'string') {
+                throw new Error('A resposta de /contacts contém um endereço inválido.')
+            }
+
+            contactAddress.value = address?.trim() || ''
+            hasLoadedContactAddress = true
+        } catch (error) {
+            console.error('Não foi possível carregar o endereço do estabelecimento da API.', error)
+            contactAddressError.value = 'Não foi possível carregar o endereço.'
+        } finally {
+            isLoadingContact.value = false
+        }
+    }
+
     watch(
         () => props.modelValue,
         (isOpen) => {
             if (isOpen && !hasLoaded && !isLoading.value) {
                 loadAreas()
+            }
+            if (isOpen && !hasLoadedContactAddress && !isLoadingContact.value) {
+                loadContactAddress()
             }
         },
         { immediate: true },
