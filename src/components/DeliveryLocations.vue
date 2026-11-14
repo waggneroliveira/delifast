@@ -70,13 +70,28 @@
 
             <!-- Lista de Áreas e Bairros -->
             <template v-else>
+              <div class="mb-3">
+                <label for="neighborhood-search" class="form-label">Buscar bairro</label>
+                <input
+                  id="neighborhood-search"
+                  v-model="searchQuery"
+                  type="search"
+                  class="form-control"
+                  placeholder="Digite o nome do bairro"
+                >
+              </div>
+
               <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="small fw-semibold text-muted d-flex align-items-center gap-1">
                   <i class="bi bi-check-circle-fill text-success"></i> Bairros atendidos por região
                 </span>
               </div>
 
-              <div v-for="(area, index) in areas" :key="area.id" :class="{ 'mb-4': index !== areas.length - 1 }">
+              <div
+                v-for="(area, index) in filteredAreas"
+                :key="area.id"
+                :class="{ 'mb-4': index !== filteredAreas.length - 1 }"
+              >
                 <div class="area-header d-flex align-items-center gap-2 pb-2 mb-3 border-bottom">
                   <i class="bi bi-geo-alt-fill"></i>
                   <h6 class="mb-0 fw-semibold text-dark">{{ area.title }}</h6>
@@ -100,6 +115,10 @@
                   </div>
                 </div>
               </div>
+
+              <p v-if="!filteredAreas.length" class="text-muted text-center mb-0" role="status">
+                Nenhum bairro encontrado para essa busca.
+              </p>
             </template>
 
           </div>
@@ -200,6 +219,7 @@
     const areas = ref([])
     const isLoading = ref(false)
     const loadError = ref('')
+    const searchQuery = ref('')
     let hasLoaded = false
 
     const show = computed({
@@ -215,6 +235,25 @@
         style: 'currency',
         currency: 'BRL',
     }).format(Number(fee))
+
+    const normalizeSearchText = (value) => String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+
+    const filteredAreas = computed(() => {
+        const query = normalizeSearchText(searchQuery.value.trim())
+        if (!query) return areas.value
+
+        return areas.value
+            .map((area) => ({
+                ...area,
+                neighborhoods: area.neighborhoods.filter((neighborhood) => (
+                    normalizeSearchText(neighborhood.name).includes(query)
+                )),
+            }))
+            .filter((area) => area.neighborhoods.length)
+    })
 
     const loadAreas = async () => {
         isLoading.value = true
