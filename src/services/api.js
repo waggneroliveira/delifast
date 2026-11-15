@@ -122,6 +122,21 @@ export const getCategories = async () => {
     return categories
 }
 
+export const getProducts = async () => {
+    const { data } = await api.get('/products')
+    const products = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.data?.data)
+            ? data.data.data
+            : null
+
+    if (!products) {
+        throw new Error('A resposta de /products não contém uma lista de produtos.')
+    }
+
+    return products
+}
+
 export const getServiceLocations = async () => {
     const { data } = await api.get('/service-locations')
     const locations = data?.data

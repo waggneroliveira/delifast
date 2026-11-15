@@ -11,6 +11,7 @@ const {
   getAddresses,
   getCategories,
   getContacts,
+  getProducts,
   getServiceLocations,
   updateAddress,
 } = await import('../api')
@@ -33,6 +34,25 @@ describe('API list endpoints', () => {
 
     await expect(getCategories()).rejects.toThrow(
       'A resposta de /category não contém uma lista de categorias.',
+    )
+  })
+
+  it('loads products from /products', async () => {
+    const products = [{ id: 1, name: 'Hambúrguer' }]
+    const getSpy = vi.spyOn(api, 'get').mockResolvedValue({ data: { data: products } })
+
+    await expect(getProducts()).resolves.toEqual(products)
+    expect(getSpy).toHaveBeenCalledWith('/products')
+  })
+
+  it('supports paginated product responses and rejects missing product lists', async () => {
+    const products = [{ id: 1, name: 'Hambúrguer' }]
+    vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { data: products } } })
+    await expect(getProducts()).resolves.toEqual(products)
+
+    vi.spyOn(api, 'get').mockResolvedValue({ data: { data: null } })
+    await expect(getProducts()).rejects.toThrow(
+      'A resposta de /products não contém uma lista de produtos.',
     )
   })
 
