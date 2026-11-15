@@ -1,6 +1,11 @@
 import axios from 'axios'
 
 const apiBaseUrl = (() => {
+    const configuredUrl = import.meta.env.VITE_API_BASE_URL
+    if (configuredUrl) {
+        return new URL(configuredUrl).href.replace(/\/$/, '')
+    }
+
     const url = new URL(window.location.origin)
 
     if (import.meta.env.DEV) {

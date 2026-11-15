@@ -12,6 +12,7 @@
       getProducts,
       resolveApiAssetUrl,
     } from '@/services/api'
+    import { normalizeProduct } from '@/services/products'
     
     // Componentes
     import Aside from '@/components/Aside.vue'
@@ -343,72 +344,6 @@
 
     const highlights = computed(() => products.value.filter((product) => product.featured))
     const categories = ref([])
-
-    const normalizeProduct = (product, apiCategories) => {
-      if (!product || typeof product !== 'object' || product.id == null) {
-        throw new Error('A resposta de /products contem um produto sem identificador.')
-      }
-
-      const categoryRelation = product.category && typeof product.category === 'object'
-        ? product.category
-        : null
-      const categoryId = product.category_id
-        ?? product.categoryId
-        ?? categoryRelation?.id
-        ?? (typeof product.category === 'number' ? product.category : null)
-      const categoryValue = typeof product.category === 'string' ? product.category : null
-      const categoryById = apiCategories.find((category) => (
-        String(category.id) === String(categoryId ?? categoryValue)
-      ))
-      const categoryBySlug = apiCategories.find((category) => category.slug === categoryValue)
-      const categorySlug = categoryRelation?.slug
-        ?? product.category_slug
-        ?? product.categorySlug
-        ?? categoryBySlug?.slug
-        ?? categoryById?.slug
-        ?? categoryValue
-      const imageValues = [
-        ...(Array.isArray(product.images) ? product.images : []),
-        product.image,
-        product.image_url,
-        product.photo,
-      ]
-      const images = imageValues
-        .map((image) => typeof image === 'string' ? image : image?.url ?? image?.path)
-        .filter((image) => typeof image === 'string' && image.trim())
-        .map(resolveApiAssetUrl)
-      const featuredValue = product.featured ?? product.is_featured ?? product.highlighted
-      const customization = product.customization && typeof product.customization === 'object'
-        ? product.customization
-        : {
-            hasSize: Array.isArray(product.sizes) && product.sizes.length > 0,
-            sizes: product.sizes ?? [],
-            hasFlavors: Array.isArray(product.flavors) && product.flavors.length > 0,
-            flavors: product.flavors ?? [],
-            hasToppings: Array.isArray(product.toppings) && product.toppings.length > 0,
-            toppings: product.toppings ?? [],
-          }
-
-      return {
-        ...product,
-        id: product.id,
-        name: product.name ?? product.title ?? '',
-        description: product.description ?? '',
-        price: Number(product.price ?? 0),
-        oldPrice: Number(product.oldPrice ?? product.old_price ?? 0),
-        cashback: Number(product.cashback ?? 0),
-        image: images[0] ?? null,
-        images,
-        category: categorySlug ?? 'outros',
-        featured: featuredValue === true || featuredValue === 1 || featuredValue === '1',
-        isCombo: product.isCombo === true
-          || product.is_combo === true
-          || product.product_type === 'combo'
-          || product.type === 'combo',
-        customization,
-        aditionals: product.aditionals ?? product.additionals ?? [],
-      }
-    }
 
     const loadCatalog = async () => {
       const [apiCategories, apiProducts] = await Promise.all([getCategories(), getProducts()])

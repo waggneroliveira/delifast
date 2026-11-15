@@ -651,7 +651,8 @@
       }
       return true
     }
-    if (hasOptions.value && !selectedOption.value) return false
+    const requiredOptions = props.product?.options?.some((group) => group.required)
+    if (requiredOptions && !selectedOption.value) return false
     if (hasSizes.value && !selectedSize.value) return false
     if (hasFlavors.value && selectedFlavors.value.length === 0) return false
     return true
@@ -805,7 +806,7 @@
     const item = props.product?.comboItems?.find(i => i.id === itemId)
     if (!item) return
     
-    const choice = item.options?.choices?.find(c => c.id === parseInt(choiceId))
+    const choice = item.options?.choices?.find(c => String(c.id) === String(choiceId))
     if (choice && comboItemSelections.value[itemId]) {
       comboItemSelections.value[itemId].selected = choiceId
       comboItemSelections.value[itemId].choicePrice = choice.price || 0
@@ -935,7 +936,7 @@
       }
     } else if (selections.type === 'checkbox' || selections.type === 'multicheckbox') {
       Object.entries(selections.quantities || {}).forEach(([choiceId, qty]) => {
-        const choice = item.options?.choices?.find(c => c.id === parseInt(choiceId))
+        const choice = item.options?.choices?.find(c => String(c.id) === String(choiceId))
         if (choice && qty > 0) {
           choices.push(`${qty}x ${choice.name}`)
         }
@@ -950,7 +951,7 @@ const prepareComboSelections = () => {
   const selections = {}
   
   Object.entries(comboItemSelections.value).forEach(([itemId, data]) => {
-    const item = props.product?.comboItems?.find(i => i.id === itemId)
+    const item = props.product?.comboItems?.find(i => String(i.id) === itemId)
     if (!item || !data) return
     
     if (data.type === 'select' || data.type === 'radio') {
@@ -981,7 +982,7 @@ const prepareComboSelections = () => {
     } else if (data.type === 'checkbox' || data.type === 'multicheckbox') {
       selections[itemId] = []
       Object.entries(data.quantities || {}).forEach(([choiceId, qty]) => {
-        const choice = item.options?.choices?.find(c => c.id === parseInt(choiceId))
+        const choice = item.options?.choices?.find(c => String(c.id) === String(choiceId))
         if (choice && qty > 0) {
           selections[itemId].push({
             choice: {
