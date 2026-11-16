@@ -73,16 +73,24 @@
     return props.product?.isCombo === true
   })
 
+  const sizeOptionGroup = computed(() => {
+    return props.product?.options?.find(
+      (group) => group.isSizeOption || group.priceMode === 'replace'
+    )
+  })
+
   // Verifica se o produto tem variações (tamanhos ou opções com preços diferentes)
   const hasVariations = computed(() => {
     // Combos sempre abrem modal
     if (isCombo.value) return false
     
     // Verifica se tem tamanhos com preços diferentes
-    if (props.product.customization?.hasSize && props.product.customization?.sizes?.length > 0) {
-      const sizes = props.product.customization.sizes
-      const firstPrice = sizes[0]?.price
-      return sizes.some(size => size.price !== firstPrice)
+    if (props.product.customization?.sizes?.length > 0) {
+      return true
+    }
+
+    if (sizeOptionGroup.value?.items?.length > 0) {
+      return true
     }
     
     // Verifica se tem opções com preços diferentes
@@ -102,30 +110,25 @@
 
   // Calcula o menor preço entre as variações
   const minPrice = computed(() => {
-    let lowestPrice = props.product.price || 0
-    
-    // Verifica tamanhos
-    if (props.product.customization?.hasSize && props.product.customization?.sizes?.length > 0) {
+    // Os preços dos tamanhos substituem o preço-base do produto.
+    if (props.product.customization?.sizes?.length > 0) {
       const sizes = props.product.customization.sizes
-      const lowestSizePrice = Math.min(...sizes.map(s => s.price))
-      if (lowestSizePrice < lowestPrice) {
-        lowestPrice = lowestSizePrice
-      }
+      return Math.min(...sizes.map((size) => size.price))
     }
-    
-    // Verifica opções
-    if (props.product.options && props.product.options.length > 0) {
-      for (const group of props.product.options) {
-        if (group.items && group.items.length > 0) {
-          const lowestOptionPrice = Math.min(...group.items.map(i => i.price || 0))
-          if (lowestOptionPrice < lowestPrice) {
-            lowestPrice = lowestOptionPrice
-          }
-        }
-      }
+
+    if (sizeOptionGroup.value?.items?.length) {
+      return Math.min(...sizeOptionGroup.value.items.map((item) => item.price || 0))
     }
-    
-    return lowestPrice
+
+    const basePrice = props.product.price || 0
+    const minimumRequiredOptionsPrice = (props.product.options || [])
+      .filter((group) => group.required && group.type !== 'checkbox')
+      .reduce((total, group) => {
+        const prices = (group.items || []).map((item) => item.price || 0)
+        return total + (prices.length ? Math.min(...prices) : 0)
+      }, 0)
+
+    return basePrice + minimumRequiredOptionsPrice
   })
 
   // Verifica se o produto tem opções de personalização

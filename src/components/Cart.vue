@@ -261,12 +261,17 @@
                         {{ item.description }}
                     </p>
 
-                    <div v-if="!item.isCombo && (item.selectedSize || getSelectedOption(item) || item.selectedFlavors?.length)" class="small text-muted mb-2">
+                    <div v-if="!item.isCombo && (item.selectedSize || hasSelectedOptions(item) || item.selectedFlavors?.length)" class="small text-muted mb-2">
                         <div v-if="item.selectedSize">Tamanho: {{ item.selectedSize.name }}</div>
-                        <div v-if="getSelectedOption(item)">
-                            Opção: {{ getSelectedOption(item).name }}
-                            <span v-if="getSelectedOption(item).price">(+{{ formatPrice(getSelectedOption(item).price) }})</span>
-                        </div>
+                        <template v-for="(group, groupIndex) in item.options" :key="group.id || group.title || groupIndex">
+                            <div v-if="getSelectedOptions(item, group, groupIndex).length">
+                                {{ group.isSizeOption ? 'Tamanho' : group.title }}:
+                                <span v-for="(choice, choiceIndex) in getSelectedOptions(item, group, groupIndex)" :key="choice.id">
+                                    {{ choiceIndex ? ', ' : '' }}{{ choice.name }}
+                                    <span v-if="!group.isSizeOption && group.priceMode !== 'replace' && choice.price">(+{{ formatPrice(choice.price) }})</span>
+                                </span>
+                            </div>
+                        </template>
                         <div v-for="flavor in item.selectedFlavors" :key="flavor.id">
                             Sabor: {{ flavor.name }}
                             <span v-if="flavor.price">(+{{ formatPrice(flavor.price) }})</span>
@@ -696,6 +701,7 @@
         options: baseProduct?.options || item.options || [],
         aditionals: item.aditionals ? JSON.parse(JSON.stringify(item.aditionals)) : [],
         selectedOption: item.selectedOption,
+        selectedOptions: item.selectedOptions ? JSON.parse(JSON.stringify(item.selectedOptions)) : {},
         aditionalsState: item.aditionalsState ? { ...item.aditionalsState } : {},
         selectedSize: item.selectedSize,
         selectedFlavors: item.selectedFlavors ? [...item.selectedFlavors] : [],
@@ -846,15 +852,30 @@
         return cart.calculateItemTotal(item)
     }
 
-    const getSelectedOption = (item) => {
-        if (item.selectedOption === null || item.selectedOption === undefined) return null
-        for (const group of item.options || []) {
-            const option = group.items?.find(
-                (choice) => String(choice.id) === String(item.selectedOption)
-            )
-            if (option) return option
+    const getSelectedOptions = (item, group, index) => {
+        const selectedOptions = item.selectedOptions || {}
+        const key = String(group.id ?? group.title ?? index)
+        let selection = selectedOptions[key]
+        if (
+            selection === undefined
+            && Object.keys(selectedOptions).length === 0
+            && item.selectedOption !== null
+            && item.selectedOption !== undefined
+            && group.items?.some((choice) => String(choice.id) === String(item.selectedOption))
+        ) {
+            selection = item.selectedOption
         }
-        return null
+        const ids = Array.isArray(selection) ? selection : [selection]
+        return ids
+            .filter((id) => id !== undefined && id !== null)
+            .map((id) => group.items?.find((choice) => String(choice.id) === String(id)))
+            .filter(Boolean)
+    }
+
+    const hasSelectedOptions = (item) => {
+        return (item.options || []).some((group, index) => (
+            getSelectedOptions(item, group, index).length > 0
+        ))
     }
     
     const getItemAditionalsList = (item) => {

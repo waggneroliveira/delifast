@@ -82,4 +82,42 @@ describe('useCartStore', () => {
     expect(cart.items).toHaveLength(2)
     expect(cart.total).toBe(35)
   })
+
+  it('uses a selected size option as the product price and adds multiple flavors', () => {
+    const cart = useCartStore()
+
+    cart.add({
+      id: 2,
+      name: 'Pizza 2 sabores',
+      price: 45,
+      basePrice: 45,
+      selectedOptions: {
+        sizes: 'large',
+        flavors: ['pepperoni', 'cheese'],
+      },
+      options: [
+        {
+          id: 'sizes',
+          title: 'Tamanho',
+          isSizeOption: true,
+          priceMode: 'replace',
+          items: [{ id: 'large', name: 'Grande', price: 45 }],
+        },
+        {
+          id: 'flavors',
+          title: 'Sabores',
+          type: 'checkbox',
+          items: [
+            { id: 'pepperoni', name: 'Pepperoni', price: 2 },
+            { id: 'cheese', name: 'Queijo', price: 3 },
+          ],
+        },
+      ],
+      selectedFlavors: [],
+      aditionals: [],
+    })
+
+    expect(cart.calculateItemTotal(cart.items[0])).toBe(50)
+    expect(cart.subTotal).toBe(50)
+  })
 })

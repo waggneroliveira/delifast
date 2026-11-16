@@ -87,4 +87,47 @@ describe('normalizeProduct', () => {
     })
     expect(product.comboAddons[0]).toMatchObject({ price: 1, maxQuantity: 2 })
   })
+
+  it('normalizes required size and multiple option metadata from the API', () => {
+    const product = normalizeProduct({
+      id: 4,
+      name: 'Pizza 2 sabores',
+      price: '0.00',
+      sizes: [
+        { id: 1, name: 'Média', price: '35.00', is_default: '1' },
+        { id: 2, name: 'Grande', price: '45.00' },
+      ],
+      customization: {
+        hasSize: true,
+        sizes: [],
+        size_required: 'true',
+      },
+      options: [{
+        id: 10,
+        title: 'Sabores',
+        type: 'multiple_choice',
+        is_required: '1',
+        max_selections: '2',
+        choices: [
+          { id: 11, name: 'Calabresa', is_recommended: '1', is_pre_selected: 'true' },
+          { id: 12, name: 'Mussarela' },
+        ],
+      }],
+    })
+
+    expect(product.customization).toMatchObject({
+      hasSize: true,
+      sizeRequired: true,
+      sizes: [{ id: 1, price: 35, default: true }, { id: 2, price: 45 }],
+    })
+    expect(product.options[0]).toMatchObject({
+      type: 'checkbox',
+      required: true,
+      maxSelections: 2,
+      items: [
+        { id: 11, isRecommended: true, default: true },
+        { id: 12, isRecommended: false, default: false },
+      ],
+    })
+  })
 })

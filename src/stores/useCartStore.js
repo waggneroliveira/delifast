@@ -124,7 +124,7 @@ export const useCartStore = defineStore('cart', {
         const parts = [
           item.productId || item.id,
           'normal',
-          item.selectedOption ?? 'no_option',
+          JSON.stringify(item.selectedOptions ?? item.selectedOption ?? null),
           item.selectedSize?.id || 'no_size',
           JSON.stringify((item.selectedFlavors || []).map(f => f.id).sort()),
           JSON.stringify(getItemAditionalsSignature(item))
@@ -218,6 +218,7 @@ export const useCartStore = defineStore('cart', {
         basePrice: product.basePrice ?? product.price ?? 0,
         options: product.options || [],
         selectedOption: product.selectedOption ?? null,
+        selectedOptions: product.selectedOptions || {},
         selectedSize: product.selectedSize || null,
         selectedFlavors: product.selectedFlavors || [],
         aditionals: aditionalsCopy,
@@ -266,7 +267,7 @@ export const useCartStore = defineStore('cart', {
         const parts = [
           item.productId || item.id,
           'normal',
-          item.selectedOption ?? 'no_option',
+          JSON.stringify(item.selectedOptions ?? item.selectedOption ?? null),
           item.selectedSize?.id || 'no_size',
           JSON.stringify((item.selectedFlavors || []).map(f => f.id).sort()),
           JSON.stringify(getItemAditionalsSignature(item))
@@ -356,6 +357,7 @@ export const useCartStore = defineStore('cart', {
         basePrice: product.basePrice ?? originalItem.basePrice ?? product.price ?? originalItem.price ?? 0,
         options: product.options || originalItem.options || [],
         selectedOption: product.selectedOption !== undefined ? product.selectedOption : originalItem.selectedOption,
+        selectedOptions: product.selectedOptions || originalItem.selectedOptions || {},
         selectedSize: product.selectedSize || originalItem.selectedSize,
         selectedFlavors: product.selectedFlavors || originalItem.selectedFlavors || [],
         aditionals: updatedAditionals.length > 0 ? updatedAditionals : originalItem.aditionals || [],
@@ -455,15 +457,28 @@ function getItemBasePrice(item) {
 
 function getItemChoicesTotal(item) {
   let total = 0
-  if (item.selectedOption !== null && item.selectedOption !== undefined) {
-    for (const group of item.options || []) {
-      const option = group.items?.find(
-        (choice) => String(choice.id) === String(item.selectedOption)
-      )
-      if (option) {
-        total += option.price || 0
-        break
-      }
+  const selections = item.selectedOptions || {}
+  const hasSelections = Object.keys(selections).length > 0
+
+  for (const [index, group] of (item.options || []).entries()) {
+    if (group.isSizeOption || group.priceMode === 'replace') continue
+
+    const key = String(group.id ?? group.title ?? index)
+    let selection = selections[key]
+    if (
+      selection === undefined
+      && !hasSelections
+      && item.selectedOption !== null
+      && item.selectedOption !== undefined
+      && group.items?.some((choice) => String(choice.id) === String(item.selectedOption))
+    ) {
+      selection = item.selectedOption
+    }
+
+    const selectedIds = Array.isArray(selection) ? selection : [selection]
+    for (const id of selectedIds) {
+      const option = group.items?.find((choice) => String(choice.id) === String(id))
+      total += option?.price || 0
     }
   }
 

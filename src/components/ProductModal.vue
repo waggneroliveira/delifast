@@ -286,20 +286,21 @@
             <!-- Opções (Sabores/Tamanhos) - apenas para produtos normais -->
             <div class="col-md-12" v-if="!product?.isCombo && hasOptions">
               <div
-                v-for="group in optionGroups"
-                :key="group.title"
+                v-for="(group, groupIndex) in optionGroups"
+                :key="getOptionGroupKey(group, groupIndex)"
                 class="mb-4"
               >
                 <h6 class="fw-bold text-primary text-center mb-4">
                   {{ group.title }}
+                  <span v-if="group.required" class="badge bg-danger ms-2">Obrigatório</span>
                 </h6>
 
                 <div
                   v-for="item in group.items"
                   :key="item.id"
                   class="d-flex align-items-center border gap-1 rounded p-0 mb-2 option-item pe-3"
-                  :class="{ active: isOptionSelected(item) }"
-                  @click="selectOption(item)"
+                  :class="{ active: isOptionSelected(group, item, groupIndex) }"
+                  @click="handleOptionClick(group, item, groupIndex)"
                 >
                   <img
                     :src="item.image || product?.images?.[0]"
@@ -311,18 +312,25 @@
                   <div class="flex-grow-1">
                     <div class="fw-semibold">
                       {{ item.name }}
+                      <span v-if="item.isRecommended" class="badge bg-primary ms-2">
+                        Recomendado
+                      </span>
                     </div>
                     <small class="text-muted">
                       {{ item.description }}
                     </small>
                     <div v-if="item.price > 0" class="text-primary small fw-bold">
-                      + R$ {{ formatPrice(item.price) }}
+                      {{ group.isSizeOption || group.priceMode === 'replace' ? '' : '+' }}R$ {{ formatPrice(item.price) }}
                     </div>
                   </div>
 
                   <input
-                    type="radio"
-                    :checked="isOptionSelected(item)"
+                    :type="group.type === 'checkbox' ? 'checkbox' : 'radio'"
+                    :name="`product_option_${getOptionGroupKey(group, groupIndex)}`"
+                    :checked="isOptionSelected(group, item, groupIndex)"
+                    :disabled="group.type === 'checkbox' && isOptionLimitReached(group, item, groupIndex)"
+                    @click.stop
+                    @change="handleOptionChange(group, item, groupIndex, $event.target.checked)"
                   />
                 </div>
               </div>
@@ -333,6 +341,7 @@
               <div class="mb-4">
                 <h6 class="fw-bold text-primary text-center mb-4">
                   Tamanhos
+                  <span v-if="sizesRequired" class="badge bg-danger ms-2">Obrigatório</span>
                 </h6>
 
                 <div
@@ -486,6 +495,7 @@
 
   // Estados para personalizações de produtos normais
   const selectedOption = ref(null)
+  const selectedOptions = ref({})
   const selectedSize = ref(null)
   const selectedFlavors = ref([])
   const aditionalState = ref({})
@@ -506,7 +516,14 @@
   })
 
   const hasSizes = computed(() => {
-    return props.product?.customization?.hasSize && props.product?.customization?.sizes?.length > 0 && !props.product?.isCombo
+    return props.product?.customization?.sizes?.length > 0 && !props.product?.isCombo
+  })
+
+  const sizesRequired = computed(() => {
+    if (props.product?.customization?.sizeRequired !== undefined) {
+      return props.product.customization.sizeRequired
+    }
+    return hasSizes.value
   })
 
   const hasFlavors = computed(() => {
@@ -526,11 +543,11 @@
   const maxFlavors = computed(() => {
     return props.product?.customization?.maxFlavors || 
            (props.product?.cuisineType === 'pizza' ? 2 : 
-           (props.product?.cuisineType === 'acai' ? 3 : 0))
+           (props.product?.cuisineType === 'acai' ? 3 : (props.product?.customization?.flavors?.length || 0)))
   })
 
   const maxFlavorsReached = computed(() => {
-    return selectedFlavors.value.length >= maxFlavors.value
+    return maxFlavors.value > 0 && selectedFlavors.value.length >= maxFlavors.value
   })
 
   const aditionalGroups = computed(() => {
@@ -559,18 +576,34 @@
     if (selectedSize.value) {
       return selectedSize.value.price
     }
+
+    const sizeGroupIndex = optionGroups.value.findIndex(
+      (group) => group.isSizeOption || group.priceMode === 'replace'
+    )
+    if (sizeGroupIndex !== -1) {
+      const group = optionGroups.value[sizeGroupIndex]
+      const selection = selectedOptions.value[getOptionGroupKey(group, sizeGroupIndex)]
+      const selectedId = Array.isArray(selection) ? selection[0] : selection
+      const selectedChoice = group.items?.find(
+        (item) => String(item.id) === String(selectedId)
+      )
+      if (selectedChoice) return selectedChoice.price || 0
+    }
+
     return props.product?.price || 0
   })
 
   const selectedOptionPrice = computed(() => {
-    if (selectedOption.value === null || selectedOption.value === undefined) return 0
+    return optionGroups.value.reduce((total, group, index) => {
+      if (group.isSizeOption || group.priceMode === 'replace') return total
 
-    for (const group of optionGroups.value) {
-      const option = group.items?.find((item) => String(item.id) === String(selectedOption.value))
-      if (option) return option.price || 0
-    }
-
-    return 0
+      const selection = getOptionGroupSelection(group, index)
+      const selectedIds = Array.isArray(selection) ? selection : [selection]
+      return total + selectedIds.reduce((groupTotal, id) => {
+        const choice = group.items?.find((item) => String(item.id) === String(id))
+        return groupTotal + (choice?.price || 0)
+      }, 0)
+    }, 0)
   })
 
   const currentOldPrice = computed(() => {
@@ -664,10 +697,11 @@
       }
       return true
     }
-    const requiredOptions = props.product?.options?.some((group) => group.required)
-    if (requiredOptions && (selectedOption.value === null || selectedOption.value === undefined)) return false
-    if (hasSizes.value && !selectedSize.value) return false
+    if (hasSizes.value && sizesRequired.value && !selectedSize.value) return false
     if (hasFlavors.value && selectedFlavors.value.length === 0) return false
+    for (const [index, group] of optionGroups.value.entries()) {
+      if (group.required && !hasOptionGroupSelection(group, index)) return false
+    }
     return true
   })
 
@@ -687,11 +721,144 @@
     return null
   }
 
-  const isOptionSelected = (item) => selectedOption.value === item.id
+  const getOptionGroupKey = (group, index) => String(group.id ?? group.title ?? index)
+
+  const getOptionGroupSelection = (group, index) => {
+    const key = getOptionGroupKey(group, index)
+    if (Object.prototype.hasOwnProperty.call(selectedOptions.value, key)) {
+      return selectedOptions.value[key]
+    }
+
+    if (
+      Object.keys(selectedOptions.value).length === 0
+      && selectedOption.value !== null
+      && selectedOption.value !== undefined
+      && group.items?.some((item) => String(item.id) === String(selectedOption.value))
+    ) {
+      return selectedOption.value
+    }
+
+    return undefined
+  }
+
+  const hasOptionGroupSelection = (group, index) => {
+    const selection = getOptionGroupSelection(group, index)
+    return Array.isArray(selection)
+      ? selection.length > 0
+      : selection !== null && selection !== undefined
+  }
+
+  const isOptionSelected = (group, item, index) => {
+    const selection = getOptionGroupSelection(group, index)
+    return Array.isArray(selection)
+      ? selection.some((id) => String(id) === String(item.id))
+      : String(selection) === String(item.id)
+  }
+
+  const isOptionLimitReached = (group, item, index) => {
+    if (isOptionSelected(group, item, index)) return false
+    const selection = getOptionGroupSelection(group, index)
+    const limit = group.maxSelections || group.items?.length || 1
+    return Array.isArray(selection) && selection.length >= limit
+  }
+
+  const syncLegacySelectedOption = () => {
+    for (const [index, group] of optionGroups.value.entries()) {
+      const selection = selectedOptions.value[getOptionGroupKey(group, index)]
+      const firstSelection = Array.isArray(selection) ? selection[0] : selection
+      if (firstSelection !== null && firstSelection !== undefined) {
+        selectedOption.value = firstSelection
+        return
+      }
+    }
+    selectedOption.value = null
+  }
+
+  const selectOption = (group, item, index) => {
+    selectedOptions.value = {
+      ...selectedOptions.value,
+      [getOptionGroupKey(group, index)]: item.id,
+    }
+    syncLegacySelectedOption()
+  }
+
+  const toggleOption = (group, item, index, checked) => {
+    const key = getOptionGroupKey(group, index)
+    const currentSelection = selectedOptions.value[key]
+    const selectedIds = Array.isArray(currentSelection) ? [...currentSelection] : []
+    const existingIndex = selectedIds.findIndex((id) => String(id) === String(item.id))
+
+    if (checked && existingIndex === -1 && !isOptionLimitReached(group, item, index)) {
+      selectedIds.push(item.id)
+    } else if (!checked && existingIndex !== -1) {
+      selectedIds.splice(existingIndex, 1)
+    }
+
+    selectedOptions.value = { ...selectedOptions.value, [key]: selectedIds }
+    syncLegacySelectedOption()
+  }
+
+  const handleOptionClick = (group, item, index) => {
+    if (group.type === 'checkbox') {
+      toggleOption(group, item, index, !isOptionSelected(group, item, index))
+    } else {
+      selectOption(group, item, index)
+    }
+  }
+
+  const handleOptionChange = (group, item, index, checked) => {
+    if (group.type === 'checkbox') {
+      toggleOption(group, item, index, checked)
+    } else {
+      selectOption(group, item, index)
+    }
+  }
+
+  const initializeNormalSelections = (product) => {
+    const selections = product.selectedOptions
+      ? JSON.parse(JSON.stringify(product.selectedOptions))
+      : {}
+
+    if (Object.keys(selections).length === 0 && product.selectedOption !== null && product.selectedOption !== undefined) {
+      const matchingGroup = optionGroups.value.findIndex((group) => (
+        group.items?.some((choice) => String(choice.id) === String(product.selectedOption))
+      ))
+      if (matchingGroup !== -1) {
+        const group = optionGroups.value[matchingGroup]
+        selections[getOptionGroupKey(group, matchingGroup)] = product.selectedOption
+      }
+    }
+
+    optionGroups.value.forEach((group, index) => {
+      const key = getOptionGroupKey(group, index)
+      const defaults = (group.items || []).filter((choice) => choice.default)
+      if (!Object.prototype.hasOwnProperty.call(selections, key) && defaults.length) {
+        selections[key] = group.type === 'checkbox'
+          ? defaults.map((choice) => choice.id).slice(0, group.maxSelections || defaults.length)
+          : defaults[0].id
+      }
+    })
+
+    selectedOptions.value = selections
+    selectedOption.value = product.selectedOption ?? null
+    syncLegacySelectedOption()
+
+    selectedSize.value = product.selectedSize
+      ?? props.product?.customization?.sizes?.find((size) => size.default)
+      ?? null
+    selectedFlavors.value = Array.isArray(product.selectedFlavors)
+      ? [...product.selectedFlavors]
+      : (props.product?.customization?.flavors || []).filter((flavor) => flavor.default)
+
+    originalSelectedOption.value = selectedOption.value
+    originalSelectedSize.value = product.selectedSize || null
+    originalSelectedFlavors.value = product.selectedFlavors
+      ? [...product.selectedFlavors]
+      : []
+  }
+
   const isFlavorSelected = (flavor) => selectedFlavors.value.some(f => f.id === flavor.id)
 
-  const selectOption = (item) => { selectedOption.value = item.id }
-  
   const toggleFlavor = (flavor) => {
     const index = selectedFlavors.value.findIndex(f => f.id === flavor.id)
     if (index > -1) {
@@ -1105,6 +1272,7 @@ const prepareComboForCart = () => {
       cashback: props.product.cashback || 0,
       options: props.product.options || [],
       selectedOption: selectedOption.value,
+      selectedOptions: JSON.parse(JSON.stringify(selectedOptions.value)),
       selectedSize: selectedSize.value,
       selectedFlavors: selectedFlavors.value,
       originalSelectedOption: originalSelectedOption.value,
@@ -1236,18 +1404,7 @@ watch(
         // Carrega dados do produto normal
         console.log('🍔 Inicializando produto normal para edição:', props.product.name)
         
-        if (props.product.selectedOption !== null && props.product.selectedOption !== undefined) {
-          selectedOption.value = props.product.selectedOption
-          originalSelectedOption.value = props.product.selectedOption
-        }
-        if (props.product.selectedSize) {
-          selectedSize.value = props.product.selectedSize
-          originalSelectedSize.value = props.product.selectedSize
-        }
-        if (props.product.selectedFlavors && props.product.selectedFlavors.length) {
-          selectedFlavors.value = [...props.product.selectedFlavors]
-          originalSelectedFlavors.value = [...props.product.selectedFlavors]
-        }
+        initializeNormalSelections(props.product)
 
         // ⭐ CARREGAR ADICIONAIS EXISTENTES
         const state = {}
@@ -1280,6 +1437,7 @@ watch(
   // Reset completo do estado
   const resetState = () => {
     selectedOption.value = null
+    selectedOptions.value = {}
     selectedSize.value = null
     selectedFlavors.value = []
     aditionalState.value = {}
@@ -1320,18 +1478,7 @@ watch(
           }
         } else {
           // Carrega dados do produto normal
-          if (props.product.selectedOption !== null && props.product.selectedOption !== undefined) {
-            selectedOption.value = props.product.selectedOption
-            originalSelectedOption.value = props.product.selectedOption
-          }
-          if (props.product.selectedSize) {
-            selectedSize.value = props.product.selectedSize
-            originalSelectedSize.value = props.product.selectedSize
-          }
-          if (props.product.selectedFlavors && props.product.selectedFlavors.length) {
-            selectedFlavors.value = [...props.product.selectedFlavors]
-            originalSelectedFlavors.value = [...props.product.selectedFlavors]
-          }
+          initializeNormalSelections(props.product)
 
           const state = {}
           const originalState = {}

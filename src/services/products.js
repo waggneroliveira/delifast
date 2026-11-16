@@ -5,7 +5,9 @@ const toNumber = (value, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback
 }
 
-const toBoolean = (value) => value === true || value === 1 || value === '1'
+const toBoolean = (value) => value === true
+  || value === 1
+  || (typeof value === 'string' && ['1', 'true', 'yes', 'sim'].includes(value.toLowerCase()))
 
 const parseArray = (value) => {
   if (Array.isArray(value)) return value
@@ -34,25 +36,76 @@ const normalizeChoice = (choice) => ({
   description: choice.description ?? '',
   price: toNumber(choice.price),
   image: getImageUrl(choice.image ?? choice.path_image ?? choice.image_url),
-  default: toBoolean(choice.default),
+  default: toBoolean(
+    choice.default
+      ?? choice.is_default
+      ?? choice.preselected
+      ?? choice.pre_selected
+      ?? choice.is_preselected
+      ?? choice.is_pre_selected,
+  ),
+  isRecommended: toBoolean(
+    choice.isRecommended ?? choice.is_recommended ?? choice.recommended,
+  ),
   maxPerOption: toNumber(choice.maxPerOption ?? choice.max_per_option ?? choice.maxQuantity),
 })
 
-const normalizeOptionType = (type) => {
-  if (['select', 'dropdown'].includes(type)) return 'select'
-  if (['checkbox', 'multiple', 'multicheckbox'].includes(type)) return 'checkbox'
+const normalizeOptionType = (type, group) => {
+  const normalizedType = String(type ?? '').toLowerCase().replace(/[\s-]+/g, '_')
+  const allowsMultiple = toBoolean(
+    group.multiple
+      ?? group.is_multiple
+      ?? group.allow_multiple
+      ?? group.multiple_choice
+      ?? group.allowMultiple,
+  )
+
+  if (allowsMultiple || [
+    'checkbox',
+    'checkboxes',
+    'multiple',
+    'multi',
+    'multicheckbox',
+    'multiple_choice',
+    'multiple_choices',
+    'multiple_selection',
+    'multi_select',
+    'multiselect',
+    'multi_choice',
+    'multichoice',
+  ].includes(normalizedType)) return 'checkbox'
+  if (['select', 'dropdown'].includes(normalizedType)) return 'select'
   return 'radio'
 }
 
 const normalizeOptionGroup = (group) => {
   const choices = parseArray(group.choices ?? group.items).map(normalizeChoice)
+  const type = normalizeOptionType(
+    group.type ?? group.input_type ?? group.selection_type ?? group.choice_type,
+    group,
+  )
+  const title = group.title ?? group.name ?? 'Opcoes'
+  const explicitPriceMode = group.priceMode ?? group.price_mode ?? group.pricing_type
+  const isSizeOption = toBoolean(
+    group.isSize ?? group.is_size ?? group.isSizeOption ?? group.is_size_option,
+  )
+    || /tamanho|size/i.test(title)
+
   return {
     ...group,
     id: group.id,
-    title: group.title ?? group.name ?? 'Opcoes',
-    type: normalizeOptionType(group.type ?? group.input_type),
-    required: toBoolean(group.required),
-    maxSelections: toNumber(group.maxSelections ?? group.max_selections, 1),
+    title,
+    type,
+    required: toBoolean(group.required ?? group.is_required ?? group.mandatory),
+    maxSelections: toNumber(
+      group.maxSelections
+        ?? group.max_selections
+        ?? group.maxChoices
+        ?? group.max_choices,
+      type === 'checkbox' ? choices.length : 1,
+    ),
+    isSizeOption,
+    priceMode: isSizeOption ? 'replace' : (explicitPriceMode ?? 'add'),
     items: choices,
   }
 }
@@ -89,6 +142,10 @@ const normalizeSize = (size) => ({
   price: toNumber(size.price),
   oldPrice: toNumber(size.oldPrice ?? size.old_price),
   description: size.description ?? '',
+  default: toBoolean(
+    size.default ?? size.is_default ?? size.preselected ?? size.pre_selected,
+  ),
+  required: toBoolean(size.required ?? size.is_required),
 })
 
 export const normalizeProduct = (product, apiCategories = []) => {
@@ -131,17 +188,33 @@ export const normalizeProduct = (product, apiCategories = []) => {
   const rawCustomization = product.customization && typeof product.customization === 'object'
     ? product.customization
     : {}
+  const customizationSizes = rawCustomization.sizes
+    ? parseArray(rawCustomization.sizes)
+    : []
+  const customizationFlavors = rawCustomization.flavors
+    ? parseArray(rawCustomization.flavors)
+    : []
+  const customizationToppings = rawCustomization.toppings
+    ? parseArray(rawCustomization.toppings)
+    : []
   const customization = {
     ...rawCustomization,
-    sizes: (rawCustomization.sizes ? parseArray(rawCustomization.sizes) : sizes).map(normalizeSize),
-    flavors: (rawCustomization.flavors ? parseArray(rawCustomization.flavors) : flavors)
+    sizes: (customizationSizes.length ? customizationSizes : sizes).map(normalizeSize),
+    flavors: (customizationFlavors.length ? customizationFlavors : flavors)
       .map(normalizeChoice),
-    toppings: (rawCustomization.toppings ? parseArray(rawCustomization.toppings) : toppings)
+    toppings: (customizationToppings.length ? customizationToppings : toppings)
       .map(normalizeChoice),
   }
   customization.hasSize = toBoolean(rawCustomization.hasSize) || customization.sizes.length > 0
   customization.hasFlavors = toBoolean(rawCustomization.hasFlavors) || customization.flavors.length > 0
   customization.hasToppings = toBoolean(rawCustomization.hasToppings) || customization.toppings.length > 0
+  const rawSizeRequired = rawCustomization.sizeRequired
+    ?? rawCustomization.size_required
+    ?? product.sizeRequired
+    ?? product.size_required
+  customization.sizeRequired = rawSizeRequired === undefined
+    ? customization.sizes.some((size) => size.required) || customization.sizes.length > 0
+    : toBoolean(rawSizeRequired)
   customization.maxFlavors = toNumber(
     rawCustomization.maxFlavors ?? rawCustomization.max_flavors ?? product.max_flavors,
   )
