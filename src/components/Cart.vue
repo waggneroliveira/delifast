@@ -260,6 +260,18 @@
                     <p class="text-muted small mb-2">
                         {{ item.description }}
                     </p>
+
+                    <div v-if="!item.isCombo && (item.selectedSize || getSelectedOption(item) || item.selectedFlavors?.length)" class="small text-muted mb-2">
+                        <div v-if="item.selectedSize">Tamanho: {{ item.selectedSize.name }}</div>
+                        <div v-if="getSelectedOption(item)">
+                            Opção: {{ getSelectedOption(item).name }}
+                            <span v-if="getSelectedOption(item).price">(+{{ formatPrice(getSelectedOption(item).price) }})</span>
+                        </div>
+                        <div v-for="flavor in item.selectedFlavors" :key="flavor.id">
+                            Sabor: {{ flavor.name }}
+                            <span v-if="flavor.price">(+{{ formatPrice(flavor.price) }})</span>
+                        </div>
+                    </div>
                     
                     <!-- Mostrar personalizações do combo -->
                     <div v-if="item.isCombo && item.itemSelections" class="mb-2">
@@ -654,7 +666,7 @@
         productId: item.productId || item.originalProductId || item.id,
         name: item.name,
         description: item.description,
-        price: item.basePrice || item.finalPrice || item.price,
+        price: item.basePrice ?? item.finalPrice ?? item.price,
         basePrice: item.basePrice,
         finalPrice: item.finalPrice,
         originalPrice: item.originalPrice || item.price,
@@ -681,7 +693,9 @@
         itemSelections: isComboItem ? (item.itemSelections ? JSON.parse(JSON.stringify(item.itemSelections)) : {}) : {},
         
         // Propriedades para produtos normais
+        options: baseProduct?.options || item.options || [],
         aditionals: item.aditionals ? JSON.parse(JSON.stringify(item.aditionals)) : [],
+        selectedOption: item.selectedOption,
         aditionalsState: item.aditionalsState ? { ...item.aditionalsState } : {},
         selectedSize: item.selectedSize,
         selectedFlavors: item.selectedFlavors ? [...item.selectedFlavors] : [],
@@ -829,28 +843,18 @@
     
     const getItemTotal = (item) => {
         if (!item) return 0
-        // Se for combo, usa o finalPrice
-        if (item.isCombo) {
-            return item.finalPrice || item.price
-        }
-        // Para produtos normais
-        const productTotal = (item.price || 0) * (item.quantity || 1)
-        const aditionalsTotal = getItemAditionalsTotal(item)
-        return productTotal + aditionalsTotal
+        return cart.calculateItemTotal(item)
     }
-    
-    const getItemAditionalsTotal = (item) => {
-        if (!item || !item.aditionals) return 0
-        
-        let total = 0
-        item.aditionals.forEach(group => {
-            group.items.forEach(aditional => {
-                if (aditional.quantity > 0 && aditional.price) {
-                    total += (aditional.price * aditional.quantity)
-                }
-            })
-        })
-        return total
+
+    const getSelectedOption = (item) => {
+        if (item.selectedOption === null || item.selectedOption === undefined) return null
+        for (const group of item.options || []) {
+            const option = group.items?.find(
+                (choice) => String(choice.id) === String(item.selectedOption)
+            )
+            if (option) return option
+        }
+        return null
     }
     
     const getItemAditionalsList = (item) => {

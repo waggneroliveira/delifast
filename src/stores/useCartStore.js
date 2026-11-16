@@ -18,7 +18,9 @@ export const useCartStore = defineStore('cart', {
 
     subTotal: (state) =>
       state.items.reduce((total, item) => {
-        let itemTotal = getItemBaseTotal(item)
+        const itemTotal = item.isCombo
+          ? (item.finalPrice || item.price) * item.quantity
+          : getItemBaseTotal(item)
         return total + itemTotal
       }, 0),
 
@@ -70,14 +72,16 @@ export const useCartStore = defineStore('cart', {
       }
       
       let basePrice = getItemBasePrice(item)
+      let choicesTotal = getItemChoicesTotal(item)
       let aditionalsTotal = getItemAditionalsTotal(item)
       
       return {
         ...item,
         basePrice,
+        choicesTotal,
         aditionalsTotal,
         aditionalsList: getItemAditionalsList(item),
-        itemTotal: (basePrice + aditionalsTotal) * item.quantity
+        itemTotal: (basePrice + choicesTotal + aditionalsTotal) * item.quantity
       }
     }
   },
@@ -120,7 +124,7 @@ export const useCartStore = defineStore('cart', {
         const parts = [
           item.productId || item.id,
           'normal',
-          item.selectedOption || 'no_option',
+          item.selectedOption ?? 'no_option',
           item.selectedSize?.id || 'no_size',
           JSON.stringify((item.selectedFlavors || []).map(f => f.id).sort()),
           JSON.stringify(getItemAditionalsSignature(item))
@@ -211,8 +215,9 @@ export const useCartStore = defineStore('cart', {
         image: product.image,
         cashback: product.cashback || 0,
         quantity: 1,
+        basePrice: product.basePrice ?? product.price ?? 0,
         options: product.options || [],
-        selectedOption: product.selectedOption || null,
+        selectedOption: product.selectedOption ?? null,
         selectedSize: product.selectedSize || null,
         selectedFlavors: product.selectedFlavors || [],
         aditionals: aditionalsCopy,
@@ -261,7 +266,7 @@ export const useCartStore = defineStore('cart', {
         const parts = [
           item.productId || item.id,
           'normal',
-          item.selectedOption || 'no_option',
+          item.selectedOption ?? 'no_option',
           item.selectedSize?.id || 'no_size',
           JSON.stringify((item.selectedFlavors || []).map(f => f.id).sort()),
           JSON.stringify(getItemAditionalsSignature(item))
@@ -348,6 +353,7 @@ export const useCartStore = defineStore('cart', {
         image: product.image || originalItem.image,
         cashback: product.cashback || originalItem.cashback || 0,
         quantity: originalQuantity,
+        basePrice: product.basePrice ?? originalItem.basePrice ?? product.price ?? originalItem.price ?? 0,
         options: product.options || originalItem.options || [],
         selectedOption: product.selectedOption !== undefined ? product.selectedOption : originalItem.selectedOption,
         selectedSize: product.selectedSize || originalItem.selectedSize,
@@ -428,6 +434,7 @@ export const useCartStore = defineStore('cart', {
       }
       
       let total = getItemBasePrice(item) * item.quantity
+      total += getItemChoicesTotal(item) * item.quantity
       total += getItemAditionalsTotal(item) * item.quantity
       return total
     }
@@ -438,10 +445,33 @@ export const useCartStore = defineStore('cart', {
 
 // Obtém o preço base do item (considerando tamanho selecionado)
 function getItemBasePrice(item) {
-  if (item.selectedSize && item.selectedSize.price) {
+  if (item.selectedSize && item.selectedSize.price != null) {
     return item.selectedSize.price
   }
+  if (item.basePrice != null) return item.basePrice
+  if (item.originalPrice != null) return item.originalPrice
   return item.price || 0
+}
+
+function getItemChoicesTotal(item) {
+  let total = 0
+  if (item.selectedOption !== null && item.selectedOption !== undefined) {
+    for (const group of item.options || []) {
+      const option = group.items?.find(
+        (choice) => String(choice.id) === String(item.selectedOption)
+      )
+      if (option) {
+        total += option.price || 0
+        break
+      }
+    }
+  }
+
+  for (const flavor of item.selectedFlavors || []) {
+    total += flavor.price || 0
+  }
+
+  return total
 }
 
 // Calcula o total base do item (preço * quantidade)
@@ -449,6 +479,7 @@ function getItemBaseTotal(item) {
   const basePrice = getItemBasePrice(item)
   let total = basePrice * item.quantity
   
+  total += getItemChoicesTotal(item) * item.quantity
   total += getItemAditionalsTotal(item) * item.quantity
   
   return total

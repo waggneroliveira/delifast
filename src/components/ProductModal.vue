@@ -562,6 +562,17 @@
     return props.product?.price || 0
   })
 
+  const selectedOptionPrice = computed(() => {
+    if (selectedOption.value === null || selectedOption.value === undefined) return 0
+
+    for (const group of optionGroups.value) {
+      const option = group.items?.find((item) => String(item.id) === String(selectedOption.value))
+      if (option) return option.price || 0
+    }
+
+    return 0
+  })
+
   const currentOldPrice = computed(() => {
     if (selectedSize.value && selectedSize.value.oldPrice) {
       return selectedSize.value.oldPrice
@@ -580,6 +591,8 @@
     let price = currentPrice.value
     
     if (!isCombo.value) {
+      price += selectedOptionPrice.value
+
       selectedFlavors.value.forEach(flavor => {
         price += flavor.price || 0
       })
@@ -652,7 +665,7 @@
       return true
     }
     const requiredOptions = props.product?.options?.some((group) => group.required)
-    if (requiredOptions && !selectedOption.value) return false
+    if (requiredOptions && (selectedOption.value === null || selectedOption.value === undefined)) return false
     if (hasSizes.value && !selectedSize.value) return false
     if (hasFlavors.value && selectedFlavors.value.length === 0) return false
     return true
@@ -1084,11 +1097,13 @@ const prepareComboForCart = () => {
       id: props.product.id,
       name: props.product.name,
       description: props.product.description,
-      price: finalPrice.value,
+      price: currentPrice.value,
+      basePrice: currentPrice.value,
       originalPrice: props.product.price,
       oldPrice: currentOldPrice.value,
       image: props.product.images?.[0] || props.product.image,
       cashback: props.product.cashback || 0,
+      options: props.product.options || [],
       selectedOption: selectedOption.value,
       selectedSize: selectedSize.value,
       selectedFlavors: selectedFlavors.value,
@@ -1221,7 +1236,7 @@ watch(
         // Carrega dados do produto normal
         console.log('🍔 Inicializando produto normal para edição:', props.product.name)
         
-        if (props.product.selectedOption) {
+        if (props.product.selectedOption !== null && props.product.selectedOption !== undefined) {
           selectedOption.value = props.product.selectedOption
           originalSelectedOption.value = props.product.selectedOption
         }
@@ -1305,7 +1320,7 @@ watch(
           }
         } else {
           // Carrega dados do produto normal
-          if (props.product.selectedOption) {
+          if (props.product.selectedOption !== null && props.product.selectedOption !== undefined) {
             selectedOption.value = props.product.selectedOption
             originalSelectedOption.value = props.product.selectedOption
           }
