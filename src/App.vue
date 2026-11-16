@@ -366,11 +366,14 @@
 
       products.value = apiProducts.map((product) => normalizeProduct(product, apiCategories))
       normalizedCategories.forEach((category) => {
-        category.products = products.value.filter((product) => product.category === category.id)
+        category.products = products.value.filter(
+          (product) => !product.featured && product.category === category.id,
+        )
       })
 
       const uncategorizedProducts = products.value.filter(
-        (product) => !normalizedCategories.some((category) => category.id === product.category),
+        (product) => !product.featured
+          && !normalizedCategories.some((category) => category.id === product.category),
       )
       if (uncategorizedProducts.length) {
         normalizedCategories.push({
@@ -380,7 +383,7 @@
         })
       }
 
-      categories.value = normalizedCategories
+      categories.value = normalizedCategories.filter((category) => category.products.length > 0)
       if (typeof window !== 'undefined') window.products = products.value
     }
 
@@ -389,6 +392,8 @@
         await loadCatalog()
       } catch (error) {
         console.error('Nao foi possivel carregar o catalogo da API.', error)
+      } finally {
+        if (!highlights.value.length) markStartupReady('topAnnouncements')
       }
     })
 
@@ -583,8 +588,14 @@
               @startup-ready="markStartupReady('sidebarAnnouncements')"
             />
 
-            <div class="content w-mobile-100" :class="{ 'mt-5': hasAnnouncements === false }">
-              <div class="carousel-breakout">
+            <div
+              class="content w-mobile-100"
+              :class="{
+                'mt-5': hasAnnouncements === false,
+                'content-no-highlights': !highlights.length,
+              }"
+            >
+              <div v-if="highlights.length" class="carousel-breakout">
                 <ProductCarousel
                   :products="highlights"
                   @open="openProductModal"
@@ -598,7 +609,7 @@
                 </ProductCarousel>
               </div>
 
-              <div class="list-product">
+              <div v-if="categories.length" class="list-product">
                 <ProductList
                   :categories="categories"
                   @open="openProductModal"
@@ -795,6 +806,16 @@
   .list-product{
       width: 69vw;
       margin-left: calc(-30vw + 50%);
+  }
+  .content-no-highlights .list-product{
+      width: 100%;
+      margin-left: 0;
+  }
+  @media (min-width: 769px) {
+    .content-no-highlights{
+      flex: 1 1 0;
+      min-width: 0;
+    }
   }
   .carousel-breakout {
     width: 90vw;
