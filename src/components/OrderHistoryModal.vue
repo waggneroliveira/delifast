@@ -90,42 +90,25 @@
 
               <!-- Exibir customizações se houver -->
               <div class="order-customizations" v-if="hasCustomizations(order)">
-                <div class="customizations-title">✨ Detalhes adicionais:</div>
+                <div class="customizations-title">✨ Personalizações do item:</div>
                 <div class="customizations-list">
                   <div v-for="(item, idx) in order.items" :key="idx" class="customization-item">
-                    <div class="customization-item-name">{{ item.name }}</div>
-                    <div v-if="item.customization" class="customization-details">
-                      <div v-if="item.customization.size">📏 Tamanho: {{ item.customization.size }}</div>
-                      <div v-if="item.customization.flavors && item.customization.flavors.length">🍕 Sabores: {{ item.customization.flavors.join(', ') }}</div>
-                      <div v-if="item.customization.toppings && item.customization.toppings.length">➕ Adicionais: {{ item.customization.toppings.join(', ') }}</div>
-                      <div v-if="item.customization.spiciness">🌶️ Picância: {{ item.customization.spiciness }}</div>
-                    </div>
-                    <div v-if="item.comboDetails" class="combo-details">
-                      <div class="combo-title">📦 Itens do combo:</div>
-                      <div v-if="item.comboDetails.hamburguer">🍔 Hambúrguer: {{ item.comboDetails.hamburguer }}</div>
-                      <div v-if="item.comboDetails.acompanhamento">🍟 Acompanhamento: {{ item.comboDetails.acompanhamento }}</div>
-                      <div v-if="item.comboDetails.bebida">🥤 Bebida: {{ item.comboDetails.bebida }}</div>
-                      <div v-if="item.comboDetails.yakisoba">🍜 Yakisoba: {{ item.comboDetails.yakisoba }}</div>
-                      <div v-if="item.comboDetails.refrigerante">🥤 Refrigerante: {{ item.comboDetails.refrigerante }}</div>
-                      <div v-if="item.comboDetails.rolinhos && item.comboDetails.rolinhos.length">🥟 Rolinhos: {{ item.comboDetails.rolinhos.join(', ') }}</div>
-                      <div v-if="item.comboDetails.pizza && item.comboDetails.pizza.length">🍕 Pizza: {{ item.comboDetails.pizza.join(', ') }}</div>
-                      <div v-if="item.comboDetails.borda">🍕 Borda: {{ item.comboDetails.borda }}</div>
-                      <div v-if="item.comboDetails.sobremesa">🍰 Sobremesa: {{ item.comboDetails.sobremesa }}</div>
-                      <div v-if="item.comboDetails.extras && item.comboDetails.extras.length">✨ Extras: {{ item.comboDetails.extras.join(', ') }}</div>
-                    </div>
-                    <!-- Exibir seleções do combo diretamente -->
-                    <div v-if="item.itemSelections && !item.comboDetails" class="combo-details">
-                      <div class="combo-title">📦 Itens do combo:</div>
-                      <div v-if="item.itemSelections.hamburguer">🍔 Hambúrguer: {{ item.itemSelections.hamburguer.choice?.name }}</div>
-                      <div v-if="item.itemSelections.acompanhamento">🍟 Acompanhamento: {{ item.itemSelections.acompanhamento.choice?.name }}</div>
-                      <div v-if="item.itemSelections.bebida">🥤 Bebida: {{ item.itemSelections.bebida.choice?.name }}</div>
-                      <div v-if="item.itemSelections.yakisoba">🍜 Yakisoba: {{ item.itemSelections.yakisoba.choice?.name }}</div>
-                      <div v-if="item.itemSelections.refrigerante">🥤 Refrigerante: {{ item.itemSelections.refrigerante.choice?.name }}</div>
-                      <div v-if="item.itemSelections.rolinhos && item.itemSelections.rolinhos.length">🥟 Rolinhos: {{ item.itemSelections.rolinhos.map(r => r.choice?.name).join(', ') }}</div>
-                    </div>
-                    <div v-if="item.selectedAddons && item.selectedAddons.length" class="customization-details">
-                      <div>➕ Adicionais: {{ item.selectedAddons.map(a => `${a.name} (${a.quantity}x)`).join(', ') }}</div>
-                    </div>
+                    <template v-if="hasItemCustomizations(item)">
+                      <div class="customization-item-name">{{ item.name }}</div>
+                      <div v-for="(line, lineIdx) in getProductDetailsLines(item)" :key="`detail-${lineIdx}`" class="customization-details">
+                        {{ line }}
+                      </div>
+                      <div v-if="getComboSelectionRows(item).length" class="combo-details">
+                        <div class="combo-title">📦 Itens do combo:</div>
+                        <div v-for="selection in getComboSelectionRows(item)" :key="selection.id">
+                          {{ selection.name }}: {{ selection.value }}
+                        </div>
+                      </div>
+                      <div v-if="getSelectedComboAddons(item).length" class="customization-details">
+                        ➕ Adicionais:
+                        {{ getSelectedComboAddons(item).map(addon => `${addon.quantity}x ${addon.name}`).join(', ') }}
+                      </div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -173,12 +156,6 @@ const orders = ref([])
 const expandedOrder = ref(null)
 const loadingOrderId = ref(null)
 
-// Função para verificar se o pedido tem customizações
-const hasCustomizations = (order) => {
-  if (!order || !order.items) return false
-  return order.items.some(item => item.customization || item.comboDetails || item.itemSelections)
-}
-
 const normalizeOrder = (order) => ({
   ...order,
   createdAt: order.createdAt ?? order.created_at,
@@ -191,12 +168,144 @@ const normalizeOrder = (order) => ({
     return {
       ...details,
       ...item,
-      price: item.price ?? item.unit_price ?? details.price,
-      finalPrice: item.finalPrice ?? item.total_price ?? details.finalPrice,
-      image: item.image ?? details.image
+      name: item.name ?? item.product_title ?? details.name,
+      price: item.unit_price ?? item.price ?? details.price,
+      finalPrice: item.total_price ?? item.finalPrice ?? details.finalPrice,
+      image: item.image ?? item.product_image ?? details.image
     }
   })
 })
+
+const getSelectedOptionGroups = (item) => {
+  const selections = item.selectedOptions && typeof item.selectedOptions === 'object'
+    ? item.selectedOptions
+    : {}
+  const hasSelections = Object.keys(selections).length > 0
+
+  return (item.options || []).flatMap((group, index) => {
+    const key = String(group.id ?? group.title ?? index)
+    let selection = selections[key]
+    if (
+      selection === undefined
+      && !hasSelections
+      && item.selectedOption !== null
+      && item.selectedOption !== undefined
+      && group.items?.some((choice) => String(choice.id) === String(item.selectedOption))
+    ) {
+      selection = item.selectedOption
+    }
+
+    const selectedIds = Array.isArray(selection) ? selection : [selection]
+    const choices = selectedIds
+      .filter((id) => id !== undefined && id !== null)
+      .map((id) => group.items?.find((choice) => String(choice.id) === String(id)))
+      .filter(Boolean)
+
+    return choices.length ? [{ group, choices }] : []
+  })
+}
+
+const getProductDetailsLines = (item) => {
+  const lines = []
+  const optionGroups = getSelectedOptionGroups(item)
+  const size = typeof item.selectedSize === 'string'
+    ? item.selectedSize
+    : item.selectedSize?.name
+    ?? item.selectedSize?.title
+    ?? item.customization?.size
+
+  if (size) lines.push(`📏 Tamanho: ${size}`)
+
+  for (const { group, choices } of optionGroups) {
+    if (size && (group.isSizeOption || group.priceMode === 'replace')) continue
+    lines.push(`${group.title || group.name}: ${choices.map((choice) => choice.name).join(', ')}`)
+  }
+
+  const flavors = (item.selectedFlavors || [])
+    .map((flavor) => typeof flavor === 'string' ? flavor : flavor?.name ?? flavor?.title)
+    .filter(Boolean)
+  if (flavors.length) {
+    lines.push(`🍕 Sabores: ${flavors.join(', ')}`)
+  } else if (Array.isArray(item.customization?.flavors)
+    && item.customization.flavors.every((flavor) => typeof flavor === 'string')
+    && item.customization.flavors.length) {
+    lines.push(`🍕 Sabores: ${item.customization.flavors.join(', ')}`)
+  }
+
+  const additionals = (item.aditionals || item.additionals || [])
+    .flatMap((group) => group.items || [])
+    .filter((additional) => Number(additional.quantity) > 0)
+    .map((additional) => `${additional.quantity}x ${additional.name}`)
+  if (additionals.length) {
+    lines.push(`➕ Adicionais: ${additionals.join(', ')}`)
+  } else if (Array.isArray(item.customization?.toppings)
+    && item.customization.toppings.every((topping) => typeof topping === 'string')
+    && item.customization.toppings.length) {
+    lines.push(`➕ Adicionais: ${item.customization.toppings.join(', ')}`)
+  }
+
+  if (item.customization?.spiciness) {
+    lines.push(`🌶️ Picância: ${item.customization.spiciness}`)
+  }
+
+  return lines
+}
+
+const getComboSelectionRows = (item) => {
+  if (
+    item.itemSelections
+    && typeof item.itemSelections === 'object'
+    && Object.keys(item.itemSelections).length
+  ) {
+    return Object.entries(item.itemSelections).flatMap(([id, selection]) => {
+      const comboItem = (item.comboItems || []).find(
+        (candidate) => String(candidate.id) === String(id),
+      )
+      const value = (Array.isArray(selection) ? selection : [selection])
+        .map((choice) => {
+          const name = choice?.choice?.name
+            ?? choice?.selected?.name
+            ?? choice?.selected
+            ?? choice?.name
+          if (!name) return null
+          const quantity = Number(choice.quantity) || 1
+          return quantity > 1 ? `${quantity}x ${name}` : name
+        })
+        .filter(Boolean)
+        .join(', ')
+
+      return value ? [{
+        id,
+        name: comboItem?.name ?? comboItem?.title ?? id,
+        value
+      }] : []
+    })
+  }
+
+  if (!item.comboDetails || typeof item.comboDetails !== 'object') return []
+
+  return Object.entries(item.comboDetails).flatMap(([id, value]) => {
+    const formattedValue = Array.isArray(value)
+      ? value.map((entry) => typeof entry === 'string' ? entry : entry?.name).filter(Boolean).join(', ')
+      : typeof value === 'string' || typeof value === 'number'
+        ? String(value)
+        : ''
+    return formattedValue ? [{ id, name: id, value: formattedValue }] : []
+  })
+}
+
+const getSelectedComboAddons = (item) => (item.selectedAddons || [])
+  .filter((addon) => Number(addon.quantity) > 0 && addon.name)
+
+const hasItemCustomizations = (item) => (
+  getProductDetailsLines(item).length > 0
+  || getComboSelectionRows(item).length > 0
+  || getSelectedComboAddons(item).length > 0
+)
+
+const hasCustomizations = (order) => (
+  (order?.items || []).some(hasItemCustomizations)
+)
 
 const fetchOrders = async () => {
   if (!props.userId) {
