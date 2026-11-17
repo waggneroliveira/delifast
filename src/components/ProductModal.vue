@@ -1306,11 +1306,9 @@ function addToCart() {
       
       console.log('Atualizando item com ID:', props.product.cartItemId)
       cart.updateItem(updatedItem)
-      toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 3000 })
     } else {
       // MODO ADIÇÃO - Adiciona novo item (o cartStore gera o ID)
       cart.add(comboItem)
-      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 3000 })
     }
   } else {
     const productToAdd = prepareNormalProductForCart()
@@ -1325,10 +1323,8 @@ function addToCart() {
         quantity: 1
       }
       cart.updateItem(updatedItem)
-      toast.success(`${props.product.name} atualizado com sucesso!`, { timeout: 2000 })
     } else {
       cart.add(productToAdd)
-      toast.success(`${props.product.name} adicionado ao carrinho!`, { timeout: 2000 })
     }
   }
 

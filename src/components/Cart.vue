@@ -858,7 +858,7 @@
         isSubmitting.value = true
         try {
             await createOrder(orderData)
-            cart.clear()
+            cart.clear({ silent: true })
             toast.success('Pedido confirmado e salvo com sucesso!', {
                 timeout: 4000
             })

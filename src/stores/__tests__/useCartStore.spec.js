@@ -120,4 +120,14 @@ describe('useCartStore', () => {
     expect(cart.calculateItemTotal(cart.items[0])).toBe(50)
     expect(cart.subTotal).toBe(50)
   })
+
+  it('clears the cart silently when the caller provides its own completion message', () => {
+    const cart = useCartStore()
+    cart.items = [{ id: 1, name: 'Lanche', quantity: 1 }]
+
+    cart.clear({ silent: true })
+
+    expect(cart.items).toEqual([])
+    expect(toast.info).not.toHaveBeenCalled()
+  })
 })

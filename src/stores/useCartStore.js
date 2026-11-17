@@ -424,10 +424,12 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    clear() {
-      const toast = useToast()
+    clear({ silent = false } = {}) {
       this.items = []
-      toast.info('Carrinho esvaziado!', { timeout: 3000 })
+      if (!silent) {
+        const toast = useToast()
+        toast.info('Carrinho esvaziado!', { timeout: 3000 })
+      }
     },
     
     calculateItemTotal(item) {
