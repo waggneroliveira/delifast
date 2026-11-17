@@ -37,7 +37,7 @@
           >
             <div class="order-header" @click="toggleOrderDetails(order.id)">
               <div class="order-info">
-                <div class="order-id">Pedido #{{ order.id }}</div>
+                <div class="order-id">Pedido #{{ order.number }}</div>
                 <div class="order-date">{{ formatDate(order.createdAt) }}</div>
               </div>
               <div class="order-status">
