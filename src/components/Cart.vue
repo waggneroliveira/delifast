@@ -841,12 +841,14 @@
             total: cart.total,
             items: cart.items.map((item) => {
                 const totalPrice = cart.calculateItemTotal(item)
+                const unitPrice = totalPrice / item.quantity
 
                 return {
                     product_id: item.productId ?? item.originalProductId,
                     name: item.name,
                     quantity: item.quantity,
-                    unit_price: totalPrice / item.quantity,
+                    price: unitPrice,
+                    unit_price: unitPrice,
                     total_price: totalPrice,
                     details: item
                 }
