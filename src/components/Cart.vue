@@ -395,10 +395,11 @@
         <div class="p-3 d-flex justify-content-end">
             <button 
                 class="btn btn-confirm px-3 d-flex justify-content-center align-items-center"
-                :class="{ 'opacity-50': !canConfirm }"
+                :class="{ 'opacity-50': !canConfirm || isSubmitting }"
+                :disabled="!canConfirm || isSubmitting"
                 @click="handleConfirm"
             >
-                Confirmar pedido ›
+                {{ isSubmitting ? 'Salvando pedido...' : 'Confirmar pedido ›' }}
             </button>
         </div>
     </div>
@@ -433,7 +434,7 @@
     import PaymentMethodModal from './PaymentMethodModal.vue'
     import { useCartStore } from '@/stores/useCartStore'
     import { useUserStore } from '@/stores/useUserStore'
-    import { getAddresses } from '@/services/api'
+    import { createOrder, getAddresses } from '@/services/api'
 
     const toast = useToast()
     const cart = useCartStore()
@@ -445,6 +446,7 @@
     const selectedAddress = ref(null)
     const selectedDeliveryMethod = ref(null)
     const selectedPaymentMethod = ref('')
+    const isSubmitting = ref(false)
 
     // Product modal
     const showProductModal = ref(false)
@@ -719,6 +721,7 @@
     // Computed para saber se pode confirmar
     const canConfirm = computed(() => {
         if (!userStore.isLogged) return false
+        if (!cart.items.length) return false
         if (!selectedDeliveryMethod.value) return false
         if (selectedDeliveryMethod.value.value === 'delivery' && !selectedAddress.value) return false
         if (!selectedPaymentMethod.value) return false
@@ -793,9 +796,13 @@
         window.removeEventListener('addresses-updated', handleCustomAddressUpdate)
     })
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
+        if (isSubmitting.value) return
+
         if (!canConfirm.value) {
-            if (!userStore.isLogged) {
+            if (!cart.items.length) {
+                toast.warning('Adicione ao menos um item ao carrinho antes de confirmar.')
+            } else if (!userStore.isLogged) {
                 toast.warning('Você precisa se identificar antes de continuar!', {
                     timeout: 3000
                 })
@@ -816,27 +823,49 @@
         }
         
         const orderData = {
-            user: {
-                fullName: userStore.fullName,
+            customer: {
+                name: userStore.fullName,
                 whatsapp: userStore.whatsapp
             },
-            deliveryMethod: selectedDeliveryMethod.value,
-            paymentMethod: selectedPaymentMethod.value,
-            address: selectedAddress.value,
-            cart: cart.items,
-            totals: {
-                subTotal: cart.subTotal,
-                discount: cart.discount,
-                total: cart.total
-            },
-            completedAt: new Date().toISOString()
+            delivery_method: selectedDeliveryMethod.value.value,
+            delivery_details: selectedDeliveryMethod.value,
+            payment_method: selectedPaymentMethod.value,
+            address_id: selectedDeliveryMethod.value.value === 'delivery'
+                ? selectedAddress.value.id
+                : null,
+            delivery_address: selectedDeliveryMethod.value.value === 'delivery'
+                ? selectedAddress.value
+                : null,
+            subtotal: cart.subTotal,
+            discount: cart.discount,
+            total: cart.total,
+            items: cart.items.map((item) => {
+                const totalPrice = cart.calculateItemTotal(item)
+
+                return {
+                    product_id: item.productId ?? item.originalProductId,
+                    name: item.name,
+                    quantity: item.quantity,
+                    unit_price: totalPrice / item.quantity,
+                    total_price: totalPrice,
+                    details: item
+                }
+            })
         }
-        
-        console.log('Pedido confirmado:', orderData)
-        
-        toast.success('Pedido confirmado com sucesso!', {
-            timeout: 4000
-        })
+
+        isSubmitting.value = true
+        try {
+            await createOrder(orderData)
+            cart.clear()
+            toast.success('Pedido confirmado e salvo com sucesso!', {
+                timeout: 4000
+            })
+        } catch (error) {
+            console.error('Não foi possível salvar o pedido na API.', error)
+            toast.error(error.response?.data?.message || 'Não foi possível finalizar seu pedido.')
+        } finally {
+            isSubmitting.value = false
+        }
     }
 
     const formatPrice = (value) => {

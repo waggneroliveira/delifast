@@ -11,8 +11,11 @@ const {
   getAddresses,
   getCategories,
   getContacts,
+  getOrder,
+  getOrders,
   getProducts,
   getServiceLocations,
+  createOrder,
   updateAddress,
 } = await import('../api')
 
@@ -148,5 +151,37 @@ describe('API list endpoints', () => {
     expect(postSpy).toHaveBeenCalledWith('/client/addresses', address)
     expect(putSpy).toHaveBeenCalledWith('/client/addresses/8', address)
     expect(deleteSpy).toHaveBeenCalledWith('/client/addresses/8')
+  })
+
+  it('lists orders from /client/orders and supports paginated responses', async () => {
+    const orders = [{ id: 12, total: 45 }]
+    const getSpy = vi.spyOn(api, 'get').mockResolvedValue({ data: { data: orders } })
+
+    await expect(getOrders()).resolves.toEqual(orders)
+    expect(getSpy).toHaveBeenCalledWith('/client/orders')
+
+    vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { data: orders } } })
+    await expect(getOrders()).resolves.toEqual(orders)
+  })
+
+  it('rejects invalid order lists and loads one order by id', async () => {
+    const getSpy = vi.spyOn(api, 'get').mockResolvedValue({ data: { data: null } })
+    await expect(getOrders()).rejects.toThrow(
+      'A resposta de /client/orders não contém uma lista de pedidos.',
+    )
+
+    const order = { id: 12, items: [] }
+    getSpy.mockResolvedValue({ data: { data: { order } } })
+    await expect(getOrder(12)).resolves.toEqual(order)
+    expect(getSpy).toHaveBeenLastCalledWith('/client/orders/12')
+  })
+
+  it('creates orders through /client/orders', async () => {
+    const payload = { items: [], total: 0 }
+    const postSpy = vi.spyOn(api, 'post').mockResolvedValue({})
+
+    await createOrder(payload)
+
+    expect(postSpy).toHaveBeenCalledWith('/client/orders', payload)
   })
 })

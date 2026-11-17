@@ -191,6 +191,36 @@ export const updateAddress = (id, address) => api.put(`/client/addresses/${encod
 
 export const deleteAddress = (id) => api.delete(`/client/addresses/${encodeURIComponent(id)}`)
 
+export const getOrders = async () => {
+    const { data } = await api.get('/client/orders')
+    const orders = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.data?.data)
+            ? data.data.data
+            : Array.isArray(data)
+                ? data
+                : null
+
+    if (!orders) {
+        throw new Error('A resposta de /client/orders não contém uma lista de pedidos.')
+    }
+
+    return orders
+}
+
+export const getOrder = async (id) => {
+    const { data } = await api.get(`/client/orders/${encodeURIComponent(id)}`)
+    const order = data?.data?.order || data?.data || data?.order || data
+
+    if (!order || typeof order !== 'object' || Array.isArray(order)) {
+        throw new Error('A resposta de /client/orders/{id} não contém os dados do pedido.')
+    }
+
+    return order
+}
+
+export const createOrder = (order) => api.post('/client/orders', order)
+
 export const getAppearance = async () => {
     const { data } = await api.get('/appearance')
     const appearance = normalizeAppearance(data)

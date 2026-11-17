@@ -16,6 +16,10 @@
           <p>Carregando seus pedidos...</p>
         </div>
 
+        <div v-else-if="loadError" class="empty-state">
+          <p>{{ loadError }}</p>
+        </div>
+
         <!-- Empty state -->
         <div v-else-if="orders.length === 0" class="empty-state">
           <span class="empty-emoji">🍕</span>
@@ -45,6 +49,10 @@
             </div>
 
             <div v-if="expandedOrder === order.id" class="order-details">
+              <div v-if="loadingOrderId === order.id" class="text-muted p-2">
+                Carregando detalhes do pedido...
+              </div>
+              <template v-else>
               <div class="order-summary">
                 <div class="summary-item 1">
                   <strong>Total:</strong> 
@@ -127,6 +135,7 @@
                   🔄 Pedir novamente
                 </button>
               </div>
+              </template>
             </div>
           </div>
         </div>
@@ -141,6 +150,8 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useToast } from 'vue-toastification'
+import { getOrder, getOrders } from '@/services/api'
 
 const props = defineProps({
   modelValue: {
@@ -155,9 +166,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'reorder'])
 
+const toast = useToast()
 const loading = ref(false)
+const loadError = ref('')
 const orders = ref([])
 const expandedOrder = ref(null)
+const loadingOrderId = ref(null)
 
 // Função para verificar se o pedido tem customizações
 const hasCustomizations = (order) => {
@@ -165,274 +179,75 @@ const hasCustomizations = (order) => {
   return order.items.some(item => item.customization || item.comboDetails || item.itemSelections)
 }
 
-// ========== PRIMEIRO: Declare as funções ==========
+const normalizeOrder = (order) => ({
+  ...order,
+  createdAt: order.createdAt ?? order.created_at,
+  paymentMethod: order.paymentMethod ?? order.payment_method,
+  deliveryAddress: order.deliveryAddress ?? order.delivery_address ?? order.address,
+  total: order.total ?? order.total_amount ?? 0,
+  items: (Array.isArray(order.items) ? order.items : []).map((item) => {
+    const details = item.details && typeof item.details === 'object' ? item.details : {}
 
-// Mock data com estrutura completa e corrigida para combo
-const getMockOrders = () => {
-  return [
-    {
-      id: 1001,
-      userId: 1234567890,
-      createdAt: new Date(2024, 2, 15, 19, 30),
-      total: 109.90,
-      status: 'delivered',
-      paymentMethod: 'credit_card',
-      deliveryAddress: {
-        street: 'Rua das Flores, 123',
-        neighborhood: 'Centro',
-        city: 'São Paulo',
-        number: '123',
-        complement: 'Apto 45'
-      },
-      items: [
-        { 
-          id: 1,
-          productId: 1,
-          name: 'Hambúrguer Clássico',
-          quantity: 1,
-          price: 109.90,
-          finalPrice: 109.90,
-          originalPrice: 109.90,
-          oldPrice: 119.90,
-          image: '../src/assets/images/prod.png',
-          cashback: 5,
-          isCombo: false,
-          description: '4 smash burgers com 400g de fritas, creme de cheddar com bacon + Refrigerante',
-          aditionals: [
-            {
-              title: 'Adicionais',
-              items: [
-                { id: 1, name: 'Queijo Extra', price: 3.50, quantity: 1, stock: 99 },
-                { id: 2, name: 'Bacon Extra', price: 4.00, quantity: 1, stock: 99 }
-              ]
-            }
-          ],
-          aditionalsState: { 1: 1, 2: 1 },
-          selectedSize: null,
-          selectedFlavors: [],
-          customization: {
-            toppings: ['Queijo Extra', 'Bacon Extra'],
-            spiciness: 'Médio'
-          }
-        }
-      ]
-    },
-    {
-      id: 1002,
-      userId: 1234567890,
-      createdAt: new Date(2024, 2, 10, 20, 15),
-      total: 67.50,
-      status: 'delivered',
-      paymentMethod: 'pix',
-      deliveryAddress: {
-        street: 'Av. Paulista, 1000',
-        neighborhood: 'Bela Vista',
-        city: 'São Paulo',
-        number: '1000',
-        complement: 'Sala 1234'
-      },
-      items: [
-        { 
-          id: 8,
-          productId: 8,
-          name: 'Combo Burger',
-          quantity: 1,
-          price: 39.90,
-          finalPrice: 53.90,
-          basePrice: 39.90,
-          oldPrice: 59.90,
-          image: '../src/assets/images/prod.png',
-          cashback: 5,
-          isCombo: true,
-          description: 'Hambúrguer + Acompanhamento + Bebida',
-          savings: 20.00,
-          
-          comboItems: [
-            {
-              id: 'hamburguer',
-              name: 'Hambúrguer Artesanal',
-              quantity: 1,
-              required: true,
-              price: 0,
-              options: null
-            },
-            {
-              id: 'acompanhamento',
-              name: 'Acompanhamento',
-              quantity: 1,
-              required: true,
-              options: {
-                type: 'select',
-                title: 'Escolha o acompanhamento',
-                required: true,
-                maxSelections: 1,
-                choices: [
-                  { id: 1, name: 'Batata Frita', price: 0, default: true },
-                  { id: 2, name: 'Batata Rústica', price: 0 },
-                  { id: 3, name: 'Onion Rings', price: 3.00 },
-                  { id: 4, name: 'Salada', price: 0 }
-                ]
-              }
-            },
-            {
-              id: 'bebida',
-              name: 'Bebida',
-              quantity: 1,
-              required: true,
-              options: {
-                type: 'select',
-                title: 'Escolha a bebida',
-                required: true,
-                maxSelections: 1,
-                choices: [
-                  { id: 1, name: 'Coca-Cola 350ml', price: 0 },
-                  { id: 2, name: 'Guaraná 350ml', price: 0 },
-                  { id: 3, name: 'Suco Natural', price: 3.00 },
-                  { id: 4, name: 'Água', price: 0 }
-                ]
-              }
-            }
-          ],
-          
-          comboAddons: [
-            { id: 1, name: 'Queijo Extra', price: 3.00, maxQuantity: 2 },
-            { id: 2, name: 'Bacon Extra', price: 4.00, maxQuantity: 2 }
-          ],
-          
-          itemSelections: {
-            acompanhamento: { 
-              choice: { id: 1, name: 'Batata Frita', price: 0 }, 
-              quantity: 1, 
-              price: 0 
-            },
-            bebida: { 
-              choice: { id: 1, name: 'Coca-Cola 350ml', price: 0 }, 
-              quantity: 1, 
-              price: 0 
-            }
-          },
-          
-          selectedAddons: [
-            { id: 1, name: 'Queijo Extra', price: 3.00, quantity: 1 }
-          ],
-          
-          addonsTotalPrice: 3.00,
-          hasComboSelection: true,
-          isComboItem: true,
-          
-          comboDetails: {
-            hamburguer: 'Hambúrguer Artesanal',
-            acompanhamento: 'Batata Frita',
-            bebida: 'Coca-Cola 350ml',
-            extras: ['Queijo Extra']
-          }
-        }
-      ]
-    },
-    {
-      id: 1003,
-      userId: 1234567890,
-      createdAt: new Date(2024, 2, 5, 18, 45),
-      total: 45.90,
-      status: 'delivered',
-      paymentMethod: 'debit_card',
-      deliveryAddress: {
-        street: 'Rua Augusta, 500',
-        neighborhood: 'Consolação',
-        city: 'São Paulo',
-        number: '500',
-        complement: ''
-      },
-      items: [
-        { 
-          id: 2,
-          productId: 2,
-          name: 'Pizza Portuguesa',
-          quantity: 1,
-          price: 45.90,
-          finalPrice: 45.90,
-          originalPrice: 45.90,
-          oldPrice: 55.90,
-          image: '../src/assets/images/prod.png',
-          cashback: 8,
-          isCombo: false,
-          description: 'Molho especial, presunto, ovos, cebola, azeitona e queijo mussarela',
-          selectedSize: { id: 2, name: 'M', price: 45.90, description: '6 fatias - 3 pessoas', oldPrice: 55.90 },
-          selectedFlavors: [{ id: 1, name: 'Portuguesa', price: 0, description: 'Presunto, ovo, cebola, azeitona' }],
-          aditionals: [
-            {
-              title: 'Adicionais',
-              items: [
-                { id: 7, name: 'Azeitona Extra', price: 2.00, quantity: 1, stock: 99 }
-              ]
-            }
-          ],
-          aditionalsState: { 7: 1 },
-          customization: {
-            size: 'M',
-            flavors: ['Portuguesa'],
-            toppings: ['Azeitona Extra']
-          }
-        }
-      ]
+    return {
+      ...details,
+      ...item,
+      price: item.price ?? item.unit_price ?? details.price,
+      finalPrice: item.finalPrice ?? item.total_price ?? details.finalPrice,
+      image: item.image ?? details.image
     }
-  ]
-}
+  })
+})
 
-// ========== DEPOIS: Declare a função fetchOrders ==========
 const fetchOrders = async () => {
-  console.log('🔍🔍🔍 fetchOrders FOI CHAMADO! 🔍🔍🔍')
-  console.log('🔍 userId recebido no fetchOrders:', props.userId)
-  
   if (!props.userId) {
-    console.warn('⚠️ UserId não fornecido para buscar pedidos')
     orders.value = []
-    loading.value = false
     return
   }
   
   loading.value = true
-  console.log('📦 Buscando pedidos para o usuário:', props.userId)
+  loadError.value = ''
   
   try {
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Usando dados mock
-    orders.value = getMockOrders()
-    console.log('✅ Pedidos carregados com sucesso!')
-    console.log('📦 Quantidade de pedidos:', orders.value.length)
-    
+    orders.value = (await getOrders()).map(normalizeOrder)
   } catch (error) {
-    console.error('❌ Error fetching orders:', error)
-    orders.value = getMockOrders()
+    console.error('Não foi possível carregar os pedidos da API.', error)
+    loadError.value = error.response?.data?.message || 'Não foi possível carregar seus pedidos.'
+    toast.error(loadError.value)
   } finally {
     loading.value = false
-    console.log('🏁 fetchOrders finalizado')
   }
 }
 
-// ========== POR ÚLTIMO: Watch que chama fetchOrders ==========
-watch(() => props.modelValue, (newValue) => {
-  console.log('📱 Watch - Modal mudou para:', newValue)
-  console.log('📱 Watch - userId atual:', props.userId)
-  
-  if (newValue) {
-    console.log('📱 Modal ABERTO - chamando fetchOrders...')
+watch([() => props.modelValue, () => props.userId], ([isOpen]) => {
+  if (isOpen) {
     fetchOrders()
-  } else {
-    console.log('📱 Modal FECHADO')
   }
 }, { immediate: true })
 
-// ========== Funções auxiliares ==========
 const closeModal = () => {
   emit('update:modelValue', false)
   expandedOrder.value = null
 }
 
-const toggleOrderDetails = (orderId) => {
-  expandedOrder.value = expandedOrder.value === orderId ? null : orderId
+const toggleOrderDetails = async (orderId) => {
+  if (expandedOrder.value === orderId) {
+    expandedOrder.value = null
+    return
+  }
+
+  expandedOrder.value = orderId
+  loadingOrderId.value = orderId
+
+  try {
+    const order = normalizeOrder(await getOrder(orderId))
+    const orderIndex = orders.value.findIndex((item) => item.id === orderId)
+    if (orderIndex !== -1) orders.value[orderIndex] = order
+  } catch (error) {
+    console.error(`Não foi possível carregar os detalhes do pedido ${orderId}.`, error)
+    toast.error(error.response?.data?.message || 'Não foi possível carregar os detalhes do pedido.')
+  } finally {
+    if (loadingOrderId.value === orderId) loadingOrderId.value = null
+  }
 }
 
 const formatDate = (date) => {
@@ -454,10 +269,12 @@ const formatCurrency = (value) => {
 
 const formatAddress = (address) => {
   if (!address) return 'Endereço não informado'
-  let addressStr = `${address.street}, ${address.number}`
-  if (address.complement) addressStr += ` - ${address.complement}`
-  addressStr += ` - ${address.neighborhood}, ${address.city}`
-  return addressStr
+  return [
+    [address.street, address.number].filter(Boolean).join(', '),
+    address.complement,
+    address.neighborhood,
+    [address.city, address.state].filter(Boolean).join(' - ')
+  ].filter(Boolean).join(' - ')
 }
 
 const getStatusText = (status) => {
@@ -488,6 +305,7 @@ const getPaymentMethodText = (method) => {
   const methodMap = {
     credit_card: 'Cartão de Crédito',
     debit_card: 'Cartão de Débito',
+    card: 'Cartão de Crédito/Débito',
     pix: 'PIX',
     cash: 'Dinheiro',
     meal_voucher: 'Vale Refeição',
@@ -497,15 +315,9 @@ const getPaymentMethodText = (method) => {
 }
 
 const reorder = (order) => {
-  console.log('📦 Emitindo reorder para:', order)
   emit('reorder', order)
   closeModal()
 }
-
-console.log('🎯 OrderHistoryModal carregado, props recebidas:', {
-  modelValue: props.modelValue,
-  userId: props.userId
-})
 </script>
 
 <style scoped>
