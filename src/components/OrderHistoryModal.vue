@@ -156,6 +156,17 @@ const orders = ref([])
 const expandedOrder = ref(null)
 const loadingOrderId = ref(null)
 
+//Em produção, substituir essa porta fixa por uma variável de ambiente.
+const getProductImageUrl = (path) => {
+  if (!path) return null
+
+  if (/^https?:\/\//i.test(path)) return path
+
+  const baseUrl = `${window.location.protocol}//${window.location.hostname}:8000`
+
+  return `${baseUrl}/storage/${path.replace(/^\/+/, '')}`
+}
+
 const normalizeOrder = (order) => ({
   ...order,
   createdAt: order.createdAt ?? order.created_at,
@@ -171,7 +182,9 @@ const normalizeOrder = (order) => ({
       name: item.name ?? item.product_title ?? details.name,
       price: item.unit_price ?? item.price ?? details.price,
       finalPrice: item.total_price ?? item.finalPrice ?? details.finalPrice,
-      image: item.image ?? item.product_image ?? details.image
+      image: getProductImageUrl(
+        item.image ?? item.product_image ?? details.image
+      )
     }
   })
 })
